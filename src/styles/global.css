@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: clip;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #ffffff;
+  color: #242424;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+select,
+summary,
+label[for],
+[role='button'] {
+  cursor: pointer;
+}
+
+.price-range-input {
+  appearance: none;
+  background: transparent;
+  height: 28px;
+  left: 0;
+  margin: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.price-range-input::-webkit-slider-runnable-track {
+  background: transparent;
+  border: 0;
+  height: 6px;
+}
+
+.price-range-input::-webkit-slider-thumb {
+  appearance: none;
+  background: #ffffff;
+  border: 3px solid #22b565;
+  border-radius: 9999px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+  cursor: grab;
+  height: 22px;
+  margin-top: -8px;
+  pointer-events: auto;
+  width: 22px;
+}
+
+.price-range-input::-moz-range-track {
+  background: transparent;
+  border: 0;
+  height: 6px;
+}
+
+.price-range-input::-moz-range-thumb {
+  background: #ffffff;
+  border: 3px solid #22b565;
+  border-radius: 9999px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 20%);
+  cursor: grab;
+  height: 16px;
+  pointer-events: auto;
+  width: 16px;
+}
+
+.price-range-input:active::-webkit-slider-thumb,
+.price-range-input:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+
+.kos-map-marker-container {
+  background: transparent;
+  border: 0;
+}
+
+.kos-map-price-marker {
+  align-items: center;
+  background: #ffffff;
+  border: 2px solid var(--marker-color);
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 22%);
+  color: var(--marker-color);
+  display: flex;
+  font-size: 12px;
+  font-weight: 800;
+  height: 34px;
+  justify-content: center;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  width: 72px;
+}
+
+.kos-map-price-marker:hover {
+  box-shadow: 0 4px 14px rgb(0 0 0 / 28%);
+  transform: translateY(-2px) scale(1.04);
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 14px;
+}
+
+button:disabled,
+select:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+@keyframes payment-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes payment-backdrop-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes payment-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes payment-modal-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+}
