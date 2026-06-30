@@ -37,7 +37,16 @@ export type KosSearchResult = {
   listing: KosListing
 }
 
+export type SearchableLocation = {
+  id: string
+  label: string
+  description: string
+  searchValue: string
+  keywords: string[]
+}
+
 export type SearchMetadata = {
   cities: SearchCity[]
   popularCampuses: string[]
+  searchableLocations: SearchableLocation[]
 }

@@ -1,12 +1,6 @@
-import type { SearchCity } from '../types/search'
+import type { SearchMetadata, SearchableLocation } from '../types/search'
 
-export type SearchSuggestion = {
-  id: string
-  label: string
-  description: string
-  searchValue: string
-  keywords: string[]
-}
+export type SearchSuggestion = SearchableLocation
 
 const cityAliases: Record<string, string[]> = {
   Yogyakarta: ['jogja', 'jogjakarta', 'jogyakarta', 'yogya', 'djogja'],
@@ -40,6 +34,17 @@ function normalize(value: string) {
     .trim()
 }
 
+function withAliases(suggestion: SearchSuggestion) {
+  return {
+    ...suggestion,
+    keywords: [
+      ...suggestion.keywords,
+      ...(cityAliases[suggestion.label] ?? []),
+      ...(campusAliases[suggestion.label] ?? []),
+    ],
+  }
+}
+
 function matchScore(suggestion: SearchSuggestion, rawQuery: string) {
   const query = normalize(rawQuery)
   const searchableValues = [suggestion.label, ...suggestion.keywords].map(normalize)
@@ -51,16 +56,14 @@ function matchScore(suggestion: SearchSuggestion, rawQuery: string) {
   return Number.POSITIVE_INFINITY
 }
 
-export function getSearchSuggestions(cities: SearchCity[], query: string, limit = 8) {
-  if (!query.trim()) return []
-
-  const suggestions: SearchSuggestion[] = cities.flatMap((city) => [
+function createFallbackLocations(metadata: SearchMetadata): SearchSuggestion[] {
+  return metadata.cities.flatMap((city) => [
     {
       id: `city-${city.city}`,
       label: city.city,
       description: 'Kota',
       searchValue: city.city,
-      keywords: cityAliases[city.city] ?? [],
+      keywords: [],
     },
     ...city.areas.map((area) => ({
       id: `area-${city.city}-${area}`,
@@ -74,9 +77,19 @@ export function getSearchSuggestions(cities: SearchCity[], query: string, limit 
       label: campus,
       description: `Kampus di ${city.city}`,
       searchValue: campus,
-      keywords: campusAliases[campus] ?? [],
+      keywords: [city.city],
     })),
   ])
+}
+
+export function getSearchSuggestions(metadata: SearchMetadata, query: string, limit = 8) {
+  if (!query.trim()) return []
+
+  const suggestions = (
+    metadata.searchableLocations?.length
+      ? metadata.searchableLocations
+      : createFallbackLocations(metadata)
+  ).map(withAliases)
 
   return suggestions
     .map((suggestion) => ({ suggestion, score: matchScore(suggestion, query) }))

@@ -45,7 +45,7 @@ function createListingMedia(imageUrls: string[]): KosMedia[] {
 export const featuredKosListings: KosListing[] = [
   {
     id: 1,
-    title: 'Kamar Kos Minimalis',
+    title: 'Kos Melati Margonda Putri',
     location: 'Depok',
     monthlyPrice: 891000,
     rating: 4.8,
@@ -89,7 +89,7 @@ export const featuredKosListings: KosListing[] = [
   },
   {
     id: 2,
-    title: 'Kos Nyaman Siap Huni',
+    title: 'Griya Kaliurang Residence',
     location: 'Yogyakarta',
     monthlyPrice: 1250000,
     rating: 4.9,
@@ -133,7 +133,7 @@ export const featuredKosListings: KosListing[] = [
   },
   {
     id: 3,
-    title: 'Kos Eksklusif',
+    title: 'Kos Tubagus Ismail Eksklusif',
     location: 'Bandung',
     monthlyPrice: 1650000,
     rating: 4.7,

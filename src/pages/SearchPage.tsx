@@ -19,9 +19,10 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
   const [metadata, setMetadata] = useState<SearchMetadata>({
     cities: [],
     popularCampuses: [],
+    searchableLocations: [],
   })
   const [metadataError, setMetadataError] = useState('')
-  const suggestions = getSearchSuggestions(metadata.cities, value)
+  const suggestions = getSearchSuggestions(metadata, value)
   const isTyping = value.trim().length > 0
 
   useEffect(() => {

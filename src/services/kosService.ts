@@ -1,8 +1,7 @@
 import { allKosListings, featuredKosListings } from '../data/kosListings'
 import {
   dummyKosSearchRecords,
-  popularCampusSearches,
-  searchCities,
+  searchMetadata,
 } from '../data/searchData'
 import type { KosListing } from '../types/kos'
 import type {
@@ -87,7 +86,7 @@ const mockKosService: KosService = {
   },
 
   async getSearchMetadata() {
-    return { cities: searchCities, popularCampuses: popularCampusSearches }
+    return searchMetadata
   },
 }
 

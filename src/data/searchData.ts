@@ -1,4 +1,10 @@
-import type { KosSearchRecord, SearchCity } from '../types/search'
+import type {
+  KosSearchRecord,
+  SearchableLocation,
+  SearchCity,
+  SearchMetadata,
+} from '../types/search'
+import { indonesiaAdministrativeLocations } from './indonesiaLocations'
 
 export const searchCities: SearchCity[] = [
   {
@@ -227,3 +233,96 @@ export const dummyKosSearchRecords: KosSearchRecord[] = [
     tag: 'Putra',
   },
 ]
+
+function normalizeId(value: string) {
+  return value
+    .toLocaleLowerCase('id-ID')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
+function uniqueSorted(values: string[]) {
+  return Array.from(new Set(values.filter(Boolean))).sort((left, right) =>
+    left.localeCompare(right, 'id'),
+  )
+}
+
+function mergeSearchCities(records: KosSearchRecord[]) {
+  const cityMap = new Map<string, SearchCity>()
+
+  searchCities.forEach((city) => {
+    cityMap.set(city.city, {
+      city: city.city,
+      campuses: [...city.campuses],
+      areas: [...city.areas],
+    })
+  })
+
+  records.forEach((record) => {
+    const existing = cityMap.get(record.city) ?? {
+      city: record.city,
+      campuses: [],
+      areas: [],
+    }
+
+    cityMap.set(record.city, {
+      city: record.city,
+      campuses: uniqueSorted([...existing.campuses, ...record.nearbyCampuses]),
+      areas: uniqueSorted([...existing.areas, record.area]),
+    })
+  })
+
+  return Array.from(cityMap.values()).sort((left, right) =>
+    left.city.localeCompare(right.city, 'id'),
+  )
+}
+
+function createSearchableLocations(cities: SearchCity[]): SearchableLocation[] {
+  const locations = new Map<string, SearchableLocation>()
+
+  function addLocation(location: SearchableLocation) {
+    locations.set(location.id, location)
+  }
+
+  indonesiaAdministrativeLocations.forEach(addLocation)
+
+  cities.forEach((city) => {
+    addLocation({
+      id: `city-${normalizeId(city.city)}`,
+      label: city.city,
+      description: 'Kota',
+      searchValue: city.city,
+      keywords: [],
+    })
+
+    city.areas.forEach((area) => {
+      addLocation({
+        id: `area-${normalizeId(city.city)}-${normalizeId(area)}`,
+        label: area,
+        description: `Area di ${city.city}`,
+        searchValue: area,
+        keywords: [city.city],
+      })
+    })
+
+    city.campuses.forEach((campus) => {
+      addLocation({
+        id: `campus-${normalizeId(city.city)}-${normalizeId(campus)}`,
+        label: campus,
+        description: `Kampus di ${city.city}`,
+        searchValue: campus,
+        keywords: [city.city],
+      })
+    })
+  })
+
+  return Array.from(locations.values())
+}
+
+const mergedSearchCities = mergeSearchCities(dummyKosSearchRecords)
+
+export const searchMetadata: SearchMetadata = {
+  cities: mergedSearchCities,
+  popularCampuses: popularCampusSearches,
+  searchableLocations: createSearchableLocations(mergedSearchCities),
+}

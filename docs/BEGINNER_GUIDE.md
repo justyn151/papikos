@@ -1,50 +1,164 @@
 # Papikos React Beginner Guide
 
-This guide describes the project as it exists now. Papikos is a frontend application built with React, TypeScript, Tailwind CSS, React Router, Leaflet, and Vite.
+This guide explains how the current Papikos frontend works. It is written for a beginner, so it explains React ideas slowly instead of assuming you already know the words.
 
-## 1. The mental model
+Papikos is currently a frontend-only React app. It uses local TypeScript mock data for now, but it is already shaped so a backend API can later return the same kind of JSON from PostgreSQL.
 
-React builds the screen from components. Data normally travels downward through props, while user actions travel upward through callback functions.
+## 1. The big idea
+
+React does not usually edit the page manually one element at a time. Instead:
+
+1. Components describe what the screen should look like.
+2. State stores values that can change.
+3. Events, like clicks and typing, update state or change the route.
+4. React runs the component again.
+5. React updates the browser page to match the new result.
+
+The current app flow is roughly:
 
 ```text
-URL
-  -> React Router chooses a page
-  -> page asks kosService for data
-  -> page stores the response in state
+Browser URL
+  -> App.tsx chooses a route
+  -> route page asks kosService for data
+  -> page stores loading / success / error in state
   -> page passes data to components
-  -> components render the interface
+  -> components render the UI
 ```
 
-The URL, rather than `HomePage` state, now decides which large page is visible. This means refreshing `/kos/101` still opens kos 101.
+The important difference from the older version is this:
 
-## 2. Important folders
+Before, `HomePage` used state like `selectedKos` to decide whether to show the detail page.
+
+Now, React Router controls the main page changes. For example:
+
+```text
+/             -> homepage
+/search       -> search suggestion page
+/results?...  -> search results page
+/kos/101      -> detail page for kos 101
+```
+
+That is better because refreshing `/kos/101` still opens the same kos detail page.
+
+## 2. Important vocabulary
+
+### Component
+
+A component is a function that returns JSX.
+
+```tsx
+function Greeting() {
+  return <h1>Hello</h1>
+}
+```
+
+Component names start with a capital letter. Components let us split the interface into smaller pieces such as `Header`, `SearchHero`, `KosGallery`, and `KosDetailPage`.
+
+### JSX
+
+JSX looks like HTML, but it lives inside TypeScript/JavaScript.
+
+```tsx
+const appName = 'Papikos'
+
+return <h1>{appName}</h1>
+```
+
+Curly braces mean “run this JavaScript expression here.”
+
+Useful JSX rules:
+
+- Use `className`, not `class`.
+- Use `onClick`, not `onclick`.
+- Components must return one parent value.
+- Tags must be closed.
+
+### Props
+
+Props are values passed from a parent component to a child component.
+
+```tsx
+<KosGallery
+  listings={featuredListings}
+  onShowDetail={(listing) => navigate(`/kos/${listing.id}`)}
+/>
+```
+
+Here:
+
+- `listings` is data.
+- `onShowDetail` is a function.
+
+The child receives them and uses them, but the child does not own them.
+
+### State
+
+State is data that belongs to a component and can change while the app is running.
+
+```tsx
+const [isLoading, setIsLoading] = useState(true)
+```
+
+This creates two things:
+
+- `isLoading`: the current value.
+- `setIsLoading`: the function used to change it.
+
+When you call a setter, React renders again.
+
+Do this:
+
+```tsx
+setIsLoading(false)
+```
+
+Do not do this:
+
+```tsx
+isLoading = false
+```
+
+React needs the setter so it knows the screen should update.
+
+### Hook
+
+A hook is a React function that starts with `use`, such as:
+
+- `useState`
+- `useEffect`
+- `useRef`
+- `useNavigate`
+- `useParams`
+- `useSearchParams`
+
+Hooks must be called at the top level of a component, not inside `if`, loops, or nested functions.
+
+## 3. Project folders
+
+The project is organized like this:
 
 ```text
 src/
-  components/       Reusable interface pieces
-  data/             Local mock data
-  pages/            Route-level screens
-  services/         API and mock-service boundary
-  styles/           Global CSS
-  types/            Shared TypeScript types
-  utils/            Small reusable functions
+  components/   Reusable UI pieces
+  data/         Temporary mock data
+  pages/        Route-level screens
+  services/     API/mock service layer
+  styles/       Global CSS
+  types/        TypeScript data shapes
+  utils/        Small helper functions
 ```
 
-Some important files are:
+This separation helps you know where things belong:
 
-```text
-src/App.tsx
-src/pages/HomePage.tsx
-src/pages/SearchRoutePage.tsx
-src/pages/SearchResultsRoutePage.tsx
-src/pages/KosDetailRoutePage.tsx
-src/services/apiClient.ts
-src/services/kosService.ts
-```
+- A component displays UI.
+- A page combines components into a screen.
+- A service loads data.
+- A type describes the shape of data.
+- A utility does a small reusable calculation.
 
-## 3. Application startup
+## 4. Application startup
 
-`src/main.tsx` finds the HTML element with ID `root` and asks React to render `App` inside it.
+The app starts in `src/main.tsx`.
 
 ```tsx
 createRoot(document.getElementById('root')!).render(
@@ -54,63 +168,88 @@ createRoot(document.getElementById('root')!).render(
 )
 ```
 
-`StrictMode` helps expose unsafe development behavior. It can intentionally run some logic twice during development, but it does not do that in a production build.
+What this means:
 
-## 4. Routing in App.tsx
+- `document.getElementById('root')` finds the `<div id="root"></div>` in `index.html`.
+- `createRoot(...)` tells React this is where the app should live.
+- `<App />` is the first component.
+- `StrictMode` enables extra development checks.
 
-`BrowserRouter` observes the browser URL. `Routes` selects the matching `Route`.
+The `!` after `getElementById('root')` is a TypeScript non-null assertion. It means: “I know this element exists.” It is safe here because `index.html` contains it.
+
+## 5. Routing in App.tsx
+
+`src/App.tsx` decides which page appears for each URL.
 
 ```tsx
-<Routes>
-  <Route path="/" element={<HomePage />} />
-  <Route path="/search" element={<SearchRoutePage />} />
-  <Route path="/results" element={<SearchResultsRoutePage />} />
-  <Route path="/kos/:kosId" element={<KosDetailRoutePage />} />
-</Routes>
+<BrowserRouter>
+  <ScrollToTop />
+  <Routes>
+    <Route path="/" element={<HomePage />} />
+    <Route path="/search" element={<SearchRoutePage />} />
+    <Route path="/results" element={<SearchResultsRoutePage />} />
+    <Route path="/kos/:kosId" element={<KosDetailRoutePage />} />
+    <Route path="*" element={<Navigate replace to="/" />} />
+  </Routes>
+</BrowserRouter>
 ```
 
-`/kos/:kosId` contains a URL parameter. For `/kos/101`, `useParams()` returns `kosId` as the string `"101"`.
+`BrowserRouter` lets React Router watch the browser URL. `Routes` checks the current URL and chooses one matching `Route`.
 
-`useNavigate()` returns a function for changing pages without reloading the website:
+For `/kos/101`, the route `/kos/:kosId` matches and `kosId` is `"101"`.
 
 ```tsx
-const navigate = useNavigate()
-navigate('/kos/' + listing.id)
+const { kosId } = useParams()
+const listingId = Number(kosId)
 ```
 
-`useSearchParams()` reads query strings. In `/results?query=Yogyakarta`, it reads the `query` value.
+URL parameters are strings, so the code converts the ID into a number.
 
-## 5. HomePage
+`ScrollToTop` watches the URL and smoothly scrolls to the top when the route changes.
 
-`HomePage` coordinates the homepage only. It no longer renders the detail page conditionally.
+## 6. HomePage.tsx
 
-Its important state includes:
+`HomePage` coordinates the homepage. It loads data, tracks a few UI states, and passes props to child components.
 
-- `featuredListings`: listings returned by the service.
-- `isFeaturedLoading`: whether the request is still running.
-- `featuredError`: a message if loading fails.
-- `searchLocation`: text shown by the search launcher.
-- `showHeaderSearch`: whether the compact header search is visible.
-
-State is created with `useState`:
+Important state:
 
 ```tsx
+const [searchLocation, setSearchLocation] = useState('')
+const [searchMessage, setSearchMessage] = useState(
+  'Coba cari lokasi kampus, kantor, atau area favoritmu.',
+)
+const [showHeaderSearch, setShowHeaderSearch] = useState(false)
 const [featuredListings, setFeaturedListings] = useState<KosListing[]>([])
+const [isFeaturedLoading, setIsFeaturedLoading] = useState(true)
+const [featuredError, setFeaturedError] = useState('')
 ```
 
-The first value is the current data. The second is the function that replaces it and asks React to render again.
+Each state has one clear job:
 
-## 6. Loading data with useEffect
+- `searchLocation`: text shown in the search launcher.
+- `searchMessage`: helper message under the hero search.
+- `showHeaderSearch`: whether compact header search is visible.
+- `featuredListings`: featured kos data for the carousel.
+- `isFeaturedLoading`: whether featured data is still loading.
+- `featuredError`: error text if loading fails.
 
-`HomePage` loads featured listings after it mounts:
+`HomePage` loads featured listings with:
 
 ```tsx
 useEffect(() => {
   let isCurrentRequest = true
 
-  kosService.getFeatured().then((listings) => {
-    if (isCurrentRequest) setFeaturedListings(listings)
-  })
+  kosService
+    .getFeatured()
+    .then((listings) => {
+      if (isCurrentRequest) setFeaturedListings(listings)
+    })
+    .catch(() => {
+      if (isCurrentRequest) setFeaturedError('Rekomendasi kos belum dapat dimuat.')
+    })
+    .finally(() => {
+      if (isCurrentRequest) setIsFeaturedLoading(false)
+    })
 
   return () => {
     isCurrentRequest = false
@@ -118,18 +257,13 @@ useEffect(() => {
 }, [])
 ```
 
-An empty dependency array means the effect begins once when this component is mounted. The cleanup prevents an old request from updating a component after the user leaves the page.
+The empty dependency array `[]` means this effect runs once when `HomePage` appears.
 
-The UI has four useful states:
+The `isCurrentRequest` variable prevents an old request from updating state after the component is gone.
 
-1. Loading: show a skeleton.
-2. Error: show a readable failure message.
-3. Empty: explain that no result was found.
-4. Success: render the returned data.
+## 7. How “Lihat detail” opens the detail page
 
-## 7. Props and callbacks
-
-`KosGallery` receives data and a callback:
+`HomePage` renders:
 
 ```tsx
 <KosGallery
@@ -138,34 +272,149 @@ The UI has four useful states:
 />
 ```
 
-`listings` is data flowing downward. `onShowDetail` is behavior supplied by the parent. When a card calls it, the route changes to the detail URL.
+`KosGallery` receives `onShowDetail` as a prop.
 
-The gallery does not need to know how routing works. This makes it reusable and easier to test.
+Inside `KosGallery`, the button calls:
 
-## 8. Search flow
+```tsx
+onShowDetail(listing)
+```
 
-The current flow is:
+The click sequence is:
+
+```text
+User clicks "Lihat detail"
+  -> KosGallery calls onShowDetail(listing)
+  -> HomePage's function runs
+  -> navigate(`/kos/${listing.id}`)
+  -> URL changes to /kos/101
+  -> App.tsx route matches /kos/:kosId
+  -> KosDetailRoutePage renders
+  -> KosDetailRoutePage loads data for ID 101
+  -> KosDetailPage displays the listing
+```
+
+So `useState` does not magically know that a button was clicked. The click handler explicitly calls a function. That function changes either state or the route.
+
+## 8. KosDetailRoutePage.tsx
+
+`KosDetailRoutePage` is the route-level loader for the detail page.
+
+It mainly:
+
+1. Reads the ID from the URL.
+2. Loads the matching kos.
+3. Handles loading/error/not-found states.
+4. Passes the result to `KosDetailPage`.
+
+It has state:
+
+```tsx
+const [listing, setListing] = useState<KosListing | null>(null)
+const [isLoading, setIsLoading] = useState(true)
+const [error, setError] = useState('')
+```
+
+When successful:
+
+```tsx
+<KosDetailPage kos={listing} onBack={() => navigate(-1)} />
+```
+
+`kos` is data passed downward. `onBack` is behavior passed downward.
+
+## 9. KosDetailPage.tsx
+
+`KosDetailPage` displays one complete kos.
+
+Its props are:
+
+```tsx
+type KosDetailPageProps = {
+  kos: KosListing
+  onBack: () => void
+}
+```
+
+Local state inside `KosDetailPage` controls only the detail page:
+
+- `activeMediaId`: selected image/video.
+- `actionStatus`: feedback after survey/contact buttons.
+- `rentalStatus`: feedback after “Ajukan sewa”.
+- `rentalMonths`: selected rental duration.
+- `paymentChoice`: full payment or DP.
+- `breakdownType`: which payment modal is open.
+- `isLightboxOpen`: whether big media preview is open.
+
+This is a useful React rule:
+
+> Put state in the lowest component that needs it.
+
+The homepage does not need to know which thumbnail is selected, so that state stays inside `KosDetailPage`.
+
+## 10. KosGallery.tsx
+
+`KosGallery` is the carousel on the homepage.
+
+It receives:
+
+```tsx
+type KosGalleryProps = {
+  listings: KosListing[]
+  onShowDetail: (kos: KosListing) => void
+}
+```
+
+The gallery does not load data itself. It only receives `listings`.
+
+The gallery also does not decide how detail navigation works. It only calls `onShowDetail(listing)`.
+
+Important gallery state includes:
+
+- `activeIndex`: which listing is currently centered.
+- `selectedKosTitle`: helper text shown under the section title.
+- `baseOffset`: base horizontal position of the carousel track.
+- `slideStep`: distance between cards.
+- `dragOffset`: temporary movement while dragging.
+- `isDragging`: whether the mouse/pointer is dragging.
+- `shouldAnimate`: whether CSS transition should be active.
+- `pendingDirection`: whether a next/previous/reset animation is in progress.
+- `emphasizedCardIndex`: which visible card is visually “closer”.
+
+The carousel also uses refs for DOM elements and pointer values. Refs can change without rerendering, which is useful for drag speed and pointer positions.
+
+## 11. Search flow
+
+The current search flow is:
 
 ```text
 Click search launcher
   -> /search
-Type a location alias
+Type a location
   -> suggestions appear
 Click a suggestion
-  -> /results?query=canonical-value
-kosService.search(...)
-  -> cards and map markers render
-Click a card or marker
+  -> /results?query=...
+SearchResultsPage loads matching kos
+Click card / map marker / facility tag
   -> /kos/:kosId
 ```
 
-Aliases are handled in `src/utils/searchSuggestions.ts`. For example, `jogja`, `jogjakarta`, and `yogya` can suggest `Yogyakarta`.
+The user chooses a suggestion instead of submitting random text directly. This allows aliases like `jogja`, `jogjakarta`, and `yogya`.
 
-## 9. Search filters
+The current frontend search metadata is still mock data. Later, the backend should provide complete administrative-location metadata from PostgreSQL.
 
-`SearchFilters` owns temporary draft values while a panel is open. Pressing **Simpan** sends the draft to `SearchResultsPage` through `onChange`.
+## 12. Search results and filters
 
-The applied filter type is `KosSearchFilters`:
+`SearchResultsRoutePage` reads the URL query:
+
+```tsx
+const [searchParams] = useSearchParams()
+const query = searchParams.get('query')?.trim() ?? ''
+```
+
+If there is no query, it redirects to `/search`.
+
+The results page applies filters using:
 
 ```ts
 type KosSearchFilters = {
@@ -179,96 +428,192 @@ type KosSearchFilters = {
 }
 ```
 
-Price inputs and the two-handle slider update the same `minPrice` and `maxPrice` values.
-
-## 10. API service boundary
-
-Pages do not import listing arrays directly. They call `kosService`:
+When filters change, the page requests results again through:
 
 ```tsx
+kosService.search({ query, filters })
+```
+
+## 13. API service layer
+
+Components do not import database data directly. They call `kosService`.
+
+```tsx
+const listings = await kosService.getFeatured()
+const listing = await kosService.getById(101)
 const results = await kosService.search({ query, filters })
 ```
 
-`kosService` exposes the same methods in mock and remote modes. With no backend URL it reads `src/data`. With `VITE_API_BASE_URL` it sends HTTP requests.
+The service has two modes:
 
-This boundary is useful because components do not need to change when PostgreSQL and the backend become available.
+- Mock mode: with no `VITE_API_BASE_URL`, it reads local `src/data`.
+- Remote API mode: with `VITE_API_BASE_URL`, it calls backend endpoints.
 
-## 11. Detail route
+Later, your backend can read PostgreSQL and return JSON matching the TypeScript types.
 
-`KosDetailRoutePage` reads the ID, requests the listing, and handles invalid, loading, error, and success states.
+Important point:
 
-`KosDetailPage` then owns interface-only state such as:
+> The React frontend should not connect directly to PostgreSQL.
 
-- Selected media.
-- Lightbox visibility.
-- Rental duration.
-- Full-payment or DP selection.
-- Payment breakdown modal.
+The normal structure is:
 
-This state belongs in the detail component because other pages do not need it.
+```text
+React frontend
+  -> HTTP JSON API
+  -> backend server
+  -> PostgreSQL
+```
 
-## 12. Leaflet and OpenStreetMap
+## 14. TypeScript types
 
-`KosResultsMap` uses:
+`src/types/kos.ts` describes a full kos listing.
 
-- Leaflet as the map engine.
-- React-Leaflet as React bindings.
-- OpenStreetMap as the tile source.
+`id` is important because it gives each kos a stable identity. It is used for:
 
-Each dummy search record contains latitude and longitude. Filtered records become colored price markers. `MapViewport` uses `useMap()` to fit the view to visible markers and calls `invalidateSize()` when the draggable page split changes width.
+- URLs like `/kos/101`.
+- React list keys.
+- Finding one listing from an array.
+- Matching search records to detail records.
+- Later matching frontend data to PostgreSQL rows.
 
-No Google Maps API key is required.
+In PostgreSQL, this would usually map to a primary key.
 
-## 13. TypeScript types
+## 15. Leaflet and OpenStreetMap
 
-`KosListing` describes a complete detail-ready listing. `KosSearchRecord` contains search and map information. `KosSearchResult` joins both:
+The results page uses Leaflet with OpenStreetMap tiles.
+
+The map receives filtered search results. Each result has coordinates:
 
 ```ts
-type KosSearchResult = {
-  record: KosSearchRecord
-  listing: KosListing
+coordinates: {
+  lat: number
+  lng: number
 }
 ```
 
-TypeScript checks that components and services agree about these shapes before the application is built.
+Those coordinates become map markers.
 
-`import type` imports a type for checking but removes it from the browser JavaScript.
+The app does not need a Google Maps API key because OpenStreetMap tiles are used.
 
-## 14. Tailwind CSS
+## 16. Tailwind CSS
 
-Most styling is written as utility classes:
+Most styling is written using Tailwind classes.
 
 ```tsx
-className="rounded-full bg-green-600 px-4 py-2 text-white"
+className="rounded-full bg-green-600 px-5 py-3 text-sm font-black text-white"
 ```
 
-Read them from left to right: rounded shape, green background, horizontal and vertical padding, then white text.
+Read the classes like small CSS instructions:
 
-`src/styles/global.css` contains behavior that is awkward to express as utilities, including modal keyframes, the dual price slider, Leaflet markers, and global cursor rules.
+- `rounded-full`: pill/circle shape.
+- `bg-green-600`: green background.
+- `px-5`: horizontal padding.
+- `py-3`: vertical padding.
+- `text-sm`: small text.
+- `font-black`: very bold.
+- `text-white`: white text.
 
-## 15. Hooks used in this project
+Responsive prefixes:
 
-- `useState`: remembers changing UI data.
-- `useEffect`: synchronizes with requests, observers, and browser APIs.
-- `useRef`: keeps DOM elements or mutable drag values without rendering.
-- `useNavigate`: changes routes.
-- `useParams`: reads path parameters.
-- `useSearchParams`: reads URL query parameters.
-- `useMap`: accesses the Leaflet map instance.
+```tsx
+className="text-sm sm:text-base lg:text-lg"
+```
 
-Hooks must be called at the top level of a component, not inside conditions or loops.
+Meaning:
 
-## 16. Safe exercises
+- phone/default: small text
+- `sm` and up: base text
+- `lg` and up: large text
 
-1. Add another search alias.
-2. Add one facility to a dummy listing and filter by it.
-3. Add a new route such as `/about`.
-4. Add a retry button to an API error state.
-5. Highlight a map marker when its listing card is hovered.
+## 17. Common beginner mistakes
 
-Run these after changes:
+### Calling a function immediately
+
+Wrong:
+
+```tsx
+onClick={setIsOpen(true)}
+```
+
+Correct:
+
+```tsx
+onClick={() => setIsOpen(true)}
+```
+
+### Mutating arrays
+
+Wrong:
+
+```tsx
+items.push(newItem)
+setItems(items)
+```
+
+Correct:
+
+```tsx
+setItems((current) => [...current, newItem])
+```
+
+### Putting state too high
+
+Not all state belongs in `App.tsx`.
+
+Good rule:
+
+> Put state in the lowest component that contains every component needing that state.
+
+## 18. Suggested learning order
+
+1. `src/main.tsx`
+2. `src/App.tsx`
+3. `src/types/kos.ts`
+4. `src/services/kosService.ts`
+5. `src/pages/HomePage.tsx`
+6. `src/components/SearchHero/SearchHero.tsx`
+7. `src/components/Header/Header.tsx`
+8. `src/components/AboutPapikos/AboutPapikos.tsx`
+9. `src/pages/KosDetailRoutePage.tsx`
+10. `src/components/KosDetailPage/KosDetailPage.tsx`
+11. `src/pages/SearchRoutePage.tsx`
+12. `src/pages/SearchResultsPage.tsx`
+13. `src/components/KosGallery/KosGallery.tsx`
+
+`KosGallery` is last because carousel logic is naturally harder.
+
+## 19. Safe exercises
+
+Try these one at a time:
+
+1. Change one kos title in `src/data/kosListings.ts`.
+2. Add one facility to a listing.
+3. Add one new media item to a listing.
+4. Change the text in `AboutPapikos`.
+5. Add a new popular search in `src/data/searchData.ts`.
+6. Change the discount percentage of one listing.
+7. Add one new rule to a listing.
+8. Change the loading text or error message.
+9. Add a new route that renders a simple page.
+10. Only after the others: adjust carousel timing or drag threshold.
+
+After changes, run:
 
 ```bash
 npm run lint
 npm run build
 ```
+
+## 20. The most important idea
+
+React becomes easier when you remember this:
+
+```text
+UI = function of state + props + route
+```
+
+If the state changes, the UI changes.
+
+If props change, the UI changes.
+
+If the route changes, a different page component appears.
