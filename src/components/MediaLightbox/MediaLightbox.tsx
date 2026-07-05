@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { AnimationEvent } from 'react'
 import type { KosMedia } from '../../types/kos'
+import { Icon } from '../Icon/Icon'
 
 type MediaLightboxProps = {
   media: KosMedia
@@ -109,7 +110,7 @@ export function MediaLightbox({
           type="button"
           aria-label="Lihat gambar sebelumnya"
         >
-          ←
+          <Icon className="size-6 sm:size-7" name="arrowLeft" />
         </button>
         <button
           className="absolute right-2 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-2xl font-black text-neutral-800 shadow-xl backdrop-blur transition hover:scale-105 hover:bg-white sm:right-5 sm:size-14"
@@ -118,7 +119,7 @@ export function MediaLightbox({
           type="button"
           aria-label="Lihat gambar berikutnya"
         >
-          →
+          <Icon className="size-6 sm:size-7" name="arrowRight" />
         </button>
         <button
           className="absolute right-2 top-2 grid size-11 place-items-center rounded-full bg-white/90 text-2xl text-neutral-700 shadow-xl backdrop-blur transition hover:scale-105 hover:bg-white sm:right-5 sm:top-5"
@@ -127,7 +128,7 @@ export function MediaLightbox({
           type="button"
           aria-label="Tutup gambar"
         >
-          ×
+          <Icon className="size-6" name="close" />
         </button>
 
         <div

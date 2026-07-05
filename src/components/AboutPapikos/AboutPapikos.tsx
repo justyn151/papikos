@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from '../Icon/Icon'
 
 const papikosFeatures = [
   {
@@ -53,15 +54,13 @@ export function AboutPapikos() {
           aria-controls="papikos-feature-list"
         >
           Fitur yang dapat dimanfaatkan di Papikos
-          <span
+          <Icon
             className={
-              'text-xl transition-transform duration-300 ' +
+              'size-5 transition-transform duration-300 ' +
               (isExpanded ? 'rotate-180' : 'rotate-0')
             }
-            aria-hidden="true"
-          >
-           ⌄
-          </span>
+            name="chevronDown"
+          />
         </button>
 
         <div

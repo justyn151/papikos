@@ -4,6 +4,7 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react'
 import { formatRupiah } from '../utils/formatCurrency'
+import { Icon } from '../components/Icon/Icon'
 import { SearchFilters } from '../components/SearchFilters/SearchFilters'
 import { KosResultsMap } from '../components/KosResultsMap/KosResultsMap'
 import { kosService } from '../services/kosService'
@@ -111,11 +112,12 @@ export function SearchResultsPage({
         >
           <div className="flex flex-wrap items-center gap-3">
             <button
-              className="rounded-full bg-neutral-100 px-4 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-200"
+              className="inline-flex items-center gap-2 rounded-full bg-neutral-100 px-4 py-2 text-sm font-black text-neutral-700 transition hover:bg-neutral-200"
               onClick={onBack}
               type="button"
             >
-              ← Beranda
+              <Icon className="size-4" name="arrowLeft" />
+              Beranda
             </button>
             <SearchFilters value={filters} onChange={updateFilters} />
           </div>
@@ -240,7 +242,7 @@ export function SearchResultsPage({
         </button>
 
         <section
-          className="h-[420px] min-w-0 bg-neutral-100 lg:h-full lg:flex-1"
+          className="relative z-0 h-[420px] min-w-0 bg-neutral-100 lg:h-full lg:flex-1"
           aria-label="Peta hasil pencarian"
         >
           <KosResultsMap

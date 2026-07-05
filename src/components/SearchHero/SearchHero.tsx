@@ -1,3 +1,5 @@
+import { Icon } from '../Icon/Icon'
+
 const popularLocations = ['Jakarta Selatan', 'Depok', 'Yogyakarta', 'Bandung']
 
 type SearchHeroProps = {
@@ -30,8 +32,8 @@ export function SearchHero({
           type="button"
           aria-label="Buka halaman pencarian kos"
         >
-          <span className="hidden px-3 text-4xl leading-none text-slate-700 -rotate-12 sm:block" aria-hidden="true">
-            ⌕
+          <span className="hidden px-3 text-slate-700 sm:block" aria-hidden="true">
+            <Icon className="size-8" name="search" />
           </span>
           <span className="block w-full min-w-0 flex-1 px-3 py-3 text-left text-sm font-bold text-neutral-400 sm:px-1 sm:py-4 sm:text-base">
             {location || 'Masukkan nama lokasi/area/alamat'}

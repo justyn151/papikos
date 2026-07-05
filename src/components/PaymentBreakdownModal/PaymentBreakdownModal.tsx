@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { AnimationEvent } from 'react'
 import { formatRupiah } from '../../utils/formatCurrency'
+import { Icon } from '../Icon/Icon'
 
 export type PaymentBreakdownLine = {
   label: string
@@ -82,7 +83,7 @@ export function PaymentBreakdownModal({
             type="button"
             aria-label="Tutup rincian pembayaran"
           >
-            ×
+            <Icon className="size-5" name="close" />
           </button>
         </div>
 

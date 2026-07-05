@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Icon } from '../Icon/Icon'
 import type { RentalDuration } from '../../types/kos'
 import type { KosSearchFilters } from '../../types/search'
 
@@ -156,14 +157,14 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
     return (
       <>
         <button
-          className="fixed inset-0 z-20 cursor-default"
+          className="fixed inset-0 z-[1200] cursor-default"
           onClick={close}
           style={{ animation: isClosing ? 'payment-backdrop-out 180ms ease-in both' : 'payment-backdrop-in 180ms ease-out both' }}
           type="button"
           aria-label="Tutup filter"
         />
         <div
-          className="absolute left-0 top-[calc(100%+8px)] z-30 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xl"
+          className="absolute left-0 top-[calc(100%+8px)] z-[1210] w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-xl"
           style={{ animation: isClosing ? 'payment-modal-out 180ms ease-in both' : 'payment-modal-in 220ms cubic-bezier(0.22,1,0.36,1) both' }}
         >
           {panel === 'type' && (
@@ -272,7 +273,7 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="relative z-[1100] flex flex-wrap gap-2">
       <div className="relative">
         <button className={chipClass(value.tags.length > 0)} onClick={() => open('type')} type="button">
           {value.tags.length ? `${value.tags.length} tipe kos` : 'Semua Tipe Kos'}
@@ -313,7 +314,7 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
 
       {(openPanel === 'facilities' || openPanel === 'rules') && (
         <div
-          className="fixed inset-0 z-40 grid place-items-center bg-black/50 p-4"
+          className="fixed inset-0 z-[1300] grid place-items-center bg-black/50 p-4"
           role="presentation"
           onMouseDown={close}
           style={{ animation: isClosing ? 'payment-backdrop-out 180ms ease-in both' : 'payment-backdrop-in 180ms ease-out both' }}
@@ -328,7 +329,9 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
               <h2 className="text-xl font-black text-neutral-800">
                 {openPanel === 'facilities' ? 'Fasilitas' : 'Aturan Kos'}
               </h2>
-              <button className="grid size-10 place-items-center rounded-full text-3xl text-neutral-500 hover:bg-neutral-100" onClick={close} type="button" aria-label="Tutup">×</button>
+              <button className="grid size-10 place-items-center rounded-full text-neutral-500 hover:bg-neutral-100" onClick={close} type="button" aria-label="Tutup">
+                <Icon className="size-6" name="close" />
+              </button>
             </header>
             <div className="overflow-y-auto px-6 py-2">
               {openPanel === 'facilities' ? (

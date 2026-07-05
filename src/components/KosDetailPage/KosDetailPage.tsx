@@ -6,6 +6,7 @@ import {
 } from '../PaymentBreakdownModal/PaymentBreakdownModal'
 import type { KosListing } from '../../types/kos'
 import { formatRupiah } from '../../utils/formatCurrency'
+import { Icon } from '../Icon/Icon'
 
 type KosDetailPageProps = {
   kos: KosListing
@@ -168,7 +169,8 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
         onClick={onBack}
         type="button"
       >
-        ← Kembali ke beranda
+        <Icon className="size-4" name="arrowLeft" />
+        Kembali ke beranda
       </button>
 
       <div className="grid min-w-0 gap-8 lg:grid-cols-[1.15fr_0.85fr]">
@@ -207,7 +209,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
               type="button"
               aria-label="Media sebelumnya"
             >
-              ←
+              <Icon className="size-5" name="arrowLeft" />
             </button>
             <button
               className="absolute right-3 top-1/2 z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-xl font-black text-neutral-800 opacity-100 shadow-lg backdrop-blur transition hover:scale-105 hover:bg-white sm:right-5 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
@@ -215,7 +217,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
               type="button"
               aria-label="Media berikutnya"
             >
-              →
+              <Icon className="size-5" name="arrowRight" />
             </button>
           </div>
 
@@ -257,14 +259,14 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
               <h3 className="text-lg font-black text-neutral-800">Spesifikasi tipe kamar</h3>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-4">
-                  <span className="text-2xl" aria-hidden="true">▣</span>
+                  <Icon className="size-7 shrink-0 text-green-600" name="room" />
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wide text-neutral-400">Ukuran kamar</p>
                     <p className="mt-1 font-black text-neutral-700">{kos.roomSize}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-4">
-                  <span className="text-2xl" aria-hidden="true">▤</span>
+                  <Icon className="size-7 shrink-0 text-green-600" name="storage" />
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wide text-neutral-400">Ketersediaan</p>
                     <p className="mt-1 font-black text-neutral-700">{kos.availableRooms} kamar tersedia</p>
@@ -283,7 +285,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
                       {category.items.map((item) => (
                         <li className="flex items-center gap-3 text-sm font-semibold text-neutral-600" key={item}>
                           <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-green-50 text-green-600" aria-hidden="true">
-                            ✓
+                            <Icon className="size-4" name="check" />
                           </span>
                           {item}
                         </li>
@@ -299,7 +301,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
               <ul className="mt-4 grid gap-3 sm:grid-cols-2">
                 {kos.rules.map((rule) => (
                   <li className="flex gap-3 text-sm font-semibold text-neutral-600" key={rule}>
-                    <span className="text-green-600" aria-hidden="true">✓</span>
+                    <Icon className="mt-0.5 size-4 shrink-0 text-green-600" name="check" />
                     {rule}
                   </li>
                 ))}
@@ -309,7 +311,9 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
             <div className="mt-7 border-t border-neutral-200 pt-7">
               <h3 className="text-lg font-black text-neutral-800">Informasi pemilik</h3>
               <div className="mt-4 flex items-center gap-4 rounded-2xl bg-neutral-50 p-4">
-                <span className="grid size-12 place-items-center rounded-full bg-green-100 text-xl" aria-hidden="true">👤</span>
+                <span className="grid size-12 place-items-center rounded-full bg-green-100 text-green-700" aria-hidden="true">
+                  <Icon className="size-6" name="user" />
+                </span>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-neutral-400">Pemilik kos</p>
                   <p className="mt-1 text-lg font-black text-neutral-800">{kos.owner}</p>
@@ -323,7 +327,10 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
           <aside className="rounded-[2rem] border border-neutral-100 bg-white p-5 shadow-xl shadow-neutral-200/70 sm:p-7">
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-black text-green-700">Kos {kos.tag}</span>
-            <span className="rounded-full bg-yellow-50 px-3 py-1.5 text-xs font-black text-yellow-700">⭐ {kos.rating}</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-3 py-1.5 text-xs font-black text-yellow-700">
+              <Icon className="size-3.5 fill-current" name="star" />
+              {kos.rating}
+            </span>
           </div>
 
           <h2 className="mt-4 break-words text-3xl font-black leading-none tracking-[-0.05em] text-neutral-900">{kos.title}</h2>

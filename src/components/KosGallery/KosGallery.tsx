@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import type { PointerEvent as ReactPointerEvent, TransitionEvent as ReactTransitionEvent } from 'react'
+import { Icon } from '../Icon/Icon'
 import type { KosListing } from '../../types/kos'
 import { formatRupiah } from '../../utils/formatCurrency'
 
@@ -221,14 +222,20 @@ export function KosGallery({ listings, onShowDetail }: KosGalleryProps) {
 
         <div className="absolute bottom-0 left-0 right-0 p-5 text-white sm:p-7">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-sm font-bold">
-            <span className="rounded-full bg-white/20 px-3 py-1 backdrop-blur">⭐ {listing.rating}</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 backdrop-blur">
+              <Icon className="size-3.5 fill-current" name="star" />
+              {listing.rating}
+            </span>
             <span>{listing.location}</span>
           </div>
           <h3 className="max-w-xl text-2xl font-black leading-none tracking-[-0.04em] sm:text-3xl">{listing.title}</h3>
           <div className="mt-2 flex min-h-7 flex-wrap items-center gap-2 text-xs font-black">
             {discountPercentage > 0 && (
               <>
-              <span className="rounded-full bg-red-500 px-2.5 py-1 text-white">⚡ Diskon {discountPercentage}%</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2.5 py-1 text-white">
+                <Icon className="size-3.5 fill-current" name="bolt" />
+                Diskon {discountPercentage}%
+              </span>
               <span className="text-white/65 line-through">{formatRupiah(listing.monthlyPrice)}</span>
               </>
             )}
@@ -271,7 +278,7 @@ export function KosGallery({ listings, onShowDetail }: KosGalleryProps) {
             type="button"
             aria-label="Show previous kos"
           >
-            ←
+            <Icon className="size-5" name="arrowLeft" />
           </button>
           <button
             className="grid size-11 place-items-center rounded-full border border-neutral-200 bg-white text-xl font-black text-neutral-700 shadow-sm transition hover:bg-neutral-50 active:scale-95"
@@ -279,7 +286,7 @@ export function KosGallery({ listings, onShowDetail }: KosGalleryProps) {
             type="button"
             aria-label="Show next kos"
           >
-            →
+            <Icon className="size-5" name="arrowRight" />
           </button>
         </div>
       </div>

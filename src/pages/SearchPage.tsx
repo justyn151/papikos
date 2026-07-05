@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Icon } from '../components/Icon/Icon'
 import { kosService } from '../services/kosService'
 import type { SearchMetadata } from '../types/search'
 import { getSearchSuggestions } from '../utils/searchSuggestions'
@@ -78,7 +79,7 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
             type="button"
             aria-label="Kembali ke halaman utama"
           >
-            ←
+            <Icon className="size-6" name="arrowLeft" />
           </button>
           <div className="relative min-w-0 flex-1">
             <input
@@ -96,7 +97,7 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
                 type="button"
                 aria-label="Hapus pencarian"
               >
-                ×
+                <Icon className="size-5" name="close" />
               </button>
             )}
           </div>
@@ -119,7 +120,7 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
                     className="grid size-10 shrink-0 place-items-center rounded-full bg-green-50 text-lg text-green-700"
                     aria-hidden="true"
                   >
-                    ⌖
+                    <Icon className="size-5" name="locationTarget" />
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate font-black text-neutral-800">
@@ -144,7 +145,9 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
           onClick={findNearbyLocation}
           type="button"
         >
-          <span className="grid size-12 place-items-center rounded-lg bg-neutral-100 text-2xl" aria-hidden="true">⌾</span>
+          <span className="grid size-12 place-items-center rounded-lg bg-neutral-100 text-neutral-600" aria-hidden="true">
+            <Icon className="size-6" name="locationTarget" />
+          </span>
           <span>
             <span className="block font-black text-neutral-700">Cari di lokasi sekitar saya</span>
             {locationStatus && <span className="mt-1 block text-sm font-semibold text-neutral-500">{locationStatus}</span>}
@@ -206,7 +209,10 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
                     aria-expanded={isExpanded}
                   >
                     {searchCity.city}
-                    <span className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} aria-hidden="true">⌄</span>
+                    <Icon
+                      className={`size-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                      name="chevronDown"
+                    />
                   </button>
                   {isExpanded && (
                     <div className="flex flex-wrap gap-2 pb-5">

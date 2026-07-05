@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom'
 import { HomePage } from './pages/HomePage'
 import { KosDetailRoutePage } from './pages/KosDetailRoutePage'
+import { LoginPage } from './pages/LoginPage'
 import { SearchResultsRoutePage } from './pages/SearchResultsRoutePage'
 import { SearchRoutePage } from './pages/SearchRoutePage'
 
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/search" element={<SearchRoutePage />} />
         <Route path="/results" element={<SearchResultsRoutePage />} />
         <Route path="/kos/:kosId" element={<KosDetailRoutePage />} />
+        <Route path="/login/:role" element={<LoginPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
     </BrowserRouter>
