@@ -27,7 +27,16 @@ export async function apiRequest<T>(path: string, options?: RequestInit): Promis
   })
 
   if (!response.ok) {
-    throw new ApiError(`API mengembalikan status ${response.status}.`, response.status)
+    let message = `API mengembalikan status ${response.status}.`
+
+    try {
+      const errorBody = await response.json() as { message?: string }
+      message = errorBody.message ?? message
+    } catch {
+      // Keep the generic status message when the backend does not return JSON.
+    }
+
+    throw new ApiError(message, response.status)
   }
 
   if (response.status === 204) return undefined as T

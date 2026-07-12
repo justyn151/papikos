@@ -1,6 +1,13 @@
 import { useEffect } from 'react'
 import { divIcon } from 'leaflet'
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+  ZoomControl,
+} from 'react-leaflet'
 import type { KosSearchRecord } from '../../types/search'
 import { formatRupiah } from '../../utils/formatCurrency'
 
@@ -54,14 +61,17 @@ export function KosResultsMap({
   return (
     <MapContainer
       center={[-2.5489, 118.0149]}
-      className="h-full w-full"
+      className="papikos-map h-full w-full"
       scrollWheelZoom
       zoom={5}
+      zoomControl={false}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        maxZoom={20}
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
       />
+      <ZoomControl position="topright" />
       <MapViewport records={records} resizeKey={resizeKey} />
 
       {records.map((record) => (

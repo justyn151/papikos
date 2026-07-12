@@ -1,4 +1,5 @@
 import type { SearchMetadata, SearchableLocation } from '../types/search'
+import { normalizeSearchText } from './normalizeSearchText'
 
 export type SearchSuggestion = SearchableLocation
 
@@ -25,15 +26,6 @@ const campusAliases: Record<string, string[]> = {
   'BINUS University Kemanggisan': ['binus'],
 }
 
-function normalize(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase('id-ID')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-}
-
 function withAliases(suggestion: SearchSuggestion) {
   return {
     ...suggestion,
@@ -46,13 +38,26 @@ function withAliases(suggestion: SearchSuggestion) {
 }
 
 function matchScore(suggestion: SearchSuggestion, rawQuery: string) {
-  const query = normalize(rawQuery)
-  const searchableValues = [suggestion.label, ...suggestion.keywords].map(normalize)
+  const query = normalizeSearchText(rawQuery)
+  const queryWords = query.split(' ').filter(Boolean)
+  const searchableValues = [suggestion.label, ...suggestion.keywords].map(normalizeSearchText)
 
   if (searchableValues.some((item) => item === query)) return 0
   if (searchableValues.some((item) => item.startsWith(query))) return 1
   if (searchableValues.some((item) => item.split(' ').some((word) => word.startsWith(query)))) return 2
   if (searchableValues.some((item) => item.includes(query))) return 3
+  if (
+    queryWords.length > 1 &&
+    searchableValues.some((item) => {
+      const itemWords = item.split(' ')
+      return queryWords.every((queryWord) =>
+        itemWords.some(
+          (itemWord) =>
+            itemWord.startsWith(queryWord) || queryWord.startsWith(itemWord),
+        ),
+      )
+    })
+  ) return 4
   return Number.POSITIVE_INFINITY
 }
 

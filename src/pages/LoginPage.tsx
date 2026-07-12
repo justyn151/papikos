@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon/Icon'
+import { loginUser } from '../services/authService'
 
 const roleLabels = {
   'pencari-kos': 'Pencari Kos',
@@ -41,6 +42,9 @@ function normalizePhoneNumber(value: string) {
 }
 
 function validatePhoneNumber(value: string) {
+  if (/[a-z]/i.test(value)) return 'Nomor handphone tidak boleh berisi huruf.'
+  if (/[^\d\s()+-]/.test(value)) return 'Nomor handphone hanya boleh berisi angka.'
+
   const normalized = normalizePhoneNumber(value)
 
   if (!normalized) return 'Nomor handphone wajib diisi.'
@@ -57,11 +61,38 @@ export function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState('')
   const [password, setPassword] = useState('')
   const [hasTouchedPhone, setHasTouchedPhone] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formMessage, setFormMessage] = useState('')
 
   const phoneError = validatePhoneNumber(phoneNumber)
   const canSubmit = !phoneError && password.trim().length > 0
 
   if (!isLoginRole(role)) return <Navigate replace to="/" />
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!canSubmit || !isLoginRole(role)) return
+
+    setIsSubmitting(true)
+    setFormMessage('')
+
+    try {
+      await loginUser({
+        phoneNumber,
+        password,
+        role,
+      })
+      setFormMessage('Login berhasil. Nanti ini bisa diarahkan ke dashboard.')
+    } catch (error) {
+      setFormMessage(
+        error instanceof Error
+          ? error.message
+          : 'Login gagal. Silakan coba lagi.',
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#0ca95a] px-4 py-8">
@@ -76,7 +107,7 @@ export function LoginPage() {
       <section className="relative w-full max-w-[520px] rounded-[2rem] bg-white px-6 py-7 shadow-2xl shadow-green-950/30 sm:px-9 sm:py-8">
         <button
           className="mb-7 grid size-10 place-items-center rounded-full text-neutral-600 transition hover:bg-neutral-100"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/')}
           type="button"
           aria-label="Kembali"
         >
@@ -117,7 +148,7 @@ export function LoginPage() {
 
         <form
           className={role === 'pencari-kos' ? 'space-y-7' : 'mt-8 space-y-7'}
-          onSubmit={(event) => event.preventDefault()}
+          onSubmit={handleSubmit}
         >
           <label className="block">
             <span className="text-sm font-black text-[#5a5666]">Nomor Handphone</span>
@@ -175,20 +206,30 @@ export function LoginPage() {
           <button
             className={
               'mt-4 h-14 w-full rounded-md text-lg font-black transition ' +
-              (canSubmit
+              (canSubmit && !isSubmitting
                 ? 'bg-green-600 text-white hover:bg-green-700 active:scale-[0.99]'
                 : 'cursor-not-allowed bg-neutral-100 text-neutral-300')
             }
-            disabled={!canSubmit}
+            disabled={!canSubmit || isSubmitting}
             type="submit"
           >
-            Login
+            {isSubmitting ? 'Memproses...' : 'Login'}
           </button>
+
+          {formMessage && (
+            <p className="text-center text-sm font-bold text-neutral-600">
+              {formMessage}
+            </p>
+          )}
         </form>
 
         <p className="mt-7 text-center text-sm font-semibold text-[#5a5666]">
           Belum punya akun Papikos?{' '}
-          <button className="font-black text-green-600 hover:text-green-700" type="button">
+          <button
+            className="font-black text-green-600 hover:text-green-700"
+            onClick={() => navigate(`/register/${role}`)}
+            type="button"
+          >
             Daftar Sekarang
           </button>
         </p>

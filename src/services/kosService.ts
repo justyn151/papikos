@@ -7,13 +7,16 @@ import type { KosListing } from '../types/kos'
 import type {
   KosSearchFilters,
   KosSearchResult,
+  SearchCoordinates,
   SearchMetadata,
 } from '../types/search'
+import { getNormalizedSearchCandidates, normalizeSearchText } from '../utils/normalizeSearchText'
 import { apiBaseUrl, apiRequest } from './apiClient'
 
 export type SearchKosRequest = {
   query: string
   filters: KosSearchFilters
+  coordinates?: SearchCoordinates
 }
 
 export interface KosService {
@@ -49,6 +52,26 @@ function matchesFilters(listing: KosListing, filters: KosSearchFilters) {
   return !filters.availableOnly || listing.availableRooms > 0
 }
 
+function getDistanceInKilometers(
+  first: SearchCoordinates,
+  second: SearchCoordinates,
+) {
+  const earthRadius = 6371
+  const degreesToRadians = Math.PI / 180
+  const latitudeDistance = (second.lat - first.lat) * degreesToRadians
+  const longitudeDistance = (second.lng - first.lng) * degreesToRadians
+  const firstLatitude = first.lat * degreesToRadians
+  const secondLatitude = second.lat * degreesToRadians
+
+  const haversine =
+    Math.sin(latitudeDistance / 2) ** 2 +
+    Math.cos(firstLatitude) *
+      Math.cos(secondLatitude) *
+      Math.sin(longitudeDistance / 2) ** 2
+
+  return earthRadius * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+}
+
 const mockKosService: KosService = {
   async getFeatured() {
     return featuredKosListings
@@ -58,31 +81,55 @@ const mockKosService: KosService = {
     return allKosListings.find((listing) => listing.id === id) ?? null
   },
 
-  async search({ query, filters }) {
-    const normalizedQuery = query.trim().toLocaleLowerCase('id-ID')
+  async search({ query, filters, coordinates }) {
+    const normalizedQueryCandidates = getNormalizedSearchCandidates(query)
 
-    return dummyKosSearchRecords.flatMap((record) => {
+    const results = dummyKosSearchRecords.flatMap((record) => {
+      const listing = allKosListings.find(
+        (candidate) => candidate.id === record.listingId,
+      )
+      if (!listing) return []
+
       const searchableText = [
         record.name,
         record.city,
         record.area,
         record.address,
         ...record.nearbyCampuses,
+        listing.title,
+        listing.location,
+        listing.description,
+        ...listing.facilities,
+        ...listing.facilityCategories.flatMap((category) => category.items),
       ]
         .join(' ')
-        .toLocaleLowerCase('id-ID')
-      const listing = allKosListings.find(
-        (candidate) => candidate.id === record.listingId,
-      )
+      const normalizedSearchableText = normalizeSearchText(searchableText)
 
       if (
-        !listing ||
-        !searchableText.includes(normalizedQuery) ||
+        (!coordinates &&
+          normalizedQueryCandidates.length > 0 &&
+          !normalizedQueryCandidates.some((candidate) =>
+            normalizedSearchableText.includes(candidate),
+          )) ||
         !matchesFilters(listing, filters)
       ) return []
 
       return [{ record, listing }]
     })
+
+    if (!coordinates) return results
+
+    return results
+      .map((result) => ({
+        ...result,
+        distance: getDistanceInKilometers(coordinates, result.record.coordinates),
+      }))
+      .filter((result) => result.distance <= 25)
+      .sort((left, right) => left.distance - right.distance)
+      .map((result) => ({
+        record: result.record,
+        listing: result.listing,
+      }))
   },
 
   async getSearchMetadata() {
@@ -94,7 +141,7 @@ function createRemoteKosService(): KosService {
   return {
     getFeatured: () => apiRequest<KosListing[]>('/kos?featured=true'),
     getById: (id) => apiRequest<KosListing | null>(`/kos/${id}`),
-    search: ({ query, filters }) => {
+    search: ({ query, filters, coordinates }) => {
       const params = new URLSearchParams({
         query,
         tags: filters.tags.join(','),
@@ -105,6 +152,10 @@ function createRemoteKosService(): KosService {
         rules: filters.rules.join(','),
         availableOnly: String(filters.availableOnly),
       })
+      if (coordinates) {
+        params.set('lat', String(coordinates.lat))
+        params.set('lng', String(coordinates.lng))
+      }
       return apiRequest<KosSearchResult[]>(`/kos/search?${params}`)
     },
     getSearchMetadata: () => apiRequest<SearchMetadata>('/search/metadata'),

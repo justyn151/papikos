@@ -11,9 +11,14 @@ export function SearchRoutePage() {
     <SearchPage
       value={value}
       onChange={setValue}
-      onSearch={(query) =>
-        navigate(`/results?${new URLSearchParams({ query })}`)
-      }
+      onSearch={(query, coordinates) => {
+        const params = new URLSearchParams({ query })
+        if (coordinates) {
+          params.set('lat', String(coordinates.lat))
+          params.set('lng', String(coordinates.lng))
+        }
+        navigate(`/results?${params}`)
+      }}
       onBack={() => navigate('/')}
     />
   )

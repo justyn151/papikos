@@ -9,6 +9,7 @@ import {
 import { HomePage } from './pages/HomePage'
 import { KosDetailRoutePage } from './pages/KosDetailRoutePage'
 import { LoginPage } from './pages/LoginPage'
+import { RegisterPage } from './pages/RegisterPage'
 import { SearchResultsRoutePage } from './pages/SearchResultsRoutePage'
 import { SearchRoutePage } from './pages/SearchRoutePage'
 
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/results" element={<SearchResultsRoutePage />} />
         <Route path="/kos/:kosId" element={<KosDetailRoutePage />} />
         <Route path="/login/:role" element={<LoginPage />} />
+        <Route path="/register/:role" element={<RegisterPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
     </BrowserRouter>

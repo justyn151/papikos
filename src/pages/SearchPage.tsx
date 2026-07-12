@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Icon } from '../components/Icon/Icon'
 import { kosService } from '../services/kosService'
-import type { SearchMetadata } from '../types/search'
+import type { SearchCoordinates, SearchMetadata } from '../types/search'
 import { getSearchSuggestions } from '../utils/searchSuggestions'
 
 type SearchPageProps = {
   value: string
   onChange: (value: string) => void
-  onSearch: (value: string) => void
+  onSearch: (value: string, coordinates?: SearchCoordinates) => void
   onBack: () => void
 }
 
@@ -58,10 +58,14 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
 
     setLocationStatus('Mencari lokasi kamu...')
     navigator.geolocation.getCurrentPosition(
-      () => {
+      (position) => {
+        const coordinates = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        }
         onChange('Lokasi saya')
         setLocationStatus('Lokasi ditemukan.')
-        onSearch('Lokasi saya')
+        onSearch('Lokasi saya', coordinates)
       },
       () => {
         setLocationStatus('Izin lokasi ditolak atau lokasi tidak dapat ditemukan.')

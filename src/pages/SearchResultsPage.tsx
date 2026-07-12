@@ -8,10 +8,15 @@ import { Icon } from '../components/Icon/Icon'
 import { SearchFilters } from '../components/SearchFilters/SearchFilters'
 import { KosResultsMap } from '../components/KosResultsMap/KosResultsMap'
 import { kosService } from '../services/kosService'
-import type { KosSearchFilters, KosSearchResult } from '../types/search'
+import type {
+  KosSearchFilters,
+  KosSearchResult,
+  SearchCoordinates,
+} from '../types/search'
 
 type SearchResultsPageProps = {
   query: string
+  coordinates?: SearchCoordinates
   onBack: () => void
   onOpenListing: (listingId: number) => void
 }
@@ -21,6 +26,7 @@ const fallbackImage =
 
 export function SearchResultsPage({
   query,
+  coordinates,
   onBack,
   onOpenListing,
 }: SearchResultsPageProps) {
@@ -38,12 +44,15 @@ export function SearchResultsPage({
   const [results, setResults] = useState<KosSearchResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
+  const coordinateKey = coordinates
+    ? `${coordinates.lat},${coordinates.lng}`
+    : ''
 
   useEffect(() => {
     let isCurrentRequest = true
 
     kosService
-      .search({ query, filters })
+      .search({ query, filters, coordinates })
       .then((nextResults) => {
         if (isCurrentRequest) setResults(nextResults)
       })
@@ -60,7 +69,7 @@ export function SearchResultsPage({
     return () => {
       isCurrentRequest = false
     }
-  }, [filters, query])
+  }, [coordinateKey, coordinates, filters, query])
 
   function startResizing(event: ReactPointerEvent<HTMLButtonElement>) {
     event.preventDefault()
@@ -101,13 +110,13 @@ export function SearchResultsPage({
   }
 
   return (
-    <main className="bg-white">
+    <main className="bg-white lg:h-[calc(100dvh-78px)] lg:overflow-hidden">
       <div
-        className="flex min-h-[calc(100vh-68px)] flex-col lg:h-[calc(100vh-78px)] lg:flex-row lg:overflow-hidden"
+        className="flex min-h-[calc(100dvh-68px)] flex-col lg:h-full lg:min-h-0 lg:flex-row lg:overflow-hidden"
         ref={splitContainerRef}
       >
         <section
-          className="w-full min-w-0 overflow-y-auto px-4 pb-12 pt-5 sm:px-7 lg:h-full lg:w-[var(--list-width)]"
+          className="w-full min-w-0 px-4 pb-12 pt-5 sm:px-7 lg:h-full lg:min-h-0 lg:w-[var(--list-width)] lg:overflow-y-auto lg:overscroll-contain"
           style={{ '--list-width': `${listWidth}%` } as CSSProperties}
         >
           <div className="flex flex-wrap items-center gap-3">
@@ -123,7 +132,11 @@ export function SearchResultsPage({
           </div>
 
           <div className="mt-5 rounded-2xl bg-green-50 p-4 text-sm font-semibold leading-6 text-green-800">
-            {isLoading ? 'Mencari kos...' : `Menampilkan ${results.length} kos untuk pencarian “${query}”.`}
+            {isLoading
+              ? 'Mencari kos...'
+              : coordinates
+                ? `Menampilkan ${results.length} kos dalam radius 25 km dari lokasi kamu.`
+                : `Menampilkan ${results.length} kos untuk pencarian “${query}”.`}
           </div>
 
           <div className="mt-5 divide-y divide-neutral-200">
@@ -242,7 +255,7 @@ export function SearchResultsPage({
         </button>
 
         <section
-          className="relative z-0 h-[420px] min-w-0 bg-neutral-100 lg:h-full lg:flex-1"
+          className="relative z-0 h-[420px] min-h-[420px] min-w-0 overflow-hidden bg-neutral-100 lg:h-full lg:min-h-0 lg:flex-1"
           aria-label="Peta hasil pencarian"
         >
           <KosResultsMap

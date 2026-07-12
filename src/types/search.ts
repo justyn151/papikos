@@ -32,6 +32,11 @@ export type KosSearchFilters = {
   availableOnly: boolean
 }
 
+export type SearchCoordinates = {
+  lat: number
+  lng: number
+}
+
 export type KosSearchResult = {
   record: KosSearchRecord
   listing: KosListing
