@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite --host",
     "dev:api": "node server/index.js",
-    "db:migrate": "psql \"$DATABASE_URL\" -f database/migrations/001_initial_schema.sql -f database/migrations/002_auth_schema.sql",
+    "db:migrate": "psql \"$DATABASE_URL\" -f database/migrations/001_initial_schema.sql -f database/migrations/002_auth_schema.sql -f database/migrations/003_sessions_schema.sql -f database/migrations/004_renter_actions_schema.sql -f database/migrations/005_password_resets_schema.sql -f database/migrations/006_owner_workflows_schema.sql",
     "db:seed": "psql \"$DATABASE_URL\" -f database/seeds/001_mock_data.sql",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "node --test server/tests/*.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -12,6 +12,11 @@ import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { SearchResultsRoutePage } from './pages/SearchResultsRoutePage'
 import { SearchRoutePage } from './pages/SearchRoutePage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { LegalPage } from './pages/LegalPage'
+import { ActivityPage } from './pages/ActivityPage'
+import { OwnerDashboardPage } from './pages/OwnerDashboardPage'
 
 function ScrollToTop() {
   const location = useLocation()
@@ -34,6 +39,11 @@ export default function App() {
         <Route path="/kos/:kosId" element={<KosDetailRoutePage />} />
         <Route path="/login/:role" element={<LoginPage />} />
         <Route path="/register/:role" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/legal/:document" element={<LegalPage />} />
+        <Route path="/activity" element={<ActivityPage />} />
+        <Route path="/owner" element={<OwnerDashboardPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Routes>
     </BrowserRouter>

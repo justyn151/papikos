@@ -82,7 +82,15 @@ export async function registerUser(body) {
       [data.fullName, data.phoneNumber, data.email, hash, salt, data.role],
     )
 
-    return publicUser(result.rows[0])
+    const user = publicUser(result.rows[0])
+    if (user.role === 'pemilik-kos') {
+      await query(
+        `update kos_listings set owner_user_id = $1
+         where owner_user_id is null and lower(owner_name) = lower($2)`,
+        [user.id, user.fullName],
+      )
+    }
+    return user
   } catch (error) {
     if (error.code === '23505') {
       throw validationError('Akun sudah terdaftar.', {
@@ -119,4 +127,3 @@ export async function loginUser(body) {
 
   return publicUser(user)
 }
-

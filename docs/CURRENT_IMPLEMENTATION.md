@@ -1,131 +1,129 @@
-# Papikos Current Frontend Implementation
+# Papikos Current Implementation
 
-Updated: 23 June 2026.
+Updated: 16 July 2026.
 
-## Technology
+## Architecture
 
-- React 19 and TypeScript.
-- Vite and Tailwind CSS.
-- React Router with browser URLs.
-- Leaflet, React-Leaflet, and OpenStreetMap.
-- Mock/remote API service boundary.
+Papikos runs as three services:
 
-## Routes
+```text
+React browser app -> Nginx /api proxy -> Express API -> PostgreSQL
+```
 
-| URL | Screen |
+Docker Compose builds the frontend and API, initializes PostgreSQL migrations
+and seed data, waits for health checks, and preserves data in a named volume.
+
+## Frontend
+
+- React 19, TypeScript, Vite, Tailwind CSS, and React Router.
+- Homepage, location search, listing filters, Leaflet map, kos details, and
+  responsive media galleries.
+- Loading, empty, missing-record, and request-error states.
+- Local mock listing mode when `VITE_API_BASE_URL` is empty.
+- PostgreSQL-backed remote mode when the API URL is configured.
+
+Routes include:
+
+| Route | Purpose |
 | --- | --- |
-| `/` | Homepage, search hero, and featured carousel |
-| `/search?query=...` | Suggestion-first location search |
-| `/results?query=...` | Listing results, filters, and resizable map |
-| `/kos/:kosId` | Complete kos detail page |
+| `/` | Homepage and featured kos |
+| `/search` | Location/campus/area search |
+| `/results` | Filtered results and map |
+| `/kos/:id` | Listing details and renter actions |
+| `/login/:role` | Password login |
+| `/register/:role` | Account registration |
+| `/forgot-password` | Request a reset link |
+| `/reset-password` | Set a password using a one-time token |
+| `/activity` | Renter request history |
+| `/owner` | Owner request dashboard |
+| `/legal/:document` | Terms or privacy information |
 
-Unknown routes redirect home. `ScrollToTop` smoothly returns route changes to the top. Hosting requires an SPA rewrite to `index.html`.
+## Backend API
 
-## Homepage
+The Express API uses parameterized PostgreSQL queries and central JSON error
+responses. Implemented endpoints cover:
 
-- Responsive Papikos header with a login placeholder.
-- Search launcher moves into the sticky header after scrolling past the hero.
-- Infinite draggable featured carousel with mouse momentum and arrow navigation.
-- Expandable Papikos information section.
-- Featured data loads through `kosService.getFeatured()`.
+- Health and database connectivity.
+- Featured listings, detail records, filtering, location search, and nearby
+  coordinates.
+- Search metadata.
+- Server-calculated payment quotes.
+- Account registration, login, current session, and logout.
+- Password-reset request and completion.
+- Survey, owner-contact, and rental-application creation.
+- Renter activity history.
+- Owner inbox and authorized request status changes.
 
-## Search
+## Authentication and authorization
 
-- Users select a suggestion instead of submitting arbitrary text.
-- City, campus, and area suggestions come from service metadata.
-- Aliases include examples such as Jogja, Jogjakarta, Yogya, UGM, and ITB.
-- Canonical values are stored in the result URL.
+- Passwords use PBKDF2-SHA512 with a unique random salt.
+- Login and registration create random server-side sessions.
+- Only a SHA-256 hash of each session token is stored in PostgreSQL.
+- The browser token uses an `HttpOnly`, `SameSite=Lax` cookie.
+- Logout deletes the database session and expires the cookie.
+- Password reset tokens are random, hashed in storage, one-time use, and expire
+  after 30 minutes.
+- Resetting a password invalidates all active sessions.
+- Renter endpoints require a `pencari-kos` account.
+- Owner inbox/status endpoints require a `pemilik-kos` account and verify that
+  the request belongs to one of that owner's listings.
 
-## Results and filters
+Local Docker exposes password reset links in the UI for development. Public
+deployments must leave `EXPOSE_RESET_TOKEN=false` and deliver links through a
+configured email or SMS provider.
 
-Results load through `kosService.search({ query, filters })`.
+## Persistent renter workflows
 
-Implemented filters:
+The detail page persists these actions:
 
-- Multiple gender/type selections.
-- Rental duration.
-- Minimum and maximum price with formatted fields and one dual-handle slider.
-- Multiple facility selections.
-- Multiple kos-rule selections.
-- Available rooms only.
+- Survey request with a future date/time.
+- Request to contact the owner.
+- Rental application with duration, payment method, total, and a complete JSON
+  snapshot of the server quote.
 
-Filter panels have staged values, **Hapus** and **Simpan** actions, backdrop animation, and responsive modals for larger lists.
+The renter can inspect these records and their statuses on `/activity`.
 
-Cards display the complete address, availability, clickable facility chips, monthly price, and detail navigation.
+## Owner workflow
 
-## Map
+Owner accounts are linked to seeded listings when the account's full name
+matches the listing's `owner_name`. The owner dashboard shows only requests for
+linked listings and allows valid status transitions for surveys, contacts, and
+rental applications.
 
-- Uses OpenStreetMap tiles through Leaflet.
-- No Google Maps API key is required.
-- Dummy listings contain real approximate coordinates.
-- Marker colors identify Putra, Putri, and Campur listings.
-- Marker labels display compact prices.
-- Popups show address, price, and a detail button.
-- Visible markers update with filters.
-- The map fits filtered results automatically.
-- A draggable desktop divider resizes list and map panels.
+This name-based link is suitable for the current demo dataset. A production
+onboarding flow should verify ownership and assign `owner_user_id` explicitly.
 
-## Detail page
+## Database migrations
 
-- Loads a listing by URL ID through `kosService.getById()`.
-- Large image/video viewer with navigation arrows.
-- Horizontally scrollable thumbnail strip.
-- Fullscreen media lightbox including video.
-- Listing tag, rating, address, description, facilities, rules, owner, and availability.
-- Sticky desktop price/payment card.
-- Rental periods, full payment, DP, settlement, discounts, fees, and deposits.
-- Animated payment breakdown modals.
-- Survey, owner contact, and rental buttons currently provide frontend feedback only.
+1. Initial kos, location, media, facility, rules, and payment schema.
+2. User accounts.
+3. Browser sessions.
+4. Renter actions.
+5. Password resets.
+6. Listing ownership and owner workflows.
 
-## Data model
+## Intentionally excluded integrations
 
-`KosListing` is the detail-ready object. It includes categorized facilities, rental durations, payment terms, cover media, and an arbitrary media array. Multiple media items can use the same category.
-
-`KosSearchRecord` contains search and map fields. `KosSearchResult` joins a search record to its complete listing.
-
-All money values are integer rupiah. Coordinates are numeric latitude and longitude.
-
-## API layer
-
-`src/services/apiClient.ts` handles base URLs, JSON, and HTTP errors.
-
-`src/services/kosService.ts` defines:
-
-- `getFeatured()`
-- `getById(id)`
-- `search({ query, filters })`
-- `getSearchMetadata()`
-
-When `VITE_API_BASE_URL` is empty, the mock implementation reads local data. When configured, the remote implementation calls prepared backend endpoints.
-
-## Loading and failures
-
-- Homepage, results, and detail routes show loading skeletons.
-- Request failures show readable messages.
-- Search requests guard against stale async responses.
-- Invalid and missing detail IDs have dedicated states.
-
-## Responsive behavior
-
-- Mobile layouts avoid horizontal page overflow.
-- Search results and map stack vertically on smaller screens.
-- Desktop uses a draggable split view.
-- Filter controls wrap and facility/rule modals fit small screens.
-- Detail columns collapse into a mobile layout.
-
-## Current placeholders
-
-- Login and registration are not implemented.
-- Buttons do not yet create surveys, chats, or rental applications.
-- Payment calculations are frontend demonstrations, not authoritative quotes.
-- Dummy listings reuse a small image set and one local tour video.
-- Search has no pagination or map-bound query.
-- Map/card hover synchronization is not implemented.
-- Remote responses have TypeScript expectations but no runtime schema validation.
+- Google, Facebook, and Apple login are not displayed until OAuth provider
+  credentials and callback URLs are configured.
+- Fake CAPTCHA controls were removed. Production can add a verified CAPTCHA or
+  another abuse-prevention mechanism.
+- Password reset delivery needs an email or SMS provider in production.
+- Actual payment collection needs a payment gateway; the current backend
+  creates trusted quotes and applications but does not charge money.
+- Owner listing creation/editing and media upload are not yet product screens.
 
 ## Validation
 
 ```bash
 npm run lint
 npm run build
+npm test
+docker compose config
+```
+
+End-to-end database validation additionally requires a running Docker engine:
+
+```bash
+docker compose up --build
 ```

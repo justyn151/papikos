@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from '../Icon/Icon'
+import { useAuth } from '../../auth/authContext'
 
 type HeaderProps = {
   onLogin?: () => void
@@ -16,6 +17,7 @@ export function Header({
   onOpenSearch,
 }: HeaderProps) {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [isLoginChoiceOpen, setIsLoginChoiceOpen] = useState(false)
   const [isLoginChoiceClosing, setIsLoginChoiceClosing] = useState(false)
 
@@ -76,13 +78,28 @@ export function Header({
           </span>
         </button>
 
-        <button
-          className="shrink-0 rounded-md border border-green-600 bg-white px-3 py-2.5 text-sm font-bold text-green-600 transition hover:bg-green-50 active:scale-[0.98] sm:px-6 sm:py-3 sm:text-base"
-          onClick={openLoginChoice}
-          type="button"
-        >
-          Masuk
-        </button>
+        {user ? (
+          <div className="flex shrink-0 items-center gap-3">
+            <Link className="hidden max-w-40 truncate text-sm font-black text-neutral-700 hover:text-green-600 sm:block" to={user.role === 'pencari-kos' ? '/activity' : '/owner'}>
+              {user.fullName}
+            </Link>
+            <button
+              className="rounded-md border border-neutral-300 bg-white px-3 py-2.5 text-sm font-bold text-neutral-600 transition hover:bg-neutral-50 sm:px-5"
+              onClick={() => void logout()}
+              type="button"
+            >
+              Keluar
+            </button>
+          </div>
+        ) : (
+          <button
+            className="shrink-0 rounded-md border border-green-600 bg-white px-3 py-2.5 text-sm font-bold text-green-600 transition hover:bg-green-50 active:scale-[0.98] sm:px-6 sm:py-3 sm:text-base"
+            onClick={openLoginChoice}
+            type="button"
+          >
+            Masuk
+          </button>
+        )}
       </header>
 
       {isLoginChoiceOpen && (

@@ -38,3 +38,24 @@ export function registerUser(payload: {
   })
 }
 
+export function getCurrentUser() {
+  return apiRequest<{ user: AuthUser | null }>('/auth/me')
+}
+
+export function logoutUser() {
+  return apiRequest<void>('/auth/logout', { method: 'POST' })
+}
+
+export function requestPasswordReset(identifier: string) {
+  return apiRequest<{ message: string; resetPath?: string }>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ identifier }),
+  })
+}
+
+export function resetPassword(token: string, password: string) {
+  return apiRequest<{ message: string }>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}

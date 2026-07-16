@@ -16,9 +16,12 @@ export function validationError(message, fields = undefined) {
   return new HttpError(400, message, 'VALIDATION_ERROR', fields)
 }
 
+export function forbidden(message = 'Kamu tidak memiliki akses ke fitur ini.') {
+  return new HttpError(403, message, 'FORBIDDEN')
+}
+
 export function asyncRoute(handler) {
   return (request, response, next) => {
     Promise.resolve(handler(request, response, next)).catch(next)
   }
 }
-

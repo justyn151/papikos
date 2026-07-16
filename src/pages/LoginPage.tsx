@@ -1,33 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon/Icon'
+import { useAuth } from '../auth/authContext'
 import { loginUser } from '../services/authService'
 
 const roleLabels = {
   'pencari-kos': 'Pencari Kos',
   'pemilik-kos': 'Pemilik Kos',
 } as const
-
-const authProviders = [
-  {
-    label: 'Sign in with Google',
-    iconUrl: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-    iconClassName: '',
-    className: 'border border-neutral-200 bg-white text-[#4c4a57] hover:border-neutral-300 hover:bg-neutral-50',
-  },
-  {
-    label: 'Sign in with Facebook',
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg',
-    iconClassName: '',
-    className: 'border border-neutral-200 bg-white text-[#4c4a57] hover:border-neutral-300 hover:bg-neutral-50',
-  },
-  {
-    label: 'Sign in with Apple',
-    iconUrl: 'https://cdn.jsdelivr.net/npm/simple-icons@15.15.0/icons/apple.svg',
-    iconClassName: 'invert',
-    className: 'border border-black bg-black text-white hover:bg-neutral-900',
-  },
-]
 
 type LoginRole = keyof typeof roleLabels
 
@@ -56,6 +36,7 @@ function validatePhoneNumber(value: string) {
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const { setUser } = useAuth()
   const { role } = useParams()
   const [showPassword, setShowPassword] = useState(false)
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -77,12 +58,13 @@ export function LoginPage() {
     setFormMessage('')
 
     try {
-      await loginUser({
+      const response = await loginUser({
         phoneNumber,
         password,
         role,
       })
-      setFormMessage('Login berhasil. Nanti ini bisa diarahkan ke dashboard.')
+      setUser(response.user)
+      navigate(response.user.role === 'pemilik-kos' ? '/owner' : '/')
     } catch (error) {
       setFormMessage(
         error instanceof Error
@@ -118,36 +100,8 @@ export function LoginPage() {
           Login {roleLabels[role]}
         </h1>
 
-        {role === 'pencari-kos' && (
-          <>
-            <div className="mt-7 grid gap-4">
-              {authProviders.map((provider) => (
-                <button
-                  className={`flex h-14 items-center justify-center gap-4 rounded-sm px-4 text-lg font-bold transition active:scale-[0.99] ${provider.className}`}
-                  key={provider.label}
-                  type="button"
-                >
-                  <img
-                    className={`size-7 object-contain ${provider.iconClassName}`}
-                    src={provider.iconUrl}
-                    alt=""
-                    aria-hidden="true"
-                  />
-                  {provider.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="my-7 flex items-center gap-5 text-sm font-bold text-neutral-500">
-              <span className="h-px flex-1 bg-neutral-200" />
-              atau
-              <span className="h-px flex-1 bg-neutral-200" />
-            </div>
-          </>
-        )}
-
         <form
-          className={role === 'pencari-kos' ? 'space-y-7' : 'mt-8 space-y-7'}
+          className="mt-8 space-y-7"
           onSubmit={handleSubmit}
         >
           <label className="block">
@@ -235,7 +189,7 @@ export function LoginPage() {
         </p>
 
         <div className="mt-5 text-center">
-          <button className="text-sm font-black text-green-600 hover:text-green-700" type="button">
+          <button className="text-sm font-black text-green-600 hover:text-green-700" onClick={() => navigate('/forgot-password')} type="button">
             Lupa password?
           </button>
         </div>

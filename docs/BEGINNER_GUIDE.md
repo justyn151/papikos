@@ -2,7 +2,9 @@
 
 This guide explains how the current Papikos frontend works. It is written for a beginner, so it explains React ideas slowly instead of assuming you already know the words.
 
-Papikos is currently a frontend-only React app. It uses local TypeScript mock data for now, but it is already shaped so a backend API can later return the same kind of JSON from PostgreSQL.
+Papikos has a React frontend and an Express/PostgreSQL backend. Listing screens
+can still use local TypeScript mock data when no API URL is configured, while
+accounts and persistent renter/owner workflows use the backend.
 
 ## 1. The big idea
 

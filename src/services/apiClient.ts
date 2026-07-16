@@ -19,6 +19,7 @@ export async function apiRequest<T>(path: string, options?: RequestInit): Promis
 
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...options,
+    credentials: 'include',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',

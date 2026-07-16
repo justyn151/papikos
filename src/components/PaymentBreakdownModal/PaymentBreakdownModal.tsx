@@ -14,6 +14,7 @@ type PaymentBreakdownModalProps = {
   lines: PaymentBreakdownLine[]
   totalLabel: string
   total: number
+  isAuthoritative?: boolean
   onClose: () => void
 }
 
@@ -22,6 +23,7 @@ export function PaymentBreakdownModal({
   lines,
   totalLabel,
   total,
+  isAuthoritative = false,
   onClose,
 }: PaymentBreakdownModalProps) {
   const [isClosing, setIsClosing] = useState(false)
@@ -105,7 +107,9 @@ export function PaymentBreakdownModal({
         </div>
 
         <p className="mt-6 rounded-2xl bg-blue-50 p-4 text-sm font-semibold leading-6 text-blue-700">
-          Rincian ini adalah estimasi frontend. Nominal final harus dikonfirmasi oleh backend sebelum pembayaran.
+          {isAuthoritative
+            ? 'Rincian ini dihitung oleh backend dari ketentuan pembayaran yang tersimpan.'
+            : 'Rincian ini adalah estimasi frontend. Nominal final harus dikonfirmasi oleh backend sebelum pembayaran.'}
         </p>
       </section>
     </div>

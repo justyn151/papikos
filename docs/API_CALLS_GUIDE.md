@@ -1,6 +1,8 @@
 # Papikos API Calls Guide
 
-Papikos already has a frontend API boundary. The application uses mock data by default and automatically switches to HTTP when a backend URL is configured.
+Papikos has an implemented Express/PostgreSQL API. Listing reads can still use
+mock data when no frontend API URL is configured; accounts and persistent
+workflows require the backend.
 
 ## 1. Current service structure
 
@@ -71,7 +73,7 @@ interface KosService {
 
 Both mock and remote implementations must follow this contract. That is why the UI can switch data sources without being rewritten.
 
-## 5. Prepared endpoints
+## 5. Listing endpoints
 
 ### Featured listings
 
@@ -200,9 +202,9 @@ Do not show raw database errors to users. The backend should return a stable err
 }
 ```
 
-## 9. Authentication boundary
+## 9. Authentication and sessions
 
-The frontend may render login forms and send credentials, but the backend must own:
+The backend owns:
 
 - Password hashing.
 - Session or token creation.
@@ -210,11 +212,48 @@ The frontend may render login forms and send credentials, but the backend must o
 - Owner/listing ownership checks.
 - Trusted price calculations.
 
-For browser applications, secure `HttpOnly`, `Secure`, `SameSite` cookies are generally safer than storing long-lived tokens in localStorage.
+Papikos uses random server-side sessions in an `HttpOnly`, `SameSite=Lax`
+cookie. Only a SHA-256 token hash is stored in PostgreSQL. API requests include
+browser credentials automatically.
 
-If cookies are used across origins, configure CORS precisely and add `credentials: 'include'` to requests.
+Implemented account endpoints:
 
-## 10. Media uploads
+```http
+POST /auth/register
+POST /auth/login
+GET  /auth/me
+POST /auth/logout
+POST /auth/forgot-password
+POST /auth/reset-password
+```
+
+Password reset tokens expire after 30 minutes, can be used once, and invalidate
+existing sessions. Local Docker may expose the reset path for testing. A
+production environment must deliver it through a private email or SMS channel.
+
+## 10. Persistent renter and owner workflows
+
+Authenticated renter endpoints:
+
+```http
+POST /kos/:id/surveys
+POST /kos/:id/contact-requests
+POST /kos/:id/rental-applications
+GET  /me/activity
+```
+
+Authenticated owner endpoints:
+
+```http
+GET   /owner/inbox
+PATCH /owner/requests/:type/:id
+```
+
+Every owner update verifies that the request belongs to a listing linked to
+the current owner. Rental applications store the server quote as a JSON
+snapshot so later price changes do not alter the submitted application.
+
+## 11. Media uploads
 
 Large images and videos should normally be stored in object storage. PostgreSQL stores URLs and metadata rather than the binary video.
 
@@ -227,9 +266,10 @@ Content-Type: multipart/form-data
 
 Each media row should have its own ID, category, label, type, URL, thumbnail, alt text, and ordering value. Multiple images may share one category.
 
-## 11. Payment calculations
+## 12. Payment calculations
 
-The current frontend calculates payment previews for demonstration. Production totals, discounts, deposits, and service fees must come from an authoritative backend quote endpoint:
+The frontend calls the authoritative backend quote endpoint for full and DP
+payment previews:
 
 ```http
 POST /kos/:id/payment-quote
@@ -246,15 +286,11 @@ Request:
 
 The backend response should contain line items and the final total. Never trust a total submitted by the browser.
 
-## 12. Backend handoff checklist
+## 13. Remaining production integrations
 
-1. Agree on endpoint paths and JSON field names.
-2. Match the TypeScript contract or add DTO conversion functions.
-3. Return complete media and facility arrays.
-4. Support all search query parameters.
-5. Configure CORS for the frontend origin.
-6. Set `VITE_API_BASE_URL` locally.
-7. Test loading, empty, 404, validation, and server-error cases.
-8. Add runtime response validation.
-9. Move payment authority to the backend.
-10. Add pagination before the listing dataset becomes large.
+1. Configure a private email or SMS delivery provider for password resets.
+2. Add an OAuth provider only after client credentials and callback URLs exist.
+3. Add a payment gateway when Papikos is ready to collect money.
+4. Add object storage and media-upload endpoints for owners.
+5. Add runtime response validation and pagination as the dataset grows.
+6. Replace demo name-based owner linking with verified owner onboarding.

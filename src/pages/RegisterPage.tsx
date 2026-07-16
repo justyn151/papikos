@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon/Icon'
+import { useAuth } from '../auth/authContext'
 import { registerUser } from '../services/authService'
 
 const roleLabels = {
@@ -44,6 +45,7 @@ function validateEmail(value: string) {
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { setUser } = useAuth()
   const { role } = useParams()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -53,7 +55,6 @@ export function RegisterPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [hasAgreed, setHasAgreed] = useState(false)
-  const [isHumanChecked, setIsHumanChecked] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formMessage, setFormMessage] = useState('')
   const [touched, setTouched] = useState({
@@ -87,8 +88,7 @@ export function RegisterPage() {
     !emailError &&
     !passwordError &&
     !confirmPasswordError &&
-    hasAgreed &&
-    isHumanChecked
+    hasAgreed
 
   function fieldError(field: keyof typeof touched, message: string) {
     if (!touched[field] || !message) return null
@@ -104,14 +104,15 @@ export function RegisterPage() {
     setFormMessage('')
 
     try {
-      await registerUser({
+      const response = await registerUser({
         fullName,
         phoneNumber,
         email,
         password,
         role,
       })
-      setFormMessage('Pendaftaran berhasil. Kamu bisa masuk sekarang.')
+      setUser(response.user)
+      navigate(response.user.role === 'pemilik-kos' ? '/owner' : '/')
     } catch (error) {
       setFormMessage(
         error instanceof Error
@@ -263,35 +264,16 @@ export function RegisterPage() {
               />
               <span>
                 Dengan klik Saya Setuju, saya menyatakan telah membaca dan menyetujui{' '}
-                <button className="font-black text-green-600" type="button">
+                <button className="font-black text-green-600" onClick={() => navigate('/legal/terms')} type="button">
                   Syarat dan Ketentuan
                 </button>{' '}
                 serta{' '}
-                <button className="font-black text-green-600" type="button">
+                <button className="font-black text-green-600" onClick={() => navigate('/legal/privacy')} type="button">
                   Kebijakan Privasi
                 </button>{' '}
                 Papikos.
               </span>
             </label>
-
-            <button
-              className={`flex w-full items-center justify-between rounded-md border px-4 py-3 text-left transition ${
-                isHumanChecked
-                  ? 'border-green-200 bg-green-50'
-                  : 'border-neutral-200 bg-white hover:border-green-300'
-              }`}
-              onClick={() => setIsHumanChecked((current) => !current)}
-              type="button"
-              aria-pressed={isHumanChecked}
-            >
-              <span className="flex items-center gap-3 font-semibold text-neutral-700">
-                <span className="grid size-6 place-items-center rounded border border-neutral-300 bg-white text-green-600">
-                  {isHumanChecked && <Icon className="size-4" name="check" />}
-                </span>
-                Saya bukan robot
-              </span>
-              <span className="text-xs font-black text-green-600">Papikos</span>
-            </button>
 
             <button
               className={`h-13 w-full rounded-md font-black transition ${
