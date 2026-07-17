@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '../components/Icon/Icon'
 import { kosService } from '../services/kosService'
 import type { SearchCoordinates, SearchMetadata } from '../types/search'
@@ -11,11 +11,24 @@ type SearchPageProps = {
   onBack: () => void
 }
 
-const searchTabs = ['Kampus', 'Area'] as const
+const searchTabs = ['Semua', 'Provinsi', 'Kota', 'Kampus', 'Area'] as const
+
+type SearchTab = (typeof searchTabs)[number]
+
+const tabType: Record<Exclude<SearchTab, 'Semua'>, string> = {
+  Provinsi: 'province',
+  Kota: 'city',
+  Kampus: 'campus',
+  Area: 'area',
+}
+
+function locationType(id: string) {
+  return id.split('-')[0]
+}
 
 export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProps) {
-  const [activeTab, setActiveTab] = useState<(typeof searchTabs)[number]>('Kampus')
-  const [expandedCity, setExpandedCity] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<SearchTab>('Semua')
+  const [visibleLocationCount, setVisibleLocationCount] = useState(24)
   const [locationStatus, setLocationStatus] = useState('')
   const [metadata, setMetadata] = useState<SearchMetadata>({
     cities: [],
@@ -25,6 +38,12 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
   const [metadataError, setMetadataError] = useState('')
   const suggestions = getSearchSuggestions(metadata, value)
   const isTyping = value.trim().length > 0
+  const browsableLocations = useMemo(() => {
+    const locations = metadata.searchableLocations ?? []
+    if (activeTab === 'Semua') return locations
+    return locations.filter((location) => locationType(location.id) === tabType[activeTab])
+  }, [activeTab, metadata.searchableLocations])
+  const visibleLocations = browsableLocations.slice(0, visibleLocationCount)
 
   useEffect(() => {
     let isCurrentRequest = true
@@ -76,7 +95,13 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
   return (
     <main className="min-h-screen bg-white">
       <div className="mx-auto w-full max-w-5xl px-4 pb-16 pt-5 sm:px-8">
-        <div className="flex items-center gap-3">
+        <form
+          className="flex items-center gap-3"
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (value.trim()) onSearch(value.trim())
+          }}
+        >
           <button
             className="grid size-11 shrink-0 place-items-center rounded-full text-3xl text-neutral-600 transition hover:bg-neutral-100"
             onClick={onBack}
@@ -105,7 +130,14 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
               </button>
             )}
           </div>
-        </div>
+          <button
+            className="shrink-0 rounded-full bg-green-600 px-5 py-3 text-sm font-black text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
+            disabled={!value.trim()}
+            type="submit"
+          >
+            Cari
+          </button>
+        </form>
 
         {isTyping && (
           <section
@@ -168,7 +200,10 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
                   : 'border-transparent text-neutral-500 hover:text-neutral-700')
               }
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab)
+                setVisibleLocationCount(24)
+              }}
               type="button"
             >
               {tab}
@@ -193,49 +228,47 @@ export function SearchPage({ value, onChange, onSearch, onBack }: SearchPageProp
         </section>
 
         <section className="mt-8">
-          <h2 className="text-sm font-black text-neutral-700">{activeTab} berdasarkan kota</h2>
-          <div className="mt-4 divide-y divide-neutral-200 border-y border-neutral-200">
-            {metadata.cities.map((searchCity) => {
-              const isExpanded = expandedCity === searchCity.city
-              const locations =
-                activeTab === 'Kampus'
-                  ? searchCity.campuses
-                  : searchCity.areas
-
-              return (
-                <div key={searchCity.city}>
-                  <button
-                    className="flex w-full items-center justify-between py-5 text-left text-xl font-black text-neutral-700"
-                    onClick={() =>
-                      setExpandedCity(isExpanded ? null : searchCity.city)
-                    }
-                    type="button"
-                    aria-expanded={isExpanded}
-                  >
-                    {searchCity.city}
-                    <Icon
-                      className={`size-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                      name="chevronDown"
-                    />
-                  </button>
-                  {isExpanded && (
-                    <div className="flex flex-wrap gap-2 pb-5">
-                      {locations.map((location) => (
-                        <button
-                          className="rounded-full bg-neutral-100 px-4 py-2 text-sm font-bold text-neutral-600 transition hover:bg-green-100 hover:text-green-700"
-                          key={location}
-                          onClick={() => chooseLocation(location)}
-                          type="button"
-                        >
-                          {location}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-black text-neutral-800">Jelajahi semua lokasi</h2>
+              <p className="mt-1 text-sm font-semibold text-neutral-500">
+                {browsableLocations.length} {activeTab.toLocaleLowerCase('id-ID')} tersedia di katalog pencarian.
+              </p>
+            </div>
+            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-500">
+              Provinsi, kota, area, dan kampus
+            </span>
           </div>
+
+          {visibleLocations.length > 0 ? (
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleLocations.map((location) => (
+                <button
+                  className="rounded-2xl border border-neutral-200 p-4 text-left transition hover:border-green-400 hover:bg-green-50"
+                  key={location.id}
+                  onClick={() => chooseLocation(location.searchValue)}
+                  type="button"
+                >
+                  <span className="block truncate font-black text-neutral-800">{location.label}</span>
+                  <span className="mt-1 block text-xs font-semibold text-neutral-400">{location.description}</span>
+                </button>
+              ))}
+            </div>
+          ) : !metadataError ? (
+            <p className="mt-5 rounded-2xl bg-neutral-50 p-5 text-sm font-semibold text-neutral-500">
+              Belum ada lokasi untuk kategori ini.
+            </p>
+          ) : null}
+
+          {visibleLocationCount < browsableLocations.length && (
+            <button
+              className="mt-5 w-full rounded-full border border-neutral-300 px-5 py-3 text-sm font-black text-neutral-700 transition hover:border-green-500 hover:text-green-700"
+              onClick={() => setVisibleLocationCount((count) => count + 24)}
+              type="button"
+            >
+              Tampilkan lebih banyak ({browsableLocations.length - visibleLocationCount} tersisa)
+            </button>
+          )}
           {metadataError && (
             <p className="py-5 text-sm font-bold text-red-500">{metadataError}</p>
           )}

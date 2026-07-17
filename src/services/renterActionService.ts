@@ -2,9 +2,25 @@ import { apiRequest } from './apiClient'
 
 type ActivityBase = { id: number; kos_title: string; status: string; created_at: string }
 export type MyActivity = {
-  surveys: Array<ActivityBase & { scheduled_for: string; notes: string }>
-  contacts: Array<ActivityBase & { message: string }>
-  rentals: Array<ActivityBase & { rental_months: number; payment_method: string; quoted_total: number }>
+  surveys: Array<ActivityBase & {
+    scheduled_for: string
+    visitor_type: 'self' | 'representative'
+    visitor_name: string
+    visitor_phone: string
+    relationship: string
+    notes: string
+  }>
+  contacts: Array<ActivityBase & {
+    message: string
+    preferred_contact_method: 'chat' | 'whatsapp' | 'phone'
+  }>
+  rentals: Array<ActivityBase & {
+    rental_months: number
+    payment_method: string
+    quoted_total: number
+    move_in_date: string
+    notes: string
+  }>
 }
 
 export type PaymentQuote = {
@@ -22,28 +38,45 @@ export function getPaymentQuote(kosId: number, rentalMonths: number, paymentMeth
   })
 }
 
-export function requestSurvey(kosId: number, scheduledFor: string) {
+export type SurveyRequestPayload = {
+  scheduledFor: string
+  visitorType: 'self' | 'representative'
+  representativeName?: string
+  representativePhone?: string
+  relationship?: string
+  notes?: string
+}
+
+export type ContactRequestPayload = {
+  message: string
+  preferredContactMethod: 'chat' | 'whatsapp' | 'phone'
+}
+
+export type RentalApplicationPayload = {
+  rentalMonths: number
+  paymentMethod: 'full' | 'dp'
+  moveInDate: string
+  notes?: string
+}
+
+export function requestSurvey(kosId: number, payload: SurveyRequestPayload) {
   return apiRequest(`/kos/${kosId}/surveys`, {
     method: 'POST',
-    body: JSON.stringify({ scheduledFor }),
+    body: JSON.stringify(payload),
   })
 }
 
-export function requestOwnerContact(kosId: number) {
+export function requestOwnerContact(kosId: number, payload: ContactRequestPayload) {
   return apiRequest(`/kos/${kosId}/contact-requests`, {
     method: 'POST',
-    body: JSON.stringify({}),
+    body: JSON.stringify(payload),
   })
 }
 
-export function submitRentalApplication(
-  kosId: number,
-  rentalMonths: number,
-  paymentMethod: 'full' | 'dp',
-) {
+export function submitRentalApplication(kosId: number, payload: RentalApplicationPayload) {
   return apiRequest(`/kos/${kosId}/rental-applications`, {
     method: 'POST',
-    body: JSON.stringify({ rentalMonths, paymentMethod }),
+    body: JSON.stringify(payload),
   })
 }
 

@@ -30,6 +30,7 @@ export type KosSearchFilters = {
   facilities: string[]
   rules: string[]
   availableOnly: boolean
+  sort: 'recommended' | 'price-asc' | 'price-desc'
 }
 
 export type SearchCoordinates = {

@@ -37,10 +37,50 @@ function withAliases(suggestion: SearchSuggestion) {
   }
 }
 
-function matchScore(suggestion: SearchSuggestion, rawQuery: string) {
+function allowedTypoCount(length: number) {
+  if (length <= 4) return 1
+  if (length <= 9) return 2
+  return 3
+}
+
+function editDistance(left: string, right: string) {
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index)
+
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex]
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const substitutionCost = left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1
+      current[rightIndex] = Math.min(
+        current[rightIndex - 1] + 1,
+        previous[rightIndex] + 1,
+        previous[rightIndex - 1] + substitutionCost,
+      )
+    }
+    previous.splice(0, previous.length, ...current)
+  }
+
+  return previous[right.length]
+}
+
+function fuzzyWordScore(queryWords: string[], searchableValue: string) {
+  const itemWords = searchableValue.split(' ').filter(Boolean)
+  let totalDistance = 0
+
+  for (const queryWord of queryWords) {
+    const distances = itemWords.map((itemWord) => editDistance(queryWord, itemWord))
+    const closestDistance = Math.min(...distances)
+    if (closestDistance > allowedTypoCount(queryWord.length)) return Number.POSITIVE_INFINITY
+    totalDistance += closestDistance
+  }
+
+  return totalDistance
+}
+
+export function getFuzzyTextScore(rawQuery: string, rawSearchableValues: string[]) {
   const query = normalizeSearchText(rawQuery)
+  if (!query) return 0
   const queryWords = query.split(' ').filter(Boolean)
-  const searchableValues = [suggestion.label, ...suggestion.keywords].map(normalizeSearchText)
+  const searchableValues = rawSearchableValues.map(normalizeSearchText).filter(Boolean)
 
   if (searchableValues.some((item) => item === query)) return 0
   if (searchableValues.some((item) => item.startsWith(query))) return 1
@@ -58,7 +98,22 @@ function matchScore(suggestion: SearchSuggestion, rawQuery: string) {
       )
     })
   ) return 4
+
+  const wholeValueDistance = Math.min(
+    ...searchableValues.map((item) => editDistance(query, item)),
+  )
+  if (wholeValueDistance <= allowedTypoCount(query.length)) return 5 + wholeValueDistance
+
+  const wordDistance = Math.min(
+    ...searchableValues.map((item) => fuzzyWordScore(queryWords, item)),
+  )
+  if (Number.isFinite(wordDistance)) return 10 + wordDistance
+
   return Number.POSITIVE_INFINITY
+}
+
+function matchScore(suggestion: SearchSuggestion, rawQuery: string) {
+  return getFuzzyTextScore(rawQuery, [suggestion.label, ...suggestion.keywords])
 }
 
 function createFallbackLocations(metadata: SearchMetadata): SearchSuggestion[] {

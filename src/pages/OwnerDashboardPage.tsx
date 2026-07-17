@@ -51,14 +51,14 @@ export function OwnerDashboardPage() {
         )}
         {inbox && (
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
-            <OwnerSection title="Permintaan survey" empty="Belum ada survey.">
-              {inbox.surveys.map((item) => <OwnerCard key={item.id} title={item.kos_title} subtitle={`${item.renter_name} · ${new Date(item.scheduled_for).toLocaleString('id-ID')}`} status={item.status} options={statuses.surveys} onChange={(status) => void changeStatus('surveys', item.id, status)} />)}
+            <OwnerSection title="Permintaan survei" empty="Belum ada survei.">
+              {inbox.surveys.map((item) => <OwnerCard key={item.id} title={item.kos_title} subtitle={`${item.renter_name} · ${item.phone_number}`} details={[`Jadwal: ${new Date(item.scheduled_for).toLocaleString('id-ID')}`, `Pengunjung: ${item.visitor_name} · ${item.visitor_phone}`, ...(item.relationship ? [`Hubungan: ${item.relationship}`] : []), ...(item.notes ? [`Catatan: ${item.notes}`] : [])]} status={item.status} options={statuses.surveys} onChange={(status) => void changeStatus('surveys', item.id, status)} />)}
             </OwnerSection>
             <OwnerSection title="Permintaan kontak" empty="Belum ada permintaan kontak.">
-              {inbox.contacts.map((item) => <OwnerCard key={item.id} title={item.kos_title} subtitle={`${item.renter_name} · ${item.phone_number}`} status={item.status} options={statuses.contacts} onChange={(status) => void changeStatus('contacts', item.id, status)} />)}
+              {inbox.contacts.map((item) => <OwnerCard key={item.id} title={item.kos_title} subtitle={`${item.renter_name} · ${item.phone_number}`} details={[`Balasan: ${item.preferred_contact_method}`, `Pertanyaan: ${item.message}`]} status={item.status} options={statuses.contacts} onChange={(status) => void changeStatus('contacts', item.id, status)} />)}
             </OwnerSection>
             <OwnerSection title="Pengajuan sewa" empty="Belum ada pengajuan sewa.">
-              {inbox.rentals.map((item) => <OwnerCard key={item.id} title={item.kos_title} subtitle={`${item.renter_name} · ${item.rental_months} bulan · ${formatRupiah(Number(item.quoted_total))}`} status={item.status} options={statuses.rentals} onChange={(status) => void changeStatus('rentals', item.id, status)} />)}
+              {inbox.rentals.map((item) => <OwnerCard key={item.id} title={item.kos_title} subtitle={`${item.renter_name} · ${item.phone_number}`} details={[`Mulai masuk: ${new Date(`${item.move_in_date}T00:00:00`).toLocaleDateString('id-ID')}`, `${item.rental_months} bulan · ${formatRupiah(Number(item.quoted_total))}`, ...(item.notes ? [`Catatan: ${item.notes}`] : [])]} status={item.status} options={statuses.rentals} onChange={(status) => void changeStatus('rentals', item.id, status)} />)}
             </OwnerSection>
           </div>
         )}
@@ -71,6 +71,6 @@ function OwnerSection({ title, empty, children }: { title: string; empty: string
   return <section className="rounded-3xl bg-white p-6 shadow-sm"><h2 className="text-xl font-black">{title}</h2><div className="mt-5 space-y-4">{children.length ? children : <p className="text-sm font-semibold text-neutral-400">{empty}</p>}</div></section>
 }
 
-function OwnerCard({ title, subtitle, status, options, onChange }: { title: string; subtitle: string; status: string; options: readonly string[]; onChange: (status: string) => void }) {
-  return <article className="rounded-2xl border border-neutral-100 p-4"><h3 className="font-black">{title}</h3><p className="mt-2 text-sm font-semibold text-neutral-500">{subtitle}</p><select className="mt-4 w-full rounded-xl border p-2 font-bold" onChange={(event) => onChange(event.target.value)} value={status}>{options.map((option) => <option key={option}>{option}</option>)}</select></article>
+function OwnerCard({ title, subtitle, details, status, options, onChange }: { title: string; subtitle: string; details: string[]; status: string; options: readonly string[]; onChange: (status: string) => void }) {
+  return <article className="rounded-2xl border border-neutral-100 p-4"><h3 className="font-black">{title}</h3><p className="mt-2 text-sm font-semibold text-neutral-500">{subtitle}</p><div className="mt-3 space-y-1 rounded-xl bg-neutral-50 p-3">{details.map((detail) => <p className="break-words text-xs font-semibold leading-5 text-neutral-600" key={detail}>{detail}</p>)}</div><select className="mt-4 w-full rounded-xl border p-2 font-bold" onChange={(event) => onChange(event.target.value)} value={status}>{options.map((option) => <option key={option}>{option}</option>)}</select></article>
 }

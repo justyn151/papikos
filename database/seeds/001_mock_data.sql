@@ -55,53 +55,54 @@ insert into admin_locations (name, type, aliases) values
   ('Yogyakarta', 'city', '{jogja,jogjakarta,jogyakarta,yogya,djogja}')
 on conflict do nothing;
 
-insert into admin_locations (name, type, aliases) values
-  ('Universitas Gadjah Mada', 'campus', '{ugm}'),
-  ('Universitas Negeri Yogyakarta', 'campus', '{uny}'),
-  ('Universitas Muhammadiyah Yogyakarta', 'campus', '{umy}'),
-  ('Universitas Islam Indonesia', 'campus', '{uii}'),
-  ('Universitas Indonesia', 'campus', '{ui}'),
-  ('Institut Teknologi Bandung', 'campus', '{itb}'),
-  ('Universitas Padjadjaran', 'campus', '{unpad}'),
-  ('Universitas Airlangga', 'campus', '{unair}'),
-  ('Universitas Brawijaya', 'campus', '{ub}'),
-  ('Institut Teknologi Sepuluh Nopember', 'campus', '{its}'),
-  ('IPB University', 'campus', '{ipb}'),
-  ('BINUS University Kemanggisan', 'campus', '{binus}')
+insert into admin_locations (name, type, parent_id, aliases)
+select seed.name, 'campus', city.id, seed.aliases
+from (
+  values
+    ('Universitas Gadjah Mada', 'Yogyakarta', '{ugm}'::text[]),
+    ('Universitas Negeri Yogyakarta', 'Yogyakarta', '{uny}'::text[]),
+    ('Universitas Muhammadiyah Yogyakarta', 'Yogyakarta', '{umy}'::text[]),
+    ('Universitas Islam Indonesia', 'Yogyakarta', '{uii}'::text[]),
+    ('Universitas Indonesia', 'Depok', '{ui}'::text[]),
+    ('Politeknik Negeri Jakarta', 'Depok', '{pnj}'::text[]),
+    ('Universitas Gunadarma', 'Depok', '{gunadarma}'::text[]),
+    ('Institut Teknologi Bandung', 'Bandung', '{itb}'::text[]),
+    ('Universitas Padjadjaran', 'Bandung', '{unpad}'::text[]),
+    ('Universitas Airlangga', 'Surabaya', '{unair}'::text[]),
+    ('Institut Teknologi Sepuluh Nopember', 'Surabaya', '{its}'::text[]),
+    ('Universitas Brawijaya', 'Malang', '{ub}'::text[]),
+    ('Universitas Negeri Malang', 'Malang', '{um}'::text[]),
+    ('IPB University', 'Bogor', '{ipb}'::text[]),
+    ('BINUS University Kemanggisan', 'Jakarta', '{binus}'::text[]),
+    ('Universitas Negeri Jakarta', 'Jakarta', '{unj}'::text[]),
+    ('Universitas Udayana', 'Bali', '{unud}'::text[])
+) seed(name, city_name, aliases)
+join admin_locations city
+  on city.name = seed.city_name and city.type = 'city'
 on conflict do nothing;
 
-insert into admin_locations (name, type, aliases) values
-  ('Denpasar', 'area', '{}'),
-  ('Jimbaran', 'area', '{}'),
-  ('Kuta', 'area', '{}'),
-  ('Dago', 'area', '{}'),
-  ('Dipatiukur', 'area', '{}'),
-  ('Buah Batu', 'area', '{}'),
-  ('Sukajadi', 'area', '{}'),
-  ('Jatinangor', 'area', '{}'),
-  ('Dramaga', 'area', '{}'),
-  ('Margonda', 'area', '{}'),
-  ('Beji', 'area', '{}'),
-  ('Kukusan', 'area', '{}'),
-  ('Pondok Cina', 'area', '{}'),
-  ('Tebet', 'area', '{}'),
-  ('Kuningan', 'area', '{}'),
-  ('Kemang', 'area', '{}'),
-  ('Rawamangun', 'area', '{}'),
-  ('Kemanggisan', 'area', '{}'),
-  ('Lowokwaru', 'area', '{}'),
-  ('Dinoyo', 'area', '{}'),
-  ('Tlogomas', 'area', '{}'),
-  ('Sumbersari', 'area', '{}'),
-  ('Mulyorejo', 'area', '{}'),
-  ('Sukolilo', 'area', '{}'),
-  ('Rungkut', 'area', '{}'),
-  ('Keputih', 'area', '{}'),
-  ('Kaliurang', 'area', '{}'),
-  ('Seturan', 'area', '{}'),
-  ('Gejayan', 'area', '{}'),
-  ('Pogung', 'area', '{}'),
-  ('Babarsari', 'area', '{}')
+insert into admin_locations (name, type, parent_id, aliases)
+select seed.name, 'area', city.id, '{}'::text[]
+from (
+  values
+    ('Denpasar', 'Bali'), ('Jimbaran', 'Bali'), ('Kuta', 'Bali'),
+    ('Dago', 'Bandung'), ('Dipatiukur', 'Bandung'),
+    ('Buah Batu', 'Bandung'), ('Sukajadi', 'Bandung'),
+    ('Jatinangor', 'Bandung'), ('Dramaga', 'Bogor'),
+    ('Margonda', 'Depok'), ('Beji', 'Depok'), ('Kukusan', 'Depok'),
+    ('Pondok Cina', 'Depok'), ('Tebet', 'Jakarta'),
+    ('Kuningan', 'Jakarta'), ('Kemang', 'Jakarta'),
+    ('Rawamangun', 'Jakarta'), ('Kemanggisan', 'Jakarta'),
+    ('Lowokwaru', 'Malang'), ('Dinoyo', 'Malang'),
+    ('Tlogomas', 'Malang'), ('Sumbersari', 'Malang'),
+    ('Mulyorejo', 'Surabaya'), ('Sukolilo', 'Surabaya'),
+    ('Rungkut', 'Surabaya'), ('Keputih', 'Surabaya'),
+    ('Kaliurang', 'Yogyakarta'), ('Seturan', 'Yogyakarta'),
+    ('Gejayan', 'Yogyakarta'), ('Pogung', 'Yogyakarta'),
+    ('Babarsari', 'Yogyakarta')
+) seed(name, city_name)
+join admin_locations city
+  on city.name = seed.city_name and city.type = 'city'
 on conflict do nothing;
 
 insert into kos_listings (
@@ -157,60 +158,79 @@ select id, 30, 15000, 25000, 200000,
 from kos_listings
 on conflict (kos_id) do nothing;
 
-insert into kos_facilities (kos_id, name, sort_order)
-select kos_id, facility, sort_order
-from (
-  values
-    ('Kasur', 1),
-    ('Lemari', 2),
-    ('Meja belajar', 3),
-    ('Wi-Fi', 4),
-    ('Kamar mandi dalam', 5),
-    ('Parkir motor', 6),
-    ('AC', 7)
-) as base(facility, sort_order)
-cross join (select id as kos_id from kos_listings) listings
-on conflict do nothing;
+insert into facility_categories (id, title, sort_order) values
+  ('kamar', 'Fasilitas kamar', 1),
+  ('kamar-mandi', 'Fasilitas kamar mandi', 2),
+  ('bersama', 'Fasilitas bersama', 3)
+on conflict (id) do update
+set title = excluded.title, sort_order = excluded.sort_order;
 
-insert into kos_facility_categories (kos_id, id, title, sort_order)
-select kos_id, category_id, title, sort_order
-from (select id as kos_id from kos_listings) listings
+insert into facility_catalog (category_id, name) values
+  ('kamar', 'Kasur'),
+  ('kamar', 'Lemari'),
+  ('kamar', 'Meja belajar'),
+  ('kamar', 'AC'),
+  ('kamar-mandi', 'Kamar mandi dalam'),
+  ('kamar-mandi', 'Kloset duduk'),
+  ('kamar-mandi', 'Shower'),
+  ('bersama', 'Wi-Fi'),
+  ('bersama', 'Parkir motor'),
+  ('bersama', 'CCTV')
+on conflict (name) do update
+set category_id = excluded.category_id;
+
+insert into kos_facility_assignments (
+  kos_id,
+  facility_id,
+  is_highlighted,
+  sort_order,
+  highlight_sort_order
+)
+select
+  listing.id,
+  facility.id,
+  seed.highlight_sort_order is not null,
+  seed.category_sort_order,
+  seed.highlight_sort_order
+from kos_listings listing
 cross join (
   values
-    ('kamar', 'Fasilitas kamar', 1),
-    ('kamar-mandi', 'Fasilitas kamar mandi', 2),
-    ('bersama', 'Fasilitas bersama', 3)
-) categories(category_id, title, sort_order)
-on conflict do nothing;
+    ('Kasur', 1, 1),
+    ('Lemari', 2, 2),
+    ('Meja belajar', 3, 3),
+    ('AC', 4, 7),
+    ('Kamar mandi dalam', 1, 5),
+    ('Kloset duduk', 2, null),
+    ('Shower', 3, null),
+    ('Wi-Fi', 1, 4),
+    ('Parkir motor', 2, 6),
+    ('CCTV', 3, null)
+) seed(name, category_sort_order, highlight_sort_order)
+join facility_catalog facility on facility.name = seed.name
+on conflict (kos_id, facility_id) do update
+set
+  is_highlighted = excluded.is_highlighted,
+  sort_order = excluded.sort_order,
+  highlight_sort_order = excluded.highlight_sort_order;
 
-insert into kos_facility_category_items (kos_id, category_id, name, sort_order)
-select kos_id, category_id, name, sort_order
-from (select id as kos_id from kos_listings) listings
-cross join (
-  values
-    ('kamar', 'Kasur', 1),
-    ('kamar', 'Lemari', 2),
-    ('kamar', 'Meja belajar', 3),
-    ('kamar', 'AC', 4),
-    ('kamar-mandi', 'Kamar mandi dalam', 1),
-    ('kamar-mandi', 'Kloset duduk', 2),
-    ('kamar-mandi', 'Shower', 3),
-    ('bersama', 'Wi-Fi', 1),
-    ('bersama', 'Parkir motor', 2),
-    ('bersama', 'CCTV', 3)
-) items(category_id, name, sort_order)
-on conflict do nothing;
+insert into rule_catalog (name) values
+  ('Tidak merokok di dalam kamar'),
+  ('Tamu wajib melapor kepada pemilik'),
+  ('Wajib jaga kebersihan')
+on conflict (name) do nothing;
 
-insert into kos_rules (kos_id, rule, sort_order)
-select kos_id, rule, sort_order
-from (select id as kos_id from kos_listings) listings
+insert into kos_rule_assignments (kos_id, rule_id, sort_order)
+select listing.id, catalog.id, seed.sort_order
+from kos_listings listing
 cross join (
   values
     ('Tidak merokok di dalam kamar', 1),
     ('Tamu wajib melapor kepada pemilik', 2),
     ('Wajib jaga kebersihan', 3)
-) rules(rule, sort_order)
-on conflict do nothing;
+) seed(name, sort_order)
+join rule_catalog catalog on catalog.name = seed.name
+on conflict (kos_id, rule_id) do update
+set sort_order = excluded.sort_order;
 
 insert into kos_rental_durations (kos_id, duration, sort_order)
 select kos_id, duration::rental_duration, sort_order
@@ -276,27 +296,34 @@ select id, 'common-area-1', 'common-area', 'Area bersama', 'image', image_url, i
 from kos_listings
 on conflict do nothing;
 
-insert into kos_nearby_campuses (kos_id, campus_name, sort_order) values
-  (1, 'Universitas Indonesia', 1),
-  (2, 'Universitas Gadjah Mada', 1),
-  (2, 'Universitas Negeri Yogyakarta', 2),
-  (3, 'Institut Teknologi Bandung', 1),
-  (101, 'Universitas Gadjah Mada', 1),
-  (102, 'Universitas Gadjah Mada', 1),
-  (102, 'Universitas Negeri Yogyakarta', 2),
-  (103, 'Universitas Indonesia', 1),
-  (103, 'Politeknik Negeri Jakarta', 2),
-  (104, 'Universitas Indonesia', 1),
-  (104, 'Universitas Gunadarma', 2),
-  (105, 'Institut Teknologi Bandung', 1),
-  (106, 'Universitas Padjadjaran', 1),
-  (107, 'IPB University', 1),
-  (108, 'Universitas Udayana', 1),
-  (109, 'BINUS University Kemanggisan', 1),
-  (110, 'Universitas Negeri Jakarta', 1),
-  (111, 'Universitas Brawijaya', 1),
-  (111, 'Universitas Negeri Malang', 2),
-  (112, 'Institut Teknologi Sepuluh Nopember', 1)
-on conflict do nothing;
+insert into kos_campus_assignments (kos_id, campus_id, sort_order)
+select seed.kos_id, campus.id, seed.sort_order
+from (
+  values
+    (1, 'Universitas Indonesia', 1),
+    (2, 'Universitas Gadjah Mada', 1),
+    (2, 'Universitas Negeri Yogyakarta', 2),
+    (3, 'Institut Teknologi Bandung', 1),
+    (101, 'Universitas Gadjah Mada', 1),
+    (102, 'Universitas Gadjah Mada', 1),
+    (102, 'Universitas Negeri Yogyakarta', 2),
+    (103, 'Universitas Indonesia', 1),
+    (103, 'Politeknik Negeri Jakarta', 2),
+    (104, 'Universitas Indonesia', 1),
+    (104, 'Universitas Gunadarma', 2),
+    (105, 'Institut Teknologi Bandung', 1),
+    (106, 'Universitas Padjadjaran', 1),
+    (107, 'IPB University', 1),
+    (108, 'Universitas Udayana', 1),
+    (109, 'BINUS University Kemanggisan', 1),
+    (110, 'Universitas Negeri Jakarta', 1),
+    (111, 'Universitas Brawijaya', 1),
+    (111, 'Universitas Negeri Malang', 2),
+    (112, 'Institut Teknologi Sepuluh Nopember', 1)
+) seed(kos_id, campus_name, sort_order)
+join admin_locations campus
+  on campus.name = seed.campus_name and campus.type = 'campus'
+on conflict (kos_id, campus_id) do update
+set sort_order = excluded.sort_order;
 
 commit;

@@ -24,6 +24,9 @@ database/
     004_renter_actions_schema.sql
     005_password_resets_schema.sql
     006_owner_workflows_schema.sql
+    007_normalize_facilities.sql
+    008_normalize_locations.sql
+    009_renter_request_context.sql
   seeds/
     001_mock_data.sql
 ```
@@ -32,7 +35,13 @@ database/
 
 The later migrations add users, secure browser sessions, survey requests,
 contact requests, rental applications, expiring password reset tokens, and
-listing ownership for owner dashboards.
+listing ownership for owner dashboards, and normalized facility/rule catalogs.
+The final migration completes area/campus relationships and normalizes nearby
+campus assignments while preserving the existing read shape. Migration 009
+adds the visitor, contact, and move-in context owners need to evaluate requests.
+
+See [SCHEMA.md](SCHEMA.md) for the current physical model, normalization
+decisions, and compatibility views.
 
 `001_mock_data.sql` inserts the current dummy data into PostgreSQL-friendly tables.
 
@@ -99,7 +108,7 @@ For production, the backend should own location data in PostgreSQL and periodica
 
 ## Future improvements
 
-- Add migrations through a migration tool such as Prisma, Drizzle, Knex, node-pg-migrate, or Flyway.
+- Add migrations through a migration tool such as Alembic or Flyway.
 - Add PostGIS if radius search, bounding-box search, or “near me” queries become important.
 - Add verified owner onboarding instead of demo name matching.
 - Add automated backups and a production migration runner before deployment.

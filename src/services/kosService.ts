@@ -11,6 +11,7 @@ import type {
   SearchMetadata,
 } from '../types/search'
 import { getNormalizedSearchCandidates, normalizeSearchText } from '../utils/normalizeSearchText'
+import { getFuzzyTextScore } from '../utils/searchSuggestions'
 import { apiBaseUrl, apiRequest } from './apiClient'
 
 export type SearchKosRequest = {
@@ -72,6 +73,18 @@ function getDistanceInKilometers(
   return earthRadius * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
 }
 
+function sortSearchResults(results: KosSearchResult[], sort: KosSearchFilters['sort']) {
+  return [...results].sort((left, right) => {
+    if (sort === 'price-asc') return left.record.monthlyPrice - right.record.monthlyPrice
+    if (sort === 'price-desc') return right.record.monthlyPrice - left.record.monthlyPrice
+    return (
+      Number(right.listing.availableRooms > 0) - Number(left.listing.availableRooms > 0) ||
+      right.listing.rating - left.listing.rating ||
+      left.record.id - right.record.id
+    )
+  })
+}
+
 const mockKosService: KosService = {
   async getFeatured() {
     return featuredKosListings
@@ -104,20 +117,21 @@ const mockKosService: KosService = {
       ]
         .join(' ')
       const normalizedSearchableText = normalizeSearchText(searchableText)
+      const fuzzyScore = getFuzzyTextScore(query, [searchableText])
 
       if (
         (!coordinates &&
           normalizedQueryCandidates.length > 0 &&
           !normalizedQueryCandidates.some((candidate) =>
             normalizedSearchableText.includes(candidate),
-          )) ||
+          ) && !Number.isFinite(fuzzyScore)) ||
         !matchesFilters(listing, filters)
       ) return []
 
       return [{ record, listing }]
     })
 
-    if (!coordinates) return results
+    if (!coordinates) return sortSearchResults(results, filters.sort)
 
     return results
       .map((result) => ({
@@ -144,14 +158,17 @@ function createRemoteKosService(): KosService {
     search: ({ query, filters, coordinates }) => {
       const params = new URLSearchParams({
         query,
-        tags: filters.tags.join(','),
-        duration: filters.duration ?? '',
-        minPrice: filters.minPrice?.toString() ?? '',
-        maxPrice: filters.maxPrice?.toString() ?? '',
-        facilities: filters.facilities.join(','),
-        rules: filters.rules.join(','),
         availableOnly: String(filters.availableOnly),
+        sort: filters.sort,
       })
+      if (filters.tags.length > 0) params.set('tags', filters.tags.join(','))
+      if (filters.duration) params.set('duration', filters.duration)
+      if (filters.minPrice !== null) params.set('minPrice', String(filters.minPrice))
+      if (filters.maxPrice !== null) params.set('maxPrice', String(filters.maxPrice))
+      if (filters.facilities.length > 0) {
+        params.set('facilities', filters.facilities.join(','))
+      }
+      if (filters.rules.length > 0) params.set('rules', filters.rules.join(','))
       if (coordinates) {
         params.set('lat', String(coordinates.lat))
         params.set('lng', String(coordinates.lng))

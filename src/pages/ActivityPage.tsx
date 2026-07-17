@@ -25,29 +25,29 @@ export function ActivityPage() {
       <div className="mx-auto max-w-5xl">
         <Link className="font-black text-green-600" to="/">← Kembali ke Papikos</Link>
         <h1 className="mt-7 text-4xl font-black text-neutral-900">Aktivitas saya</h1>
-        <p className="mt-2 font-semibold text-neutral-500">Survey, permintaan kontak, dan pengajuan sewa tersimpan di sini.</p>
+        <p className="mt-2 font-semibold text-neutral-500">Survei, permintaan kontak, dan pengajuan sewa tersimpan di sini.</p>
         {error && <p className="mt-6 rounded-xl bg-red-50 p-4 font-bold text-red-600">{error}</p>}
         {!activity && !error && <p className="mt-8 font-bold text-neutral-400">Memuat aktivitas...</p>}
         {activity && (
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
-            <ActivitySection title="Survey" empty="Belum ada permintaan survey.">
+            <ActivitySection title="Survei" empty="Belum ada permintaan survei.">
               {activity.surveys.map((item) => (
                 <ActivityCard key={item.id} title={item.kos_title} status={item.status}>
-                  {new Date(item.scheduled_for).toLocaleString('id-ID')}
+                  {new Date(item.scheduled_for).toLocaleString('id-ID')} · Pengunjung: {item.visitor_name}
                 </ActivityCard>
               ))}
             </ActivitySection>
             <ActivitySection title="Kontak pemilik" empty="Belum ada permintaan kontak.">
               {activity.contacts.map((item) => (
                 <ActivityCard key={item.id} title={item.kos_title} status={item.status}>
-                  Dibuat {new Date(item.created_at).toLocaleDateString('id-ID')}
+                  {item.preferred_contact_method} · {item.message}
                 </ActivityCard>
               ))}
             </ActivitySection>
             <ActivitySection title="Pengajuan sewa" empty="Belum ada pengajuan sewa.">
               {activity.rentals.map((item) => (
                 <ActivityCard key={item.id} title={item.kos_title} status={item.status}>
-                  {item.rental_months} bulan · {formatRupiah(Number(item.quoted_total))}
+                  Masuk {new Date(`${item.move_in_date}T00:00:00`).toLocaleDateString('id-ID')} · {item.rental_months} bulan · {formatRupiah(Number(item.quoted_total))}
                 </ActivityCard>
               ))}
             </ActivitySection>

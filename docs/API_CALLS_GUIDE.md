@@ -1,6 +1,6 @@
 # Papikos API Calls Guide
 
-Papikos has an implemented Express/PostgreSQL API. Listing reads can still use
+Papikos has an implemented FastAPI/PostgreSQL API. Listing reads can still use
 mock data when no frontend API URL is configured; accounts and persistent
 workflows require the backend.
 
@@ -94,7 +94,7 @@ Response: `KosListing`. Prefer HTTP 404 when it does not exist. The current fron
 ### Search
 
 ```http
-GET /kos/search?query=Yogyakarta&tags=Putri&duration=Bulanan&minPrice=500000&maxPrice=2000000&facilities=Wi-Fi,AC&rules=&availableOnly=true
+GET /kos/search?query=Yogyakrta&tags=Putri&duration=Bulanan&minPrice=500000&maxPrice=2000000&facilities=Wi-Fi,AC&rules=&availableOnly=true&sort=recommended
 ```
 
 Response: `KosSearchResult[]`.
@@ -106,7 +106,8 @@ type KosSearchResult = {
 }
 ```
 
-The backend should normalize case and aliases or accept the canonical suggestion value sent by the frontend.
+The backend normalizes case and aliases and performs typo-tolerant word matching.
+Sort values are `recommended`, `price-asc`, and `price-desc`.
 
 ### Search metadata
 
@@ -241,6 +242,23 @@ POST /kos/:id/contact-requests
 POST /kos/:id/rental-applications
 GET  /me/activity
 ```
+
+Survey requests include enough identity for the owner to know who will arrive:
+
+```json
+{
+  "scheduledFor": "2026-07-20T10:00:00+07:00",
+  "visitorType": "representative",
+  "representativeName": "Dewi",
+  "representativePhone": "081234567890",
+  "relationship": "Saudara",
+  "notes": "Ingin melihat kamar dan area parkir."
+}
+```
+
+Contact requests require `message` and a `preferredContactMethod` of `chat`,
+`whatsapp`, or `phone`. Rental applications require `rentalMonths`,
+`paymentMethod`, a future `moveInDate`, and optional `notes`.
 
 Authenticated owner endpoints:
 

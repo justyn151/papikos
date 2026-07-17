@@ -2,7 +2,7 @@
 
 Papikos is a responsive kos-search frontend built with React 19, TypeScript, Tailwind CSS, Vite, React Router, Leaflet, and OpenStreetMap.
 
-The repository also includes an Express API backed by PostgreSQL. The complete
+The repository also includes a FastAPI/Python API backed by PostgreSQL. The complete
 application can run locally with Docker Compose.
 
 ## Run with Docker
@@ -55,17 +55,17 @@ VITE_API_BASE_URL=http://localhost:3000/api
 
 If `VITE_API_BASE_URL` is empty, Papikos automatically uses its local mock service and dummy listings.
 
-To run the backend outside Docker, create a `.env` containing `DATABASE_URL`,
-install dependencies, migrate and seed the database, then start the API:
+To run the backend outside Docker, create a Python virtual environment, install
+the backend requirements, configure `DATABASE_URL`, and start Uvicorn:
 
 ```bash
-npm install
-npm run db:migrate
-npm run db:seed
-npm run dev:api
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+uvicorn app.main:app --app-dir backend --reload --port 8000
 ```
 
-The Vite frontend reads its API URL from `.env.local`; the Node backend reads
+The Vite frontend reads its API URL from `.env.local`; the Python backend reads
 its private database settings from `.env`.
 
 ## Routes
@@ -86,6 +86,9 @@ Production hosting must redirect unknown frontend paths to `index.html` so Brows
 ## Documentation
 
 - [Docker guide](docs/DOCKER_GUIDE.md) — beginner-friendly explanation of images, containers, Compose, ports, volumes, networking, daily commands, and troubleshooting.
+- [Database design](database/SCHEMA.md) — normalized catalogs, relationships, compatibility views, and indexing decisions.
+- [Backend-dev merge guide](docs/BACKEND_DEV_MERGE_GUIDE.md) — compatibility status and the future no-surprises merge procedure.
+- [Product review](docs/PRODUCT_REVIEW.md) — Mamikos-informed workflow audit and the decisions implemented in Papikos.
 - [Beginner guide](docs/BEGINNER_GUIDE.md) — current React structure, components, hooks, routing, and data flow.
 - [API calls guide](docs/API_CALLS_GUIDE.md) — mock/remote services, endpoint contracts, environment variables, and backend handoff.
 - [Current implementation](docs/CURRENT_IMPLEMENTATION.md) — concise inventory of implemented features and remaining placeholders.

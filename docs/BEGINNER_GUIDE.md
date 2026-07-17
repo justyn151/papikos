@@ -2,7 +2,7 @@
 
 This guide explains how the current Papikos frontend works. It is written for a beginner, so it explains React ideas slowly instead of assuming you already know the words.
 
-Papikos has a React frontend and an Express/PostgreSQL backend. Listing screens
+Papikos has a React frontend and a FastAPI/PostgreSQL backend. Listing screens
 can still use local TypeScript mock data when no API URL is configured, while
 accounts and persistent renter/owner workflows use the backend.
 
@@ -347,6 +347,12 @@ Local state inside `KosDetailPage` controls only the detail page:
 - `paymentChoice`: full payment or DP.
 - `breakdownType`: which payment modal is open.
 - `isLightboxOpen`: whether big media preview is open.
+- `activeRenterAction`: whether the survey, contact, or rental confirmation
+  workflow is open.
+
+`RenterActionModal` owns the form details for these workflows. It shows the
+authenticated requester identity and validates representative, contact, or
+move-in context before the service sends the request.
 
 This is a useful React rule:
 
@@ -401,9 +407,12 @@ Click card / map marker / facility tag
   -> /kos/:kosId
 ```
 
-The user chooses a suggestion instead of submitting random text directly. This allows aliases like `jogja`, `jogjakarta`, and `yogya`.
+The user can choose a suggestion or search typed text directly. Aliases such as
+`jogja`, `jogjakarta`, and `yogya`, plus small spelling mistakes, are handled by
+the suggestion scorer and the backend search matcher.
 
-The current frontend search metadata is still mock data. Later, the backend should provide complete administrative-location metadata from PostgreSQL.
+Remote mode loads every available province, city, area, and campus record from
+PostgreSQL. Mock mode retains equivalent local metadata for frontend-only work.
 
 ## 12. Search results and filters
 

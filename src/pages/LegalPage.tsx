@@ -6,7 +6,7 @@ const legalContent = {
     paragraphs: [
       'Papikos membantu pencari dan pemilik kos bertukar informasi serta mengajukan layanan. Pengajuan belum menjadi perjanjian sewa sampai disetujui kedua pihak.',
       'Pengguna wajib memberikan informasi akun yang benar dan menggunakan layanan secara bertanggung jawab.',
-      'Harga, ketersediaan, jadwal survey, dan keputusan sewa harus dikonfirmasi sebelum transaksi final.',
+      'Harga, ketersediaan, jadwal survei, dan keputusan sewa harus dikonfirmasi sebelum transaksi final.',
     ],
   },
   privacy: {

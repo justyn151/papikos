@@ -10,12 +10,13 @@ import { Icon } from '../Icon/Icon'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/authContext'
 import {
-  requestOwnerContact,
-  requestSurvey,
-  submitRentalApplication,
   getPaymentQuote,
   type PaymentQuote,
 } from '../../services/renterActionService'
+import {
+  RenterActionModal,
+  type RenterAction,
+} from '../RenterActionModal/RenterActionModal'
 
 type KosDetailPageProps = {
   kos: KosListing
@@ -56,8 +57,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
   const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>('full')
   const [breakdownType, setBreakdownType] = useState<BreakdownType>(null)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
-  const [surveyDate, setSurveyDate] = useState('')
-  const [isActionSubmitting, setIsActionSubmitting] = useState(false)
+  const [activeRenterAction, setActiveRenterAction] = useState<RenterAction | null>(null)
   const [serverQuote, setServerQuote] = useState<PaymentQuote | null>(null)
   const activeMedia = mediaItems.find((item) => item.id === activeMediaId) ?? mediaItems[0]
   const activeMediaIndex = mediaItems.findIndex((item) => item.id === activeMedia.id)
@@ -107,49 +107,9 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
     return true
   }
 
-  async function handleSurveyRequest() {
+  function openRenterAction(action: RenterAction) {
     if (!requireRenterLogin()) return
-    if (!surveyDate) {
-      setActionStatus('Pilih tanggal dan waktu survey terlebih dahulu.')
-      return
-    }
-    setIsActionSubmitting(true)
-    try {
-      await requestSurvey(kos.id, new Date(surveyDate).toISOString())
-      setActionStatus('Permintaan survey tersimpan dan menunggu konfirmasi pemilik.')
-    } catch (error) {
-      setActionStatus(error instanceof Error ? error.message : 'Permintaan survey gagal.')
-    } finally {
-      setIsActionSubmitting(false)
-    }
-  }
-
-  async function handleContactRequest() {
-    if (!requireRenterLogin()) return
-    setIsActionSubmitting(true)
-    try {
-      await requestOwnerContact(kos.id)
-      setActionStatus('Permintaan kontak tersimpan. Pemilik dapat menindaklanjutinya.')
-    } catch (error) {
-      setActionStatus(error instanceof Error ? error.message : 'Permintaan kontak gagal.')
-    } finally {
-      setIsActionSubmitting(false)
-    }
-  }
-
-  async function handleRentalApplication() {
-    if (!requireRenterLogin()) return
-    setIsActionSubmitting(true)
-    try {
-      await submitRentalApplication(kos.id, rentalMonths, paymentChoice)
-      setRentalStatus(
-        `Pengajuan ${selectedRentalPeriod.label.toLowerCase()} berhasil disimpan dan menunggu peninjauan.`,
-      )
-    } catch (error) {
-      setRentalStatus(error instanceof Error ? error.message : 'Pengajuan sewa gagal.')
-    } finally {
-      setIsActionSubmitting(false)
-    }
+    setActiveRenterAction(action)
   }
 
   const breakdowns: Record<Exclude<BreakdownType, null>, {
@@ -446,31 +406,22 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
           </div>
 
           <div className="mt-6 grid gap-3">
-            <label className="text-xs font-black uppercase tracking-wide text-neutral-500">
-              Waktu survey
-              <input
-                className="mt-2 w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm font-bold text-neutral-700 outline-none focus:border-green-500"
-                min={new Date().toISOString().slice(0, 16)}
-                onChange={(event) => setSurveyDate(event.target.value)}
-                type="datetime-local"
-                value={surveyDate}
-              />
-            </label>
+            <p className="rounded-2xl bg-neutral-50 p-4 text-sm font-semibold leading-6 text-neutral-600">
+              Ajukan survei dengan identitas pengunjung dan jadwal yang jelas, atau kirim pertanyaan kepada pemilik terlebih dahulu.
+            </p>
             <button
               className="rounded-full bg-green-600 px-5 py-3 text-sm font-black text-white transition hover:bg-green-700 active:scale-[0.98]"
-              disabled={isActionSubmitting}
-              onClick={() => void handleSurveyRequest()}
+              onClick={() => openRenterAction('survey')}
               type="button"
             >
-              Jadwalkan survey
+              Ajukan survei
             </button>
             <button
               className="rounded-full bg-neutral-900 px-5 py-3 text-sm font-black text-white transition hover:bg-neutral-700 active:scale-[0.98]"
-              disabled={isActionSubmitting}
-              onClick={() => void handleContactRequest()}
+              onClick={() => openRenterAction('contact')}
               type="button"
             >
-              Hubungi pemilik
+              Tanya pemilik
             </button>
           </div>
 
@@ -592,8 +543,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
 
           <button
             className="mt-5 w-full rounded-full bg-green-600 px-5 py-3.5 text-sm font-black text-white transition hover:bg-green-700 active:scale-[0.98]"
-            disabled={isActionSubmitting}
-            onClick={() => void handleRentalApplication()}
+            onClick={() => openRenterAction('rental')}
             type="button"
           >
             Ajukan sewa
@@ -623,6 +573,22 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
           onClose={() => setIsLightboxOpen(false)}
           onPrevious={showPreviousMedia}
           onNext={showNextMedia}
+        />
+      )}
+
+      {activeRenterAction && user?.role === 'pencari-kos' && (
+        <RenterActionModal
+          action={activeRenterAction}
+          kosId={kos.id}
+          kosTitle={kos.title}
+          onClose={() => setActiveRenterAction(null)}
+          onSubmitted={(message) => {
+            if (activeRenterAction === 'rental') setRentalStatus(message)
+            else setActionStatus(message)
+          }}
+          paymentMethod={paymentChoice}
+          rentalMonths={rentalMonths}
+          user={user}
         />
       )}
     </section>

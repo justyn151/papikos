@@ -18,9 +18,9 @@ const papikosFeatures = [
       'Lihat foto interior, video tour, fasilitas, peraturan, jumlah kamar tersedia, dan informasi pemilik sebelum menentukan pilihan.',
   },
   {
-    title: 'Hubungi pemilik dan jadwalkan survey',
+    title: 'Hubungi pemilik dan jadwalkan survei',
     description:
-      'Hubungi pemilik kos atau ajukan jadwal survey langsung dari halaman detail agar proses pencarian menjadi lebih praktis.',
+      'Hubungi pemilik kos atau ajukan jadwal survei langsung dari halaman detail agar proses pencarian menjadi lebih praktis.',
   },
   {
     title: 'Simpan kos favorit',
@@ -42,7 +42,7 @@ export function AboutPapikos() {
         <p className="mx-auto mt-5 max-w-5xl text-sm font-medium leading-7 text-neutral-600 sm:text-base sm:leading-8">
           Papikos memanfaatkan teknologi untuk membantu pencari kos menemukan tempat tinggal yang sesuai dengan kebutuhan.
           Kamu dapat menjelajahi pilihan kos, melihat ketersediaan kamar, fasilitas, foto interior, video tour, serta informasi
-          harga dengan lebih mudah. Papikos juga membantu menghubungkan calon penghuni dengan pemilik kos agar proses survey
+          harga dengan lebih mudah. Papikos juga membantu menghubungkan calon penghuni dengan pemilik kos agar proses survei
           dan pemesanan terasa lebih jelas, cepat, dan nyaman.
         </p>
 

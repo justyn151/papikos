@@ -15,7 +15,10 @@ services:
       - ./database/migrations/004_renter_actions_schema.sql:/docker-entrypoint-initdb.d/004_renter_actions_schema.sql:ro
       - ./database/migrations/005_password_resets_schema.sql:/docker-entrypoint-initdb.d/005_password_resets_schema.sql:ro
       - ./database/migrations/006_owner_workflows_schema.sql:/docker-entrypoint-initdb.d/006_owner_workflows_schema.sql:ro
-      - ./database/seeds/001_mock_data.sql:/docker-entrypoint-initdb.d/007_mock_data.sql:ro
+      - ./database/migrations/007_normalize_facilities.sql:/docker-entrypoint-initdb.d/007_normalize_facilities.sql:ro
+      - ./database/migrations/008_normalize_locations.sql:/docker-entrypoint-initdb.d/008_normalize_locations.sql:ro
+      - ./database/migrations/009_renter_request_context.sql:/docker-entrypoint-initdb.d/009_renter_request_context.sql:ro
+      - ./database/seeds/001_mock_data.sql:/docker-entrypoint-initdb.d/010_mock_data.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U papikos -d papikos"]
       interval: 5s
@@ -25,18 +28,17 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: server/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgres://papikos:papikos@db:5432/papikos
-      PORT: 3000
       CORS_ORIGIN: http://localhost:3000
       COOKIE_SECURE: "false"
       SESSION_DAYS: 7
       PUBLIC_APP_URL: http://localhost:3000
       EXPOSE_RESET_TOKEN: "true"
     ports:
-      - "3001:3000"
+      - "3001:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -44,9 +46,9 @@ services:
       test:
         [
           "CMD",
-          "node",
-          "-e",
-          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)",
         ]
       interval: 5s
       timeout: 5s

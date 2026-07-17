@@ -8,12 +8,12 @@ to the files in Papikos. You do not need previous Docker experience.
 Papikos is not one program. It has three parts that need to work together:
 
 1. A React frontend that runs in the browser.
-2. A Node/Express API that handles requests and application logic.
+2. A Python/FastAPI API that handles requests and application logic.
 3. A PostgreSQL database that stores listings and users.
 
-Without Docker, you install and configure Node, PostgreSQL, database users,
-ports, and environment variables yourself. Different machines can end up with
-different versions or settings.
+Without Docker, you install and configure Node for the frontend build, Python
+for the API, PostgreSQL, database users, ports, and environment variables
+yourself. Different machines can end up with different versions or settings.
 
 Docker packages each part into a predictable environment. Docker Compose then
 starts those environments together and connects them on a private network.
@@ -28,11 +28,11 @@ Your browser
 | Nginx + built React app|
 +-----------+------------+
             |
-            | http://api:3000/api
+            | http://api:8000/api
             v
 +------------------------+
 | api container          |
-| Node + Express         |
+| Python + FastAPI       |
 +-----------+------------+
             |
             | postgres://...@db:5432/papikos
@@ -59,7 +59,7 @@ filesystem, installed dependencies, and startup instructions.
 Examples in Papikos:
 
 - `postgres:17-alpine` is a ready-made PostgreSQL image.
-- The API image is built from `server/Dockerfile`.
+- The API image is built from `backend/Dockerfile`.
 - The frontend image is built from the root `Dockerfile`.
 
 An image is similar to a class or a recipe. It is not the running program.
@@ -114,7 +114,7 @@ Compose writes this as `HOST:CONTAINER`:
 | Service | Mapping | Meaning |
 | --- | --- | --- |
 | Frontend | `3000:80` | Local port 3000 forwards to Nginx port 80. |
-| API | `3001:3000` | Local port 3001 forwards to Express port 3000. |
+| API | `3001:8000` | Local port 3001 forwards to FastAPI port 8000. |
 | Database | `5433:5432` | Local port 5433 forwards to PostgreSQL port 5432. |
 
 Therefore, your browser uses `http://localhost:3000`, even though Nginx listens
@@ -151,7 +151,10 @@ empty database volume:
 4. `004_renter_actions_schema.sql`
 5. `005_password_resets_schema.sql`
 6. `006_owner_workflows_schema.sql`
-7. `007_mock_data.sql` (the mounted seed file)
+7. `007_normalize_facilities.sql`
+8. `008_normalize_locations.sql`
+9. `009_renter_request_context.sql`
+10. `010_mock_data.sql` (the mounted seed file)
 
 Changing a migration and restarting an existing database does not run it
 again. During early development, reset the volume to replay all scripts. In a
@@ -162,8 +165,8 @@ production application, use a proper incremental migration tool instead.
 Compose automatically creates a private network for the project. The services
 can find one another using their service names:
 
-- Nginx sends API requests to `api:3000`.
-- Express connects to PostgreSQL at `db:5432`.
+- Nginx sends API requests to `api:8000`.
+- FastAPI connects to PostgreSQL at `db:5432` through asyncpg.
 - The database is not addressed as `localhost` by either container.
 
 ### Health check
@@ -199,9 +202,9 @@ The `db` service:
 
 The `api` service:
 
-- Builds from `server/Dockerfile`.
+- Builds from `backend/Dockerfile`.
 - Receives a private `DATABASE_URL` using the hostname `db`.
-- Publishes the Express API on local port 3001 for debugging.
+- Publishes the FastAPI service on local port 3001 for debugging.
 - Waits for the database health check.
 
 The `frontend` service:
@@ -227,15 +230,19 @@ needed in the final frontend image.
 
 This produces a smaller and simpler runtime image.
 
-### `server/Dockerfile`
+### `backend/Dockerfile`
 
-The API image starts from Node 22 Alpine, installs production dependencies,
-and copies the `server/` directory. It runs as the non-root `node` user and
-starts with:
+The API image starts from Python 3.13 Slim, installs the pinned-compatible
+requirements, and copies `backend/app`. It starts with:
 
 ```text
-node server/index.js
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
+
+Because both frontend and API builds happen inside containers, running the
+complete Compose stack does not require Node or Python to be installed on the
+host machine. You only need those local toolchains when running a service
+outside Docker.
 
 ### `nginx.conf`
 

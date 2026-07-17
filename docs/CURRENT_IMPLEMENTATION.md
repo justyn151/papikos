@@ -1,13 +1,13 @@
 # Papikos Current Implementation
 
-Updated: 16 July 2026.
+Updated: 17 July 2026.
 
 ## Architecture
 
 Papikos runs as three services:
 
 ```text
-React browser app -> Nginx /api proxy -> Express API -> PostgreSQL
+React browser app -> Nginx /api proxy -> FastAPI/asyncpg -> PostgreSQL
 ```
 
 Docker Compose builds the frontend and API, initializes PostgreSQL migrations
@@ -40,7 +40,7 @@ Routes include:
 
 ## Backend API
 
-The Express API uses parameterized PostgreSQL queries and central JSON error
+The FastAPI API uses parameterized asyncpg queries and central JSON error
 responses. Implemented endpoints cover:
 
 - Health and database connectivity.
@@ -50,7 +50,7 @@ responses. Implemented endpoints cover:
 - Server-calculated payment quotes.
 - Account registration, login, current session, and logout.
 - Password-reset request and completion.
-- Survey, owner-contact, and rental-application creation.
+- Identity-aware survey, owner-contact, and rental-application creation.
 - Renter activity history.
 - Owner inbox and authorized request status changes.
 
@@ -76,10 +76,11 @@ configured email or SMS provider.
 
 The detail page persists these actions:
 
-- Survey request with a future date/time.
-- Request to contact the owner.
-- Rental application with duration, payment method, total, and a complete JSON
-  snapshot of the server quote.
+- Survey request with requester identity, actual visitor identity, relationship,
+  phone number, notes, and a future date/time.
+- Owner question with a required message and preferred reply channel.
+- Rental application with move-in date, notes, duration, payment method, total,
+  and a complete JSON snapshot of the server quote.
 
 The renter can inspect these records and their statuses on `/activity`.
 
@@ -101,6 +102,9 @@ onboarding flow should verify ownership and assign `owner_user_id` explicitly.
 4. Renter actions.
 5. Password resets.
 6. Listing ownership and owner workflows.
+7. Normalized facility/rule catalogs and backend compatibility views.
+8. Completed location hierarchy and normalized nearby-campus assignments.
+9. Added visitor identity, contact preference, and move-in context to renter requests.
 
 ## Intentionally excluded integrations
 

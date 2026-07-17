@@ -40,6 +40,7 @@ export function SearchResultsPage({
     facilities: [],
     rules: [],
     availableOnly: false,
+    sort: 'recommended',
   })
   const [results, setResults] = useState<KosSearchResult[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -56,10 +57,14 @@ export function SearchResultsPage({
       .then((nextResults) => {
         if (isCurrentRequest) setResults(nextResults)
       })
-      .catch(() => {
+      .catch((reason: unknown) => {
         if (isCurrentRequest) {
           setResults([])
-          setLoadError('Hasil pencarian gagal dimuat. Silakan coba lagi.')
+          setLoadError(
+            reason instanceof Error
+              ? reason.message
+              : 'Hasil pencarian gagal dimuat. Silakan coba lagi.',
+          )
         }
       })
       .finally(() => {
@@ -131,12 +136,26 @@ export function SearchResultsPage({
             <SearchFilters value={filters} onChange={updateFilters} />
           </div>
 
-          <div className="mt-5 rounded-2xl bg-green-50 p-4 text-sm font-semibold leading-6 text-green-800">
-            {isLoading
-              ? 'Mencari kos...'
-              : coordinates
-                ? `Menampilkan ${results.length} kos dalam radius 25 km dari lokasi kamu.`
-                : `Menampilkan ${results.length} kos untuk pencarian “${query}”.`}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-green-50 p-4">
+            <p className="text-sm font-semibold leading-6 text-green-800">
+              {isLoading
+                ? 'Mencari kos...'
+                : coordinates
+                  ? `Menampilkan ${results.length} kos dalam radius 25 km dari lokasi kamu.`
+                  : `Menampilkan ${results.length} kos untuk pencarian “${query}”.`}
+            </p>
+            <label className="flex items-center gap-2 text-xs font-black text-green-800">
+              Urutkan
+              <select
+                className="rounded-xl border border-green-200 bg-white px-3 py-2 text-sm font-bold text-neutral-700 outline-none focus:border-green-500"
+                onChange={(event) => updateFilters({ ...filters, sort: event.target.value as KosSearchFilters['sort'] })}
+                value={filters.sort}
+              >
+                <option value="recommended">Paling direkomendasikan</option>
+                <option value="price-asc">Harga termurah</option>
+                <option value="price-desc">Harga termahal</option>
+              </select>
+            </label>
           </div>
 
           <div className="mt-5 divide-y divide-neutral-200">
