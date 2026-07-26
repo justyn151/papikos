@@ -43,23 +43,6 @@ button {
   color: #172554;
 }
 
-.nav-link {
-  border-radius: 0.5rem;
-  color: #475569;
-  font-size: 0.875rem;
-  font-weight: 750;
-  transition: color 160ms ease;
-}
-
-.nav-link:hover {
-  color: #2563eb;
-}
-
-.nav-link:focus-visible {
-  outline: 3px solid #bfdbfe;
-  outline-offset: 4px;
-}
-
 .btn-primary,
 .btn-secondary {
   display: inline-flex;

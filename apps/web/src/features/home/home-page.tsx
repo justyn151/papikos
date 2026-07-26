@@ -3,7 +3,6 @@
 import {
   ArrowRight,
   BadgeCheck,
-  BedDouble,
   Building2,
   Check,
   ChevronRight,
@@ -11,13 +10,10 @@ import {
   KeyRound,
   Map as MapIcon,
   MapPin,
-  Menu,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   UserRoundSearch,
-  Wifi,
   X,
 } from "lucide-react";
 import {
@@ -507,7 +503,6 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
   const [appliedFilters, setAppliedFilters] =
     useState<SearchFilters>(initialFilters);
   const [matches, setMatches] = useState<MatchResult[]>([]);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [surveyOpen, setSurveyOpen] = useState(false);
   const [toast, setToast] = useState("");
   const resultsRef = useRef<HTMLElement>(null);
@@ -606,22 +601,11 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
       </a>
 
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-8">
+        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-5 sm:px-8">
           <a href="#" className="rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200">
             <BrandMark />
           </a>
-          <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary">
-            <a className="nav-link" href="#featured">
-              {t.navDiscover}
-            </a>
-            <a className="nav-link" href="#how-it-works">
-              {t.navHow}
-            </a>
-            <a className="nav-link" href="#owners">
-              {t.navOwner}
-            </a>
-          </nav>
-          <div className="hidden items-center gap-3 lg:flex">
+          <div className="flex items-center gap-2 sm:gap-3">
             <LanguageToggle
               locale={locale}
               onChange={setLocale}
@@ -630,90 +614,34 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
             <button className="btn-secondary" onClick={comingSoon} type="button">
               {t.login}
             </button>
-            <button className="btn-primary" onClick={comingSoon} type="button">
-              {t.ownerCta}
-            </button>
-          </div>
-          <div className="flex items-center gap-2 lg:hidden">
-            <LanguageToggle
-              locale={locale}
-              onChange={setLocale}
-              label={t.language}
-            />
-            <button
-              className="grid size-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
-              onClick={() => setMenuOpen((current) => !current)}
-              type="button"
-              aria-expanded={menuOpen}
-              aria-controls="mobile-menu"
-              aria-label={menuOpen ? t.closeMenu : t.menu}
-            >
-              {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
-            </button>
           </div>
         </div>
-        {menuOpen ? (
-          <nav
-            className="border-t border-slate-100 bg-white px-5 py-5 shadow-xl lg:hidden"
-            id="mobile-menu"
-            aria-label={t.mobileNav}
-          >
-            <div className="mx-auto grid max-w-7xl gap-2">
-              {[
-                [t.navDiscover, "#featured"],
-                [t.navHow, "#how-it-works"],
-                [t.navOwner, "#owners"],
-              ].map(([label, href]) => (
-                <a
-                  className="rounded-xl px-3 py-3 text-sm font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-700"
-                  href={href}
-                  key={href}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {label}
-                </a>
-              ))}
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button className="btn-secondary" onClick={comingSoon} type="button">
-                  {t.login}
-                </button>
-                <button className="btn-primary" onClick={comingSoon} type="button">
-                  {t.ownerCta}
-                </button>
-              </div>
-            </div>
-          </nav>
-        ) : null}
       </header>
 
       <main id="main-content">
         <section className="relative overflow-hidden bg-[#f7faff]">
-          <div className="hero-grid absolute inset-0 opacity-60" aria-hidden="true" />
-          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 py-16 sm:px-8 sm:py-24 lg:grid-cols-[1.02fr_.98fr] lg:py-28">
+          <div className="hero-grid absolute inset-0 opacity-40" aria-hidden="true" />
+          <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.08fr_.92fr] lg:py-24">
             <div>
-              <p className="eyebrow">
-                <span className="size-2 rounded-full bg-blue-600" />
-                {t.heroBadge}
-              </p>
-              <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[1.02] tracking-[-0.055em] text-slate-950 sm:text-6xl lg:text-7xl">
+              <h1 className="max-w-3xl text-4xl font-black leading-[1.04] tracking-[-0.05em] text-slate-950 sm:text-5xl lg:text-6xl">
                 {t.heroTitleStart}{" "}
                 <span className="text-blue-600">{t.heroTitleAccent}</span>
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
+              <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
                 {t.heroBody}
               </p>
 
               <form
-                className="mt-8 rounded-[1.5rem] border border-slate-200 bg-white p-3 shadow-[0_30px_80px_-35px_rgba(30,64,175,0.4)]"
+                className="mt-7 max-w-2xl rounded-[1.35rem] border border-slate-200 bg-white p-2 shadow-[0_24px_60px_-36px_rgba(30,64,175,0.45)]"
                 onSubmit={(event: FormEvent<HTMLFormElement>) => {
                   event.preventDefault();
-                  applySearch(draftFilters);
+                  applySearch({
+                    ...defaultFilters,
+                    query: draftFilters.query,
+                  });
                 }}
               >
-                <p className="px-2 pb-3 text-sm font-black text-slate-900">
-                  {t.searchTitle}
-                </p>
-                <div className="grid gap-2 md:grid-cols-[1.25fr_.8fr_.8fr_auto]">
+                <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
                   <label className="search-field">
                     <span>{t.location}</span>
                     <span className="flex items-center gap-2">
@@ -731,112 +659,29 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                       />
                     </span>
                   </label>
-                  <label className="search-field">
-                    <span>{t.roomType}</span>
-                    <select
-                      className="bg-transparent text-sm font-semibold text-slate-900 outline-none"
-                      value={draftFilters.type}
-                      onChange={(event) =>
-                        setDraftFilters((current) => ({
-                          ...current,
-                          type: event.target.value as SearchFilters["type"],
-                        }))
-                      }
-                    >
-                      {(["all", "putra", "putri", "campur"] as const).map((type) => (
-                        <option value={type} key={type}>
-                          {typeLabels[locale][type]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="search-field">
-                    <span>{t.maxBudget}</span>
-                    <select
-                      className="bg-transparent text-sm font-semibold text-slate-900 outline-none"
-                      value={draftFilters.maxPrice ?? ""}
-                      onChange={(event) =>
-                        setDraftFilters((current) => ({
-                          ...current,
-                          maxPrice: event.target.value
-                            ? Number(event.target.value)
-                            : null,
-                        }))
-                      }
-                    >
-                      <option value="">{t.anyBudget}</option>
-                      {budgetOptions.map((budget) => (
-                        <option value={budget} key={budget}>
-                          {formatPrice(budget, locale)}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
                   <button
-                    className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
+                    className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
                     type="submit"
                   >
                     <Search size={18} aria-hidden="true" />
-                    <span className="md:sr-only xl:not-sr-only">{t.search}</span>
+                    <span>{t.search}</span>
                   </button>
                 </div>
               </form>
-
-              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm font-bold text-slate-600">
-                {[t.demoCities, t.sampleListings, t.clearMatching].map((stat) => (
-                  <span className="inline-flex items-center gap-2" key={stat}>
-                    <Check
-                      size={16}
-                      className="rounded-full bg-blue-100 p-0.5 text-blue-700"
-                      aria-hidden="true"
-                    />
-                    {stat}
-                  </span>
-                ))}
-              </div>
             </div>
 
-            <div className="relative mx-auto min-h-[430px] w-full max-w-[560px]" aria-hidden="true">
-              <div className="absolute inset-0 rotate-2 rounded-[3rem] border border-blue-100 bg-white shadow-[0_40px_100px_-45px_rgba(30,64,175,0.5)]">
-                <div className="map-pattern absolute inset-5 overflow-hidden rounded-[2.3rem] bg-blue-50">
-                  <div className="absolute left-[12%] top-[18%] h-2 w-[70%] rotate-[-12deg] rounded-full bg-white" />
-                  <div className="absolute left-[30%] top-[-5%] h-[110%] w-2 rotate-[18deg] rounded-full bg-white" />
-                  <div className="absolute left-[-10%] top-[58%] h-2 w-[110%] rotate-[8deg] rounded-full bg-white" />
-                  <div className="absolute right-[8%] top-[14%] rounded-full bg-blue-600 p-3 text-white shadow-xl">
-                    <MapPin size={24} />
-                  </div>
-                  <div className="absolute bottom-[18%] left-[14%] rounded-full bg-slate-950 p-3 text-white shadow-xl">
-                    <MapPin size={24} />
-                  </div>
-                  <div className="absolute left-[44%] top-[44%] grid size-16 place-items-center rounded-full border-[8px] border-white bg-amber-400 text-blue-950 shadow-xl">
-                    <Building2 size={24} />
+            <div className="relative mx-auto min-h-[280px] w-full max-w-[500px] sm:min-h-[340px]" aria-hidden="true">
+              <div className="absolute inset-3 rotate-2 overflow-hidden rounded-[2.5rem] border border-blue-100 bg-blue-50/80 sm:inset-5">
+                <div className="map-pattern absolute inset-0">
+                  <div className="absolute left-[-8%] top-[34%] h-3 w-[116%] -rotate-6 rounded-full bg-white/90" />
+                  <div className="absolute left-[38%] top-[-14%] h-[130%] w-3 rotate-[18deg] rounded-full bg-white/90" />
+                  <div className="absolute bottom-[18%] left-[-5%] h-2.5 w-[92%] rotate-[10deg] rounded-full bg-white/80" />
+                  <div className="absolute left-[16%] top-[14%] size-24 rounded-[1.8rem] bg-blue-100/80" />
+                  <div className="absolute bottom-[12%] right-[10%] size-32 rounded-[2rem] bg-cyan-100/70" />
+                  <div className="absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[7px] border-white bg-blue-600 text-white shadow-lg shadow-blue-900/15">
+                    <Building2 size={23} />
                   </div>
                 </div>
-              </div>
-              <div className="absolute -left-2 bottom-4 w-56 rounded-3xl border border-slate-200 bg-white p-4 shadow-2xl sm:-left-8">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-11 place-items-center rounded-2xl bg-blue-100 text-blue-700">
-                    <ShieldCheck size={21} />
-                  </span>
-                  <div>
-                    <p className="text-xs font-semibold text-slate-500">{t.verified}</p>
-                    <p className="mt-0.5 text-sm font-black text-slate-950">
-                      Kalyana Living
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -right-2 top-9 w-52 rounded-3xl bg-blue-950 p-4 text-white shadow-2xl sm:-right-7">
-                <div className="flex items-start justify-between">
-                  <span className="grid size-10 place-items-center rounded-xl bg-white/10">
-                    <Sparkles size={19} />
-                  </span>
-                  <span className="rounded-full bg-cyan-300 px-2.5 py-1 text-xs font-black text-blue-950">
-                    92%
-                  </span>
-                </div>
-                <p className="mt-5 text-xs text-blue-200">{t.matchLocation}</p>
-                <p className="mt-1 text-sm font-black">{t.matchRoomType}</p>
               </div>
             </div>
           </div>
@@ -848,23 +693,33 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
               <h2 className="text-sm font-black text-slate-950">{t.popular}</h2>
               <p className="mt-1 text-sm text-slate-500">{t.popularBody}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {cities.map((city) => (
-                <button
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
-                  key={city}
-                  onClick={() =>
-                    applySearch({
-                      ...defaultFilters,
-                      query: city,
-                    })
-                  }
-                  type="button"
-                >
-                  <MapPin size={14} aria-hidden="true" />
-                  {city}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2" aria-label={t.popular}>
+              {["", ...cities].map((city) => {
+                const isActive =
+                  appliedFilters.query.trim().toLocaleLowerCase("id-ID") ===
+                  city.toLocaleLowerCase("id-ID");
+                return (
+                  <button
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
+                      isActive
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                    }`}
+                    key={city || "all"}
+                    onClick={() =>
+                      applySearch({
+                        ...defaultFilters,
+                        query: city,
+                      })
+                    }
+                    type="button"
+                    aria-pressed={isActive}
+                  >
+                    {city ? <MapPin size={14} aria-hidden="true" /> : null}
+                    {city || t.allLocations}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -947,20 +802,24 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
           </div>
         </section>
 
-        <section className="bg-blue-950 py-20 text-white">
-          <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_.8fr]">
-            <div>
-              <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-300">
-                <Sparkles size={15} aria-hidden="true" />
-                {t.surveyEyebrow}
-              </p>
-              <h2 className="mt-5 max-w-3xl text-4xl font-black leading-tight tracking-[-0.045em] sm:text-5xl">
-                {t.surveyTitle}
-              </h2>
-              <p className="mt-5 max-w-2xl leading-7 text-blue-100">{t.surveyBody}</p>
+        <section className="bg-white py-14 sm:py-16">
+          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <div className="rounded-[2rem] border border-blue-100 bg-blue-50/70 px-6 py-10 sm:px-10 sm:py-12 lg:flex lg:items-center lg:justify-between lg:gap-12">
+              <div className="max-w-3xl">
+                <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-blue-700">
+                  <Sparkles size={15} aria-hidden="true" />
+                  {t.surveyEyebrow}
+                </p>
+                <h2 className="mt-4 text-3xl font-black leading-tight tracking-[-0.04em] text-slate-950 sm:text-4xl">
+                  {t.surveyTitle}
+                </h2>
+                <p className="mt-4 max-w-2xl leading-7 text-slate-600">
+                  {t.surveyBody}
+                </p>
+              </div>
               <button
                 ref={surveyTriggerRef}
-                className="mt-7 inline-flex items-center gap-2 rounded-full bg-cyan-300 px-6 py-3.5 text-sm font-black text-blue-950 shadow-xl shadow-cyan-950/20 transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-200/40"
+                className="mt-7 inline-flex shrink-0 items-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 lg:mt-0"
                 onClick={() => setSurveyOpen(true)}
                 type="button"
               >
@@ -968,53 +827,30 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                 <ArrowRight size={18} aria-hidden="true" />
               </button>
             </div>
-            <div className="relative mx-auto grid w-full max-w-md gap-3 rounded-[2rem] border border-white/10 bg-white/5 p-5 backdrop-blur">
-              {[
-                [MapPin, t.city, "Yogyakarta"],
-                [BedDouble, t.roomType, typeLabels[locale].campur],
-                [Wifi, t.desiredAmenities, "Wi-Fi · AC · Dapur"],
-              ].map(([Icon, label, value], index) => {
-                const SurveyIcon = Icon as typeof MapPin;
-                return (
-                  <div
-                    className={`flex items-center gap-4 rounded-2xl border border-white/10 p-4 ${
-                      index === 1 ? "translate-x-4 bg-blue-800" : "bg-white/10"
-                    }`}
-                    key={String(label)}
-                  >
-                    <span className="grid size-11 place-items-center rounded-xl bg-white/10 text-cyan-300">
-                      <SurveyIcon size={20} aria-hidden="true" />
-                    </span>
-                    <div>
-                      <p className="text-xs text-blue-200">{String(label)}</p>
-                      <p className="mt-1 text-sm font-black">{String(value)}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </section>
 
-        <section className="bg-[#f7faff] py-20 sm:py-24" id="how-it-works">
+        <section className="bg-[#f7faff] py-14 sm:py-16" id="how-it-works">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <p className="eyebrow justify-center">{t.howEyebrow}</p>
-              <h2 className="section-title mt-4">{t.howTitle}</h2>
+              <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] text-slate-950 sm:text-4xl">
+                {t.howTitle}
+              </h2>
             </div>
-            <div className="mt-12 grid gap-5 md:grid-cols-3">
+            <div className="mt-9 grid gap-4 md:grid-cols-3">
               {[UserRoundSearch, MapIcon, KeyRound].map((Icon, index) => (
                 <article
-                  className="relative rounded-[1.75rem] border border-slate-200 bg-white p-7 shadow-[0_16px_50px_-35px_rgba(15,23,42,0.3)]"
+                  className="relative rounded-[1.5rem] border border-slate-200 bg-white p-6"
                   key={t.howSteps[index].title}
                 >
-                  <span className="absolute right-6 top-5 text-5xl font-black text-blue-50">
+                  <span className="absolute right-5 top-5 text-4xl font-black text-blue-50">
                     0{index + 1}
                   </span>
-                  <span className="grid size-12 place-items-center rounded-2xl bg-blue-100 text-blue-700">
-                    <Icon size={22} aria-hidden="true" />
+                  <span className="grid size-11 place-items-center rounded-xl bg-blue-100 text-blue-700">
+                    <Icon size={20} aria-hidden="true" />
                   </span>
-                  <h3 className="mt-6 text-xl font-black tracking-[-0.03em] text-slate-950">
+                  <h3 className="mt-5 text-lg font-black tracking-[-0.025em] text-slate-950">
                     {t.howSteps[index].title}
                   </h3>
                   <p className="mt-3 text-sm leading-6 text-slate-600">
@@ -1022,31 +858,6 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                   </p>
                 </article>
               ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="bg-white py-20 sm:py-24" id="owners">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-blue-600 px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between lg:gap-12 lg:px-16">
-              <div className="absolute -right-20 -top-24 size-80 rounded-full border-[40px] border-white/5" aria-hidden="true" />
-              <div className="relative max-w-2xl">
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-200">
-                  {t.ownerEyebrow}
-                </p>
-                <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
-                  {t.ownerTitle}
-                </h2>
-                <p className="mt-4 max-w-xl leading-7 text-blue-100">{t.ownerBody}</p>
-              </div>
-              <button
-                className="relative mt-7 inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-black text-blue-700 shadow-xl transition hover:bg-cyan-100 focus:outline-none focus:ring-4 focus:ring-white/40 lg:mt-0"
-                onClick={comingSoon}
-                type="button"
-              >
-                {t.ownerAction}
-                <ArrowRight size={17} aria-hidden="true" />
-              </button>
             </div>
           </div>
         </section>
@@ -1066,7 +877,6 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
               [
                 [t.footerLinks.search, "#featured"],
                 [t.footerLinks.survey, "#featured"],
-                [t.footerLinks.owner, "#owners"],
               ],
             ],
             [
