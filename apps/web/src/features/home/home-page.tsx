@@ -17,8 +17,10 @@ import {
   X,
 } from "lucide-react";
 import {
+  type CSSProperties,
   type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
   useEffect,
   useMemo,
   useRef,
@@ -52,6 +54,61 @@ const STORAGE_KEYS = {
 } as const;
 
 const budgetOptions = [1000000, 1500000, 2000000, 2500000, 3000000];
+
+function Reveal({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<"static" | "pending" | "visible">(
+    "static",
+  );
+
+  useEffect(() => {
+    const node = ref.current;
+    const reduceMotion = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    if (!node || reduceMotion || !("IntersectionObserver" in window)) {
+      return;
+    }
+
+    let frame = window.requestAnimationFrame(() => {
+      setState("pending");
+      frame = window.requestAnimationFrame(() => observer.observe(node));
+    });
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setState("visible");
+        observer.disconnect();
+      },
+      { rootMargin: "0px 0px -8%", threshold: 0.08 },
+    );
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
+
+  return (
+    <div
+      className={className}
+      data-reveal={state}
+      ref={ref}
+      style={{ "--reveal-delay": `${delay}ms` } as CSSProperties}
+    >
+      {children}
+    </div>
+  );
+}
 
 function usePersistentState<T>(key: string, initialValue: T) {
   const initialRef = useRef(initialValue);
@@ -170,6 +227,7 @@ function ListingCard({
   onFavorite,
   onComingSoon,
   match,
+  animationIndex,
 }: {
   listing: Listing;
   locale: Locale;
@@ -177,15 +235,23 @@ function ListingCard({
   onFavorite: () => void;
   onComingSoon: () => void;
   match?: MatchResult;
+  animationIndex: number;
 }) {
   const t = copy[locale];
 
   return (
-    <article className="group overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_65px_-30px_rgba(37,99,235,0.35)]">
+    <article
+      className="listing-card result-card-enter group h-full overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_65px_-30px_rgba(37,99,235,0.35)]"
+      style={
+        {
+          "--card-delay": `${Math.min(animationIndex, 5) * 45}ms`,
+        } as CSSProperties
+      }
+    >
       <div className="relative">
         <PropertyPlaceholder listing={listing} />
         <button
-          className="absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white text-slate-600 shadow-lg transition hover:scale-105 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-blue-200"
+          className="favorite-button absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white text-slate-600 shadow-lg transition hover:scale-105 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-blue-200"
           onClick={onFavorite}
           type="button"
           aria-label={favorite ? t.favoriteRemove : t.favoriteAdd}
@@ -193,7 +259,9 @@ function ListingCard({
         >
           <Heart
             size={19}
-            className={favorite ? "fill-rose-500 text-rose-500" : ""}
+            className={`favorite-heart ${
+              favorite ? "is-favorite fill-rose-500 text-rose-500" : ""
+            }`}
             aria-hidden="true"
           />
         </button>
@@ -256,12 +324,16 @@ function ListingCard({
             </p>
           </div>
           <button
-            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200"
+            className="detail-button inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200"
             onClick={onComingSoon}
             type="button"
           >
             {t.viewDetail}
-            <ChevronRight size={15} aria-hidden="true" />
+            <ChevronRight
+              className="cta-arrow"
+              size={15}
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>
@@ -562,6 +634,9 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
       .map((match) => byId.get(match.listingId))
       .filter((listing): listing is Listing => Boolean(listing));
   }, [filtered, matches]);
+  const resultsAnimationKey = `${serializeFilters(appliedFilters)}:${matches
+    .map((match) => match.listingId)
+    .join(",")}`;
 
   const toggleFavorite = (listingId: string) => {
     const favorite = favoriteIds.includes(listingId);
@@ -623,16 +698,23 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
           <div className="hero-grid absolute inset-0 opacity-40" aria-hidden="true" />
           <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.08fr_.92fr] lg:py-24">
             <div>
-              <h1 className="max-w-3xl text-4xl font-black leading-[1.04] tracking-[-0.05em] text-slate-950 sm:text-5xl lg:text-6xl">
+              <h1
+                className="hero-enter max-w-3xl text-4xl font-black leading-[1.04] tracking-[-0.05em] text-slate-950 sm:text-5xl lg:text-6xl"
+                style={{ "--hero-delay": "40ms" } as CSSProperties}
+              >
                 {t.heroTitleStart}{" "}
                 <span className="text-blue-600">{t.heroTitleAccent}</span>
               </h1>
-              <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
+              <p
+                className="hero-enter mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg"
+                style={{ "--hero-delay": "120ms" } as CSSProperties}
+              >
                 {t.heroBody}
               </p>
 
               <form
-                className="mt-7 max-w-2xl rounded-[1.35rem] border border-slate-200 bg-white p-2 shadow-[0_24px_60px_-36px_rgba(30,64,175,0.45)]"
+                className="hero-enter mt-7 max-w-2xl rounded-[1.35rem] border border-slate-200 bg-white p-2 shadow-[0_24px_60px_-36px_rgba(30,64,175,0.45)]"
+                style={{ "--hero-delay": "200ms" } as CSSProperties}
                 onSubmit={(event: FormEvent<HTMLFormElement>) => {
                   event.preventDefault();
                   applySearch({
@@ -660,10 +742,14 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                     </span>
                   </label>
                   <button
-                    className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
+                    className="search-button inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
                     type="submit"
                   >
-                    <Search size={18} aria-hidden="true" />
+                    <Search
+                      className="search-icon"
+                      size={18}
+                      aria-hidden="true"
+                    />
                     <span>{t.search}</span>
                   </button>
                 </div>
@@ -671,14 +757,14 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
             </div>
 
             <div className="relative mx-auto min-h-[280px] w-full max-w-[500px] sm:min-h-[340px]" aria-hidden="true">
-              <div className="absolute inset-3 rotate-2 overflow-hidden rounded-[2.5rem] border border-blue-100 bg-blue-50/80 sm:inset-5">
+              <div className="map-float absolute inset-3 overflow-hidden rounded-[2.5rem] border border-blue-100 bg-blue-50/80 sm:inset-5">
                 <div className="map-pattern absolute inset-0">
                   <div className="absolute left-[-8%] top-[34%] h-3 w-[116%] -rotate-6 rounded-full bg-white/90" />
                   <div className="absolute left-[38%] top-[-14%] h-[130%] w-3 rotate-[18deg] rounded-full bg-white/90" />
                   <div className="absolute bottom-[18%] left-[-5%] h-2.5 w-[92%] rotate-[10deg] rounded-full bg-white/80" />
                   <div className="absolute left-[16%] top-[14%] size-24 rounded-[1.8rem] bg-blue-100/80" />
                   <div className="absolute bottom-[12%] right-[10%] size-32 rounded-[2rem] bg-cyan-100/70" />
-                  <div className="absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-[7px] border-white bg-blue-600 text-white shadow-lg shadow-blue-900/15">
+                  <div className="map-marker absolute left-1/2 top-1/2 grid size-16 place-items-center rounded-full border-[7px] border-white bg-blue-600 text-white shadow-lg shadow-blue-900/15">
                     <Building2 size={23} />
                   </div>
                 </div>
@@ -688,7 +774,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
         </section>
 
         <section className="border-y border-slate-100 bg-white">
-          <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
+          <Reveal className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-sm font-black text-slate-950">{t.popular}</h2>
               <p className="mt-1 text-sm text-slate-500">{t.popularBody}</p>
@@ -700,7 +786,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                   city.toLocaleLowerCase("id-ID");
                 return (
                   <button
-                    className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
+                    className={`filter-chip inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
                       isActive
                         ? "border-blue-600 bg-blue-600 text-white"
                         : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
@@ -721,16 +807,16 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                 );
               })}
             </div>
-          </div>
+          </Reveal>
         </section>
 
         <section
-          className="scroll-mt-24 bg-white py-20 sm:py-24"
+          className="contour-surface scroll-mt-24 bg-white py-20 sm:py-24"
           id="featured"
           ref={resultsRef}
         >
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
+            <Reveal className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="eyebrow">
                   <SlidersHorizontal size={15} aria-hidden="true" />
@@ -742,7 +828,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
               <div className="flex flex-wrap gap-2" aria-label={t.roomType}>
                 {(["all", "putra", "putri", "campur"] as const).map((type) => (
                   <button
-                    className={`rounded-full px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
+                    className={`filter-chip rounded-full px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
                       appliedFilters.type === type && matches.length === 0
                         ? "bg-blue-600 text-white"
                         : "border border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700"
@@ -761,26 +847,33 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                   </button>
                 ))}
               </div>
-            </div>
+            </Reveal>
 
-            <p className="mt-8 text-sm font-bold text-slate-500" aria-live="polite">
+            <p
+              className="result-count-enter mt-8 text-sm font-bold text-slate-500"
+              key={`count:${resultsAnimationKey}`}
+              aria-live="polite"
+            >
               {visibleListings.length} {t.results}
             </p>
 
             {visibleListings.length > 0 ? (
-              <div className="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {visibleListings.map((listing) => (
-                  <ListingCard
-                    favorite={favoriteIds.includes(listing.id)}
-                    key={listing.id}
-                    listing={listing}
-                    locale={locale}
-                    match={matchById.get(listing.id)}
-                    onComingSoon={comingSoon}
-                    onFavorite={() => toggleFavorite(listing.id)}
-                  />
-                ))}
-              </div>
+              <Reveal className="mt-5">
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {visibleListings.map((listing, index) => (
+                    <ListingCard
+                      animationIndex={index}
+                      favorite={favoriteIds.includes(listing.id)}
+                      key={`${resultsAnimationKey}:${listing.id}`}
+                      listing={listing}
+                      locale={locale}
+                      match={matchById.get(listing.id)}
+                      onComingSoon={comingSoon}
+                      onFavorite={() => toggleFavorite(listing.id)}
+                    />
+                  ))}
+                </div>
+              </Reveal>
             ) : (
               <div className="mt-6 rounded-[2rem] border border-dashed border-blue-200 bg-blue-50 px-6 py-16 text-center">
                 <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-white text-blue-600 shadow-sm">
@@ -802,9 +895,9 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
           </div>
         </section>
 
-        <section className="bg-white py-14 sm:py-16">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <div className="rounded-[2rem] border border-blue-100 bg-blue-50/70 px-6 py-10 sm:px-10 sm:py-12 lg:flex lg:items-center lg:justify-between lg:gap-12">
+        <section className="contour-surface contour-surface-soft bg-white py-14 sm:py-16">
+          <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
+            <Reveal className="rounded-[2rem] border border-blue-100 bg-blue-50/80 px-6 py-10 shadow-[0_22px_70px_-55px_rgba(37,99,235,0.45)] sm:px-10 sm:py-12 lg:flex lg:items-center lg:justify-between lg:gap-12">
               <div className="max-w-3xl">
                 <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-blue-700">
                   <Sparkles size={15} aria-hidden="true" />
@@ -819,44 +912,51 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
               </div>
               <button
                 ref={surveyTriggerRef}
-                className="mt-7 inline-flex shrink-0 items-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 lg:mt-0"
+                className="cta-button mt-7 inline-flex shrink-0 items-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-600/15 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 lg:mt-0"
                 onClick={() => setSurveyOpen(true)}
                 type="button"
               >
                 {t.surveyCta}
-                <ArrowRight size={18} aria-hidden="true" />
+                <ArrowRight
+                  className="cta-arrow"
+                  size={18}
+                  aria-hidden="true"
+                />
               </button>
-            </div>
+            </Reveal>
           </div>
         </section>
 
         <section className="bg-[#f7faff] py-14 sm:py-16" id="how-it-works">
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
-            <div className="mx-auto max-w-2xl text-center">
+            <Reveal className="mx-auto max-w-2xl text-center">
               <p className="eyebrow justify-center">{t.howEyebrow}</p>
               <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] text-slate-950 sm:text-4xl">
                 {t.howTitle}
               </h2>
-            </div>
+            </Reveal>
             <div className="mt-9 grid gap-4 md:grid-cols-3">
               {[UserRoundSearch, MapIcon, KeyRound].map((Icon, index) => (
-                <article
-                  className="relative rounded-[1.5rem] border border-slate-200 bg-white p-6"
+                <Reveal
+                  className="h-full"
+                  delay={index * 70}
                   key={t.howSteps[index].title}
                 >
-                  <span className="absolute right-5 top-5 text-4xl font-black text-blue-50">
-                    0{index + 1}
-                  </span>
-                  <span className="grid size-11 place-items-center rounded-xl bg-blue-100 text-blue-700">
-                    <Icon size={20} aria-hidden="true" />
-                  </span>
-                  <h3 className="mt-5 text-lg font-black tracking-[-0.025em] text-slate-950">
-                    {t.howSteps[index].title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">
-                    {t.howSteps[index].body}
-                  </p>
-                </article>
+                  <article className="workflow-card relative h-full rounded-[1.5rem] border border-slate-200 bg-white p-6">
+                    <span className="absolute right-5 top-5 text-4xl font-black text-blue-50">
+                      0{index + 1}
+                    </span>
+                    <span className="grid size-11 place-items-center rounded-xl bg-blue-100 text-blue-700">
+                      <Icon size={20} aria-hidden="true" />
+                    </span>
+                    <h3 className="mt-5 text-lg font-black tracking-[-0.025em] text-slate-950">
+                      {t.howSteps[index].title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                      {t.howSteps[index].body}
+                    </p>
+                  </article>
+                </Reveal>
               ))}
             </div>
           </div>

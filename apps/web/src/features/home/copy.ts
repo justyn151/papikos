@@ -164,13 +164,13 @@ export const copy = {
 
 export const typeLabels: Record<Locale, Record<ListingTypeFilter, string>> = {
   id: {
-    all: "Semua tipe",
+    all: "Semua",
     putra: "Putra",
     putri: "Putri",
     campur: "Campur",
   },
   en: {
-    all: "All types",
+    all: "All",
     putra: "Men only",
     putri: "Women only",
     campur: "Mixed",

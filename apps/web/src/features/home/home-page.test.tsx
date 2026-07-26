@@ -52,14 +52,44 @@ describe("Papikos homepage", () => {
 
   it("filters with popular locations and restores all locations", async () => {
     render(<HomePage initialFilters={defaultFilters} />);
+    const popularLocations = screen.getByLabelText("Lokasi populer");
 
     fireEvent.click(screen.getByRole("button", { name: "Bandung" }));
     expect(await screen.findByText("Kos Asri Dago")).toBeInTheDocument();
     expect(window.location.search).toBe("?q=Bandung");
 
-    fireEvent.click(screen.getByRole("button", { name: /^Semua$/ }));
+    fireEvent.click(
+      within(popularLocations).getByRole("button", { name: /^Semua$/ }),
+    );
     expect(await screen.findByText("Nara House Kemang")).toBeInTheDocument();
     expect(window.location.search).toBe("");
+  });
+
+  it("uses the concise all label for location and room-type filters", () => {
+    render(<HomePage initialFilters={defaultFilters} />);
+
+    expect(
+      within(screen.getByLabelText("Lokasi populer")).getByRole("button", {
+        name: /^Semua$/,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByLabelText("Tipe kos")).getByRole("button", {
+        name: /^Semua$/,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Semua tipe")).not.toBeInTheDocument();
+  });
+
+  it("keeps reveal content visible without IntersectionObserver", () => {
+    render(<HomePage initialFilters={defaultFilters} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Kos yang layak dilihat" }),
+    ).toBeVisible();
+    expect(
+      document.querySelectorAll('[data-reveal="static"]').length,
+    ).toBeGreaterThan(0);
   });
 
   it("switches all primary copy to English and persists the locale", async () => {

@@ -44,9 +44,36 @@ test("filters by a popular location and restores all locations", async ({
   await expect(page).toHaveURL(/\?q=Bandung/);
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
 
-  await page.getByRole("button", { name: "Semua", exact: true }).click();
+  await page
+    .getByLabel("Lokasi populer", { exact: true })
+    .getByRole("button", { name: "Semua", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText("Nara House Kemang")).toBeVisible();
+});
+
+test("uses concise all labels and supports reduced motion", async ({ page }) => {
+  await expect(
+    page
+      .getByLabel("Lokasi populer", { exact: true })
+      .getByRole("button", { name: "Semua", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByLabel("Tipe kos", { exact: true })
+      .getByRole("button", { name: "Semua", exact: true }),
+  ).toBeVisible();
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.reload();
+
+  await expect(
+    page.getByRole("heading", { name: "Kos yang layak dilihat" }),
+  ).toBeVisible();
+  const iterationCount = await page
+    .locator(".map-float")
+    .evaluate((element) => getComputedStyle(element).animationIterationCount);
+  expect(iterationCount).not.toContain("infinite");
 });
 
 test("switches language and completes the preference survey", async ({

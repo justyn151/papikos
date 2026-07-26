@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
+  --motion-fast: 180ms;
+  --motion-base: 480ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -146,10 +149,209 @@ button {
     radial-gradient(circle at 85% 65%, rgba(6, 182, 212, 0.2), transparent 20%);
 }
 
+.contour-surface {
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+}
+
+.contour-surface::before {
+  background-image:
+    radial-gradient(
+      ellipse 390px 250px at 94% 9%,
+      transparent 0 31%,
+      rgba(37, 99, 235, 0.08) 31.4% 31.8%,
+      transparent 32.2% 46%,
+      rgba(37, 99, 235, 0.065) 46.4% 46.8%,
+      transparent 47.2% 62%,
+      rgba(6, 182, 212, 0.055) 62.4% 62.8%,
+      transparent 63.2%
+    ),
+    radial-gradient(
+      ellipse 430px 280px at 4% 72%,
+      transparent 0 35%,
+      rgba(37, 99, 235, 0.06) 35.4% 35.8%,
+      transparent 36.2% 52%,
+      rgba(37, 99, 235, 0.05) 52.4% 52.8%,
+      transparent 53.2% 68%,
+      rgba(6, 182, 212, 0.05) 68.4% 68.8%,
+      transparent 69.2%
+    ),
+    linear-gradient(
+      132deg,
+      transparent 0 47%,
+      rgba(37, 99, 235, 0.025) 47.2% 47.5%,
+      transparent 47.7% 100%
+    );
+  content: "";
+  inset: -5rem -7rem;
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.9),
+    transparent 46%,
+    rgba(0, 0, 0, 0.55)
+  );
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.contour-surface-soft::before {
+  opacity: 0.68;
+  transform: scaleX(-1);
+}
+
+[data-reveal] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(0.875rem);
+}
+
+[data-reveal="visible"] {
+  transition:
+    opacity var(--motion-base) var(--motion-ease),
+    transform var(--motion-base) var(--motion-ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.hero-enter {
+  animation: hero-enter 560ms var(--motion-ease) backwards;
+  animation-delay: var(--hero-delay, 0ms);
+}
+
+.map-float {
+  animation:
+    hero-enter 650ms var(--motion-ease) 150ms backwards,
+    map-float 8s ease-in-out 900ms infinite alternate;
+}
+
+.map-marker {
+  animation: marker-breathe 3.8s ease-in-out 1.1s infinite;
+  transform: translate(-50%, -50%);
+}
+
+.result-card-enter {
+  animation: card-enter 440ms var(--motion-ease) backwards;
+  animation-delay: var(--card-delay, 0ms);
+}
+
+.result-count-enter {
+  animation: soft-fade 300ms ease-out backwards;
+}
+
+.filter-chip {
+  transition:
+    color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease,
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.filter-chip:active {
+  transform: scale(0.96);
+}
+
+.filter-chip[aria-pressed="true"] {
+  box-shadow: 0 8px 24px -15px rgba(37, 99, 235, 0.75);
+}
+
+.favorite-heart {
+  transform-origin: center;
+}
+
+.favorite-heart.is-favorite {
+  animation: favorite-pop 320ms var(--motion-ease);
+}
+
+.search-icon,
+.cta-arrow {
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.search-button:hover .search-icon {
+  transform: scale(1.08) rotate(-7deg);
+}
+
+.cta-button:hover .cta-arrow,
+.detail-button:hover .cta-arrow {
+  transform: translateX(0.18rem);
+}
+
+.workflow-card {
+  transition:
+    border-color 260ms ease,
+    box-shadow 260ms ease,
+    transform 260ms var(--motion-ease);
+}
+
+.workflow-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: 0 18px 45px -34px rgba(37, 99, 235, 0.45);
+  transform: translateY(-0.2rem);
+}
+
+@keyframes hero-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.8rem);
+  }
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.65rem) scale(0.99);
+  }
+}
+
+@keyframes soft-fade {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+
+@keyframes map-float {
+  from {
+    transform: rotate(1.4deg) translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: rotate(2.1deg) translate3d(0, -0.45rem, 0);
+  }
+}
+
+@keyframes marker-breathe {
+  0%,
+  100% {
+    box-shadow: 0 10px 24px -8px rgba(30, 58, 138, 0.28);
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  50% {
+    box-shadow: 0 12px 32px -6px rgba(37, 99, 235, 0.38);
+    transform: translate(-50%, -50%) scale(1.045);
+  }
+}
+
+@keyframes favorite-pop {
+  45% {
+    transform: scale(1.28) rotate(-7deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    animation-delay: 0ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
