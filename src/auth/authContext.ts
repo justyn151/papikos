@@ -5,7 +5,9 @@ export type AuthContextValue = {
   user: AuthUser | null
   isLoading: boolean
   setUser: (user: AuthUser | null) => void
-  logout: () => Promise<void>
+  logout: (options?: {
+    redirectTo?: string
+  }) => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

@@ -1,6 +1,20 @@
 import { apiRequest } from './apiClient'
 
-export type AuthRole = 'pencari-kos' | 'pemilik-kos'
+export type AuthRole = 'pencari-kos' | 'pemilik-kos' | 'admin'
+export type RegistrableAuthRole = Exclude<AuthRole, 'admin'>
+export type AuthVerificationStatus = 'not_required' | 'pending' | 'verified' | 'rejected'
+
+export const authRoleDestinations: Record<AuthRole, string> = {
+  'pencari-kos': '/',
+  'pemilik-kos': '/owner',
+  admin: '/admin',
+}
+
+export const authRoleAccountPaths: Record<AuthRole, string> = {
+  'pencari-kos': '/activity',
+  'pemilik-kos': '/owner',
+  admin: '/admin',
+}
 
 export type AuthUser = {
   id: number
@@ -8,6 +22,8 @@ export type AuthUser = {
   phoneNumber: string
   email: string
   role: AuthRole
+  isActive: boolean
+  verificationStatus: AuthVerificationStatus
 }
 
 type AuthResponse = {
@@ -17,7 +33,6 @@ type AuthResponse = {
 export function loginUser(payload: {
   phoneNumber: string
   password: string
-  role: AuthRole
 }) {
   return apiRequest<AuthResponse>('/auth/login', {
     method: 'POST',
@@ -30,7 +45,7 @@ export function registerUser(payload: {
   phoneNumber: string
   email: string
   password: string
-  role: AuthRole
+  role: RegistrableAuthRole
 }) {
   return apiRequest<AuthResponse>('/auth/register', {
     method: 'POST',

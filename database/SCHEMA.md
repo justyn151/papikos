@@ -1,8 +1,9 @@
 # Papikos Database Design
 
 This document describes the current schema after all migrations, including the
-normalization introduced by migrations 007 and 008 and workflow context added
-by migration 009.
+normalization introduced by migrations 007 and 008, workflow context added by
+migration 009, role/moderation controls added by migration 010, and richer
+owner-managed listing content added by migration 011.
 
 ## Design goals
 
@@ -118,10 +119,37 @@ write API.
 - `kos_payment_terms`: one authoritative payment policy per listing.
 - `kos_rental_durations`: allowed rental periods.
 - `kos_media`: ordered image/video metadata.
+- `kos_custom_facilities`: owner-written facilities attached only to one listing.
+- `kos_custom_rules`: owner-written rules attached only to one listing.
 - `kos_campus_assignments`: ordered links between listings and campus records.
+
+One `kos_listings` record represents one room type. `room_type_name`,
+`total_rooms`, and `available_rooms` keep inventory understandable without
+mixing differently priced room types in one record. `address_notes` stores
+arrival instructions separately from the searchable postal address, and
+`last_inventory_update` records when availability was last confirmed.
+
+The ordered rows in `kos_media` form the listing showcase. The first item is
+the cover; categories such as bedroom, bathroom, building, exterior, and
+common area let the owner and reviewer see whether the gallery covers the
+property coherently. PostgreSQL stores media URLs and metadata, not binary
+image files. The local Docker API writes uploaded images to the separate
+`media-data` volume; production deployments should move the same URL contract
+to object storage.
+
+Shared catalog facilities remain normalized so they can power consistent
+search filters. Owner-written facilities and rules are separate listing-owned
+rows: owners can edit them freely without changing the global catalog or other
+owners' listings.
 
 Payment terms remain separate because they form one cohesive policy that is
 read and changed independently from listing presentation fields.
+
+`kos_listings.moderation_status` follows `draft -> pending -> published` or
+`rejected`; rejected listings can be corrected and submitted again, while
+archived listings remain private. Review notes and review timestamps preserve
+the current moderation decision. Public listing, detail, search, and renter
+action queries only accept published records.
 
 ### Locations
 
@@ -146,6 +174,12 @@ Session and password-reset tables store only token hashes. Workflow records
 retain historical quote/status data instead of recalculating old submissions.
 Migration 009 snapshots the actual survey visitor identity, reply preference,
 and planned move-in context so owners can evaluate requests without guessing.
+
+Migration 010 extends `users` with `is_active` and `verification_status`.
+Renters and admins use `not_required`; owner accounts move through `pending`,
+`verified`, or `rejected`. Deactivating an account invalidates its sessions.
+The `admin` role is accepted for login but deliberately excluded from public
+registration.
 
 ## Index policy
 

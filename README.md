@@ -74,14 +74,32 @@ its private database settings from `.env`.
 - `/search?query=Yogyakarta` — location suggestions
 - `/results?query=Yogyakarta` — filtered listings and map
 - `/kos/:kosId` — full listing detail
-- `/login/:role` — renter or owner login
+- `/login` — unified renter, owner, or admin login
 - `/register/:role` — renter or owner registration
 - `/forgot-password` and `/reset-password` — password recovery
 - `/activity` — renter request history
-- `/owner` — owner request dashboard
+- `/owner` — owner property and request dashboard
+- `/admin` — admin moderation and account dashboard
 - `/legal/:document` — terms and privacy information
 
 Production hosting must redirect unknown frontend paths to `index.html` so BrowserRouter routes continue to work after a refresh.
+
+## Development demo accounts
+
+The local seed creates two non-production accounts for testing the role
+dashboards:
+
+| Role | Phone | Password |
+| --- | --- | --- |
+| Admin | `081111111111` | `admin12345` |
+| Pemilik Kos (Ibu Sari) | `082222222222` | `owner12345` |
+| Pencari Kos | `083333333333` | `renter12345` |
+
+The `Admin`, `Pemilik Kos`, and `Masuk` buttons in the header open their
+respective login pages. Admin accounts cannot be created from the public
+registration endpoint. The Docker demo build shows these credentials and an
+three direct role buttons on the unified demo login page. Set
+`VITE_SHOW_DEMO_ACCOUNTS=false` for any public production build.
 
 ## Documentation
 

@@ -15,8 +15,11 @@ select
   listing.rating,
   listing.tag,
   listing.address,
+  listing.address_notes,
   listing.description,
+  listing.room_type_name,
   listing.room_size,
+  listing.total_rooms,
   listing.available_rooms,
   listing.owner_name,
   listing.image_url,
@@ -64,6 +67,21 @@ select
     where rule.kos_id = listing.id
   ) as rules,
   (
+    select coalesce(
+      json_agg(
+        json_build_object(
+          'id', custom.id, 'category', custom.category, 'name', custom.name
+        ) order by custom.sort_order, custom.id
+      ),
+      '[]'::json
+    )
+    from kos_custom_facilities custom where custom.kos_id = listing.id
+  ) as custom_facilities,
+  (
+    select coalesce(json_agg(custom.name order by custom.sort_order, custom.id), '[]'::json)
+    from kos_custom_rules custom where custom.kos_id = listing.id
+  ) as custom_rules,
+  (
     select coalesce(json_agg(duration.duration order by duration.sort_order), '[]'::json)
     from kos_rental_durations duration
     where duration.kos_id = listing.id
@@ -96,6 +114,23 @@ from kos_listings listing
 
 
 def _listing_from_row(row: dict) -> dict:
+    custom_facilities = row["custom_facilities"] or []
+    facility_categories = [dict(category) for category in (row["facility_categories"] or [])]
+    for custom in custom_facilities:
+        category_title = custom["category"]
+        category = next(
+            (item for item in facility_categories if item["title"] == category_title),
+            None,
+        )
+        if category is None:
+            category = {
+                "id": f"custom-{len(facility_categories) + 1}",
+                "title": category_title,
+                "items": [],
+            }
+            facility_categories.append(category)
+        category["items"] = [*category["items"], custom["name"]]
+
     return {
         "id": int(row["id"]),
         "title": row["title"],
@@ -104,11 +139,17 @@ def _listing_from_row(row: dict) -> dict:
         "rating": float(row["rating"]),
         "tag": row["tag"],
         "address": row["address"],
+        "addressNotes": row["address_notes"],
         "description": row["description"],
-        "facilities": row["facilities"] or [],
-        "facilityCategories": row["facility_categories"] or [],
-        "rules": row["rules"] or [],
+        "facilities": [
+            *(row["facilities"] or []),
+            *(item["name"] for item in custom_facilities),
+        ],
+        "facilityCategories": facility_categories,
+        "rules": [*(row["rules"] or []), *(row["custom_rules"] or [])],
+        "roomTypeName": row["room_type_name"],
         "roomSize": row["room_size"],
+        "totalRooms": int(row["total_rooms"]),
         "availableRooms": int(row["available_rooms"]),
         "rentalDurations": row["rental_durations"] or [],
         "owner": row["owner_name"],
@@ -208,10 +249,10 @@ def parse_filters(
 
 
 async def list_listings(featured: bool | None = None) -> list[dict]:
-    query = LISTING_SELECT
+    query = f"{LISTING_SELECT} where listing.moderation_status = 'published'"
     args: list[object] = []
     if featured is not None:
-        query += " where listing.is_featured = $1"
+        query += " and listing.is_featured = $1"
         args.append(featured)
     query += " order by listing.id"
     rows = await db.fetch(query, *args)
@@ -219,7 +260,10 @@ async def list_listings(featured: bool | None = None) -> list[dict]:
 
 
 async def get_listing(listing_id: int) -> dict:
-    row = await db.fetchrow(f"{LISTING_SELECT} where listing.id = $1 limit 1", listing_id)
+    row = await db.fetchrow(
+        f"{LISTING_SELECT} where listing.id = $1 and listing.moderation_status = 'published' limit 1",
+        listing_id,
+    )
     if row is None:
         raise not_found("Kos tidak ditemukan.")
     return _listing_from_row(row)
@@ -231,7 +275,8 @@ async def search_listings(
     coordinates: tuple[float, float] | None,
 ) -> list[dict]:
     rows = await db.fetch(
-        f"{LISTING_SELECT} where listing.latitude is not null and listing.longitude is not null order by listing.id"
+        f"{LISTING_SELECT} where listing.moderation_status = 'published' "
+        "and listing.latitude is not null and listing.longitude is not null order by listing.id"
     )
     matches: list[dict] = []
 
@@ -349,7 +394,8 @@ async def get_search_metadata() -> dict:
             select campus.name, count(assignment.kos_id) as listing_count
             from admin_locations campus
             join kos_campus_assignments assignment on assignment.campus_id = campus.id
-            where campus.type = 'campus'
+            join kos_listings listing on listing.id = assignment.kos_id
+            where campus.type = 'campus' and listing.moderation_status = 'published'
             group by campus.id, campus.name
             order by listing_count desc, campus.name
             limit 8

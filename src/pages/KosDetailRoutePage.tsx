@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Header } from '../components/Header/Header'
 import { KosDetailPage } from '../components/KosDetailPage/KosDetailPage'
+import { usePageNavigate } from '../navigation/usePageNavigate'
 import { kosService } from '../services/kosService'
 import type { KosListing } from '../types/kos'
 
 export function KosDetailRoutePage() {
-  const navigate = useNavigate()
+  const navigate = usePageNavigate()
   const { kosId } = useParams()
   const listingId = Number(kosId)
   const hasValidId = Number.isInteger(listingId)

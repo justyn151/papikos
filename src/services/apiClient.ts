@@ -31,8 +31,17 @@ export async function apiRequest<T>(path: string, options?: RequestInit): Promis
     let message = `API mengembalikan status ${response.status}.`
 
     try {
-      const errorBody = await response.json() as { message?: string }
+      const errorBody = await response.json() as {
+        message?: string
+        fields?: Record<string, string>
+      }
       message = errorBody.message ?? message
+      const firstFieldError = errorBody.fields
+        ? Object.values(errorBody.fields)[0]
+        : undefined
+      if (firstFieldError && firstFieldError !== message) {
+        message = `${message} ${firstFieldError}`
+      }
     } catch {
       // Keep the generic status message when the backend does not return JSON.
     }

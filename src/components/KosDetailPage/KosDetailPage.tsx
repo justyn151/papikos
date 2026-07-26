@@ -7,8 +7,8 @@ import {
 import type { KosListing } from '../../types/kos'
 import { formatRupiah } from '../../utils/formatCurrency'
 import { Icon } from '../Icon/Icon'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/authContext'
+import { usePageNavigate } from '../../navigation/usePageNavigate'
 import {
   getPaymentQuote,
   type PaymentQuote,
@@ -34,7 +34,7 @@ type PaymentChoice = 'full' | 'dp'
 type BreakdownType = 'dp' | 'settlement' | 'full' | null
 
 export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
-  const navigate = useNavigate()
+  const navigate = usePageNavigate()
   const { user } = useAuth()
   const mediaItems =
     kos.media.length > 0
@@ -297,11 +297,15 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
                     onClick={() => setActiveMediaId(media.id)}
                     type="button"
                   >
-                    <img
-                      className="aspect-video w-full bg-neutral-100 object-cover"
-                      src={media.thumbnailUrl ?? media.url}
-                      alt={media.alt}
-                    />
+                    {media.type === 'video' ? (
+                      media.thumbnailUrl ? (
+                        <img className="aspect-video w-full bg-neutral-100 object-cover" src={media.thumbnailUrl} alt={media.alt} />
+                      ) : (
+                        <span className="grid aspect-video w-full place-items-center bg-violet-100 text-xl text-violet-700" aria-hidden="true">▶</span>
+                      )
+                    ) : (
+                      <img className="aspect-video w-full bg-neutral-100 object-cover" src={media.url} alt={media.alt} />
+                    )}
                     <span className="block truncate bg-white px-3 py-2 text-xs font-black text-neutral-700">{media.label}</span>
                   </button>
                 )
@@ -314,7 +318,14 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
 
             <div className="mt-6">
               <h3 className="text-lg font-black text-neutral-800">Spesifikasi tipe kamar</h3>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-4">
+                  <Icon className="size-7 shrink-0 text-green-600" name="home" />
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-neutral-400">Tipe kamar</p>
+                    <p className="mt-1 font-black text-neutral-700">{kos.roomTypeName || 'Kamar standar'}</p>
+                  </div>
+                </div>
                 <div className="flex items-center gap-3 rounded-2xl bg-neutral-50 p-4">
                   <Icon className="size-7 shrink-0 text-green-600" name="room" />
                   <div>
@@ -326,7 +337,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
                   <Icon className="size-7 shrink-0 text-green-600" name="storage" />
                   <div>
                     <p className="text-xs font-bold uppercase tracking-wide text-neutral-400">Ketersediaan</p>
-                    <p className="mt-1 font-black text-neutral-700">{kos.availableRooms} kamar tersedia</p>
+                    <p className="mt-1 font-black text-neutral-700">{kos.availableRooms}{kos.totalRooms ? ` dari ${kos.totalRooms}` : ''} kamar tersedia</p>
                   </div>
                 </div>
               </div>
@@ -392,6 +403,7 @@ export function KosDetailPage({ kos, onBack }: KosDetailPageProps) {
 
           <h2 className="mt-4 break-words text-3xl font-black leading-none tracking-[-0.05em] text-neutral-900">{kos.title}</h2>
           <p className="mt-3 break-words text-sm font-bold text-neutral-500">{kos.address}</p>
+          {kos.addressNotes && <p className="mt-2 rounded-xl bg-blue-50 p-3 text-xs font-semibold leading-5 text-blue-800">Petunjuk lokasi: {kos.addressNotes}</p>}
           <p className="mt-5 leading-7 text-neutral-600">{kos.description}</p>
 
           <div className="mt-6">

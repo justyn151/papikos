@@ -233,3 +233,178 @@ input[type='search']::-webkit-search-results-decoration {
     transform: translateY(12px) scale(0.96);
   }
 }
+
+.papikos-route-frame {
+  min-height: 100dvh;
+}
+
+.papikos-route-frame--exiting {
+  animation: papikos-route-out 220ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+
+.papikos-route-frame--entering {
+  animation: papikos-route-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+html[data-route-motion='auth'] .papikos-route-frame--exiting {
+  animation-name: papikos-auth-out;
+}
+
+html[data-route-motion='auth'] .papikos-route-frame--entering {
+  animation-name: papikos-auth-in;
+}
+
+html[data-route-motion='discovery'] .papikos-route-frame--exiting {
+  animation-name: papikos-discovery-out;
+}
+
+html[data-route-motion='discovery'] .papikos-route-frame--entering {
+  animation-name: papikos-discovery-in;
+}
+
+html[data-route-motion='detail'] .papikos-route-frame--entering {
+  animation-duration: 460ms;
+  animation-name: papikos-detail-in;
+}
+
+html[data-route-motion='workspace'] .papikos-route-frame--entering {
+  animation-name: papikos-workspace-in;
+}
+
+html[data-route-motion='reading'] .papikos-route-frame--entering {
+  animation-name: papikos-reading-in;
+}
+
+@keyframes papikos-route-out {
+  from {
+    filter: blur(0);
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    filter: blur(2px);
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes papikos-route-in {
+  from {
+    filter: blur(4px);
+    opacity: 0;
+    transform: translateY(20px) scale(0.99);
+  }
+
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes papikos-auth-out {
+  from {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  to {
+    filter: blur(2px);
+    opacity: 0;
+    transform: translateX(-24px) scale(0.99);
+  }
+}
+
+@keyframes papikos-auth-in {
+  from {
+    filter: blur(4px);
+    opacity: 0;
+    transform: translateX(34px) scale(0.985);
+  }
+
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes papikos-discovery-out {
+  from {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    filter: blur(2px);
+    opacity: 0;
+    transform: translateY(-14px) scale(0.99);
+  }
+}
+
+@keyframes papikos-discovery-in {
+  from {
+    filter: blur(3px);
+    opacity: 0;
+    transform: translateY(28px) scale(0.992);
+  }
+
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes papikos-detail-in {
+  from {
+    clip-path: inset(2.5% 3% 2.5% 3% round 2rem);
+    filter: blur(3px);
+    opacity: 0;
+    transform: scale(0.985);
+  }
+
+  to {
+    clip-path: inset(0 round 0);
+    filter: blur(0);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes papikos-workspace-in {
+  from {
+    filter: blur(2px);
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes papikos-reading-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .papikos-route-frame--exiting,
+  .papikos-route-frame--entering {
+    animation: none;
+  }
+}

@@ -228,6 +228,11 @@ POST /auth/forgot-password
 POST /auth/reset-password
 ```
 
+Login accepts `pencari-kos`, `pemilik-kos`, and `admin`. Public registration
+accepts only renter and owner roles; an admin account must be provisioned by a
+trusted database/bootstrap process. Inactive accounts cannot log in and their
+existing sessions are ignored and removed when an admin disables them.
+
 Password reset tokens expire after 30 minutes, can be used once, and invalidate
 existing sessions. Local Docker may expose the reset path for testing. A
 production environment must deliver it through a private email or SMS channel.
@@ -264,22 +269,68 @@ Authenticated owner endpoints:
 
 ```http
 GET   /owner/inbox
+GET   /owner/dashboard
+POST  /owner/listings
+PATCH /owner/listings/:id
+POST  /owner/listings/:id/submit
+PATCH /owner/listings/:id/availability
 PATCH /owner/requests/:type/:id
 ```
 
 Every owner update verifies that the request belongs to a listing linked to
-the current owner. Rental applications store the server quote as a JSON
-snapshot so later price changes do not alter the submitted application.
+the current verified owner. New properties are drafts; owners edit and submit
+them, then an admin publishes or rejects them with a reason. Availability can
+be updated without restarting moderation. Rental applications store the server
+quote as a JSON snapshot so later price changes do not alter the submitted
+application.
+
+Listing create/update payloads include identity and map fields plus
+`roomTypeName`, `totalRooms`, `availableRooms`, `addressNotes`, ordered `media`,
+`facilityIds`, `ruleIds`, editable `customFacilities`, editable `customRules`,
+`rentalDurations`, and `paymentTerms`. The dashboard
+response includes the shared facility/rule catalogs and a server-calculated
+completion checklist. Drafts may be incomplete; submission and publication
+require all checklist items.
+
+Authenticated admin endpoints:
+
+```http
+GET   /admin/dashboard
+PATCH /admin/listings/:id
+PATCH /admin/users/:id
+```
+
+The admin dashboard returns marketplace totals, users, full listing review
+content, and renter requests. Admins can verify owners, activate/deactivate
+accounts, and moderate listing states. Publication requires an active,
+verified owner. Listing completeness is shown as a warning, but an admin may
+explicitly override it and publish an incomplete listing.
 
 ## 11. Media uploads
 
-Large images and videos should normally be stored in object storage. PostgreSQL stores URLs and metadata rather than the binary video.
-
-A future owner flow could use:
+The owner gallery accepts JPG, PNG, and WebP images up to 5 MB and MP4 video
+tours up to 50 MB:
 
 ```http
-POST /owner/kos/:id/media
+POST /owner/media
 Content-Type: multipart/form-data
+```
+
+The local Docker environment stores uploaded files in the `media-data` volume
+and returns a URL under `/api/media/`. The listing payload then stores that URL
+with its label, category, alt text, and position. PostgreSQL stores this
+metadata, not the image bytes.
+
+For a production deployment, replace local volume storage with object storage
+and keep the same response contract:
+
+```json
+{
+  "media": {
+    "url": "/media/generated-file-name.webp",
+    "originalName": "kamar-depan.webp"
+  }
+}
 ```
 
 Each media row should have its own ID, category, label, type, URL, thumbnail, alt text, and ordering value. Multiple images may share one category.
@@ -309,6 +360,6 @@ The backend response should contain line items and the final total. Never trust 
 1. Configure a private email or SMS delivery provider for password resets.
 2. Add an OAuth provider only after client credentials and callback URLs exist.
 3. Add a payment gateway when Papikos is ready to collect money.
-4. Add object storage and media-upload endpoints for owners.
+4. Replace local media-volume storage with production object storage and image processing.
 5. Add runtime response validation and pagination as the dataset grows.
-6. Replace demo name-based owner linking with verified owner onboarding.
+6. Add identity-document storage and a full owner-verification audit trail.

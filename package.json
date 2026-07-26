@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host",
     "dev:api": "docker compose up --build api",
-    "db:migrate": "psql \"$DATABASE_URL\" -f database/migrations/001_initial_schema.sql -f database/migrations/002_auth_schema.sql -f database/migrations/003_sessions_schema.sql -f database/migrations/004_renter_actions_schema.sql -f database/migrations/005_password_resets_schema.sql -f database/migrations/006_owner_workflows_schema.sql -f database/migrations/007_normalize_facilities.sql -f database/migrations/008_normalize_locations.sql -f database/migrations/009_renter_request_context.sql",
+    "db:migrate": "psql \"$DATABASE_URL\" -f database/migrations/001_initial_schema.sql -f database/migrations/002_auth_schema.sql -f database/migrations/003_sessions_schema.sql -f database/migrations/004_renter_actions_schema.sql -f database/migrations/005_password_resets_schema.sql -f database/migrations/006_owner_workflows_schema.sql -f database/migrations/007_normalize_facilities.sql -f database/migrations/008_normalize_locations.sql -f database/migrations/009_renter_request_context.sql -f database/migrations/010_admin_owner_system.sql -f database/migrations/011_owner_listing_content.sql -f database/migrations/012_custom_listing_content_and_demo_login.sql",
     "db:seed": "psql \"$DATABASE_URL\" -f database/seeds/001_mock_data.sql",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

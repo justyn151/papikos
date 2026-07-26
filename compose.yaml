@@ -18,7 +18,10 @@ services:
       - ./database/migrations/007_normalize_facilities.sql:/docker-entrypoint-initdb.d/007_normalize_facilities.sql:ro
       - ./database/migrations/008_normalize_locations.sql:/docker-entrypoint-initdb.d/008_normalize_locations.sql:ro
       - ./database/migrations/009_renter_request_context.sql:/docker-entrypoint-initdb.d/009_renter_request_context.sql:ro
-      - ./database/seeds/001_mock_data.sql:/docker-entrypoint-initdb.d/010_mock_data.sql:ro
+      - ./database/migrations/010_admin_owner_system.sql:/docker-entrypoint-initdb.d/010_admin_owner_system.sql:ro
+      - ./database/migrations/011_owner_listing_content.sql:/docker-entrypoint-initdb.d/011_owner_listing_content.sql:ro
+      - ./database/migrations/012_custom_listing_content_and_demo_login.sql:/docker-entrypoint-initdb.d/012_custom_listing_content_and_demo_login.sql:ro
+      - ./database/seeds/001_mock_data.sql:/docker-entrypoint-initdb.d/013_mock_data.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U papikos -d papikos"]
       interval: 5s
@@ -37,8 +40,11 @@ services:
       SESSION_DAYS: 7
       PUBLIC_APP_URL: http://localhost:3000
       EXPOSE_RESET_TOKEN: "true"
+      MEDIA_ROOT: /app/uploads
     ports:
       - "3001:8000"
+    volumes:
+      - media-data:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -60,6 +66,7 @@ services:
       context: .
       args:
         VITE_API_BASE_URL: /api
+        VITE_SHOW_DEMO_ACCOUNTS: "true"
     ports:
       - "3000:80"
     depends_on:
@@ -69,3 +76,4 @@ services:
 
 volumes:
   postgres-data:
+  media-data:

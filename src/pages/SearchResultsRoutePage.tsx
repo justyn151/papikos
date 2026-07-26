@@ -1,9 +1,10 @@
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { Header } from '../components/Header/Header'
+import { usePageNavigate } from '../navigation/usePageNavigate'
 import { SearchResultsPage } from './SearchResultsPage'
 
 export function SearchResultsRoutePage() {
-  const navigate = useNavigate()
+  const navigate = usePageNavigate()
   const [searchParams] = useSearchParams()
   const query = searchParams.get('query')?.trim() ?? ''
   const latParam = searchParams.get('lat')

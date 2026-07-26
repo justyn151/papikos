@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { usePageNavigate } from '../navigation/usePageNavigate'
 import { SearchPage } from './SearchPage'
 
 export function SearchRoutePage() {
-  const navigate = useNavigate()
+  const navigate = usePageNavigate()
   const [searchParams] = useSearchParams()
   const [value, setValue] = useState(searchParams.get('query') ?? '')
 

@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AboutPapikos } from '../components/AboutPapikos/AboutPapikos'
 import { Header } from '../components/Header/Header'
 import { KosGallery } from '../components/KosGallery/KosGallery'
 import { SearchHero } from '../components/SearchHero/SearchHero'
+import { usePageNavigate } from '../navigation/usePageNavigate'
 import { kosService } from '../services/kosService'
 import type { KosListing } from '../types/kos'
 
 export function HomePage() {
-  const navigate = useNavigate()
+  const navigate = usePageNavigate()
   const [searchLocation, setSearchLocation] = useState('')
   const [searchMessage, setSearchMessage] = useState(
     'Coba cari lokasi kampus, kantor, atau area favoritmu.',

@@ -26,7 +26,8 @@ from ..security import (
 
 LOGGER = logging.getLogger(__name__)
 COOKIE_NAME = "papikos_session"
-ALLOWED_ROLES = {"pencari-kos", "pemilik-kos"}
+REGISTER_ROLES = {"pencari-kos", "pemilik-kos"}
+LOGIN_ROLES = {*REGISTER_ROLES, "admin"}
 
 
 def _public_user(row: asyncpg.Record) -> dict:
@@ -36,6 +37,8 @@ def _public_user(row: asyncpg.Record) -> dict:
         "phoneNumber": row["phone_number"],
         "email": row["email"],
         "role": row["role"],
+        "isActive": bool(row["is_active"]),
+        "verificationStatus": row["verification_status"],
     }
 
 
@@ -81,10 +84,12 @@ async def get_session_user(request: Request) -> dict | None:
     row = await db.fetchrow(
         """
         select user_account.id, user_account.full_name, user_account.phone_number,
-               user_account.email, user_account.role
+               user_account.email, user_account.role, user_account.is_active,
+               user_account.verification_status
         from user_sessions session
         join users user_account on user_account.id = session.user_id
         where session.token_hash = $1 and session.expires_at > now()
+          and user_account.is_active
         limit 1
         """,
         hash_token(token),
@@ -110,7 +115,7 @@ async def register_user(payload: RegisterPayload) -> dict:
         fields["email"] = "Email belum valid."
     if len(password) < 8:
         fields["password"] = "Password minimal 8 karakter."
-    if role not in ALLOWED_ROLES:
+    if role not in REGISTER_ROLES:
         fields["role"] = "Role tidak valid."
     if fields:
         raise validation_error("Data pendaftaran belum valid.", fields)
@@ -121,9 +126,11 @@ async def register_user(payload: RegisterPayload) -> dict:
             row = await connection.fetchrow(
                 """
                 insert into users (
-                  full_name, phone_number, email, password_hash, password_salt, role
-                ) values ($1, $2, $3, $4, $5, $6)
-                returning id, full_name, phone_number, email, role
+                  full_name, phone_number, email, password_hash, password_salt,
+                  role, verification_status
+                ) values ($1, $2, $3, $4, $5, $6, $7)
+                returning id, full_name, phone_number, email, role, is_active,
+                          verification_status
                 """,
                 full_name,
                 phone_number,
@@ -131,16 +138,8 @@ async def register_user(payload: RegisterPayload) -> dict:
                 password_hash,
                 password_salt,
                 role,
+                "pending" if role == "pemilik-kos" else "not_required",
             )
-            if role == "pemilik-kos":
-                await connection.execute(
-                    """
-                    update kos_listings set owner_user_id = $1
-                    where owner_user_id is null and lower(owner_name) = lower($2)
-                    """,
-                    row["id"],
-                    full_name,
-                )
     except asyncpg.UniqueViolationError as error:
         raise validation_error(
             "Akun sudah terdaftar.",
@@ -153,18 +152,21 @@ async def login_user(payload: LoginPayload) -> dict:
     phone_number = normalize_phone_number(payload.phoneNumber)
     if not phone_number or not payload.password:
         raise validation_error("Nomor handphone dan password wajib diisi.")
-    if payload.role and payload.role not in ALLOWED_ROLES:
+    if payload.role and payload.role not in LOGIN_ROLES:
         raise validation_error("Role tidak valid.", {"role": "Role tidak valid."})
 
     row = await db.fetchrow(
         """
-        select id, full_name, phone_number, email, role, password_hash, password_salt
+        select id, full_name, phone_number, email, role, password_hash, password_salt,
+               is_active, verification_status
         from users where phone_number = $1 limit 1
         """,
         phone_number,
     )
     if row is None or not verify_password(payload.password, row["password_salt"], row["password_hash"]):
         raise validation_error("Nomor handphone atau password salah.")
+    if not row["is_active"]:
+        raise ApiError(403, "Akun ini sedang dinonaktifkan.", "ACCOUNT_INACTIVE")
     if payload.role and row["role"] != payload.role:
         raise validation_error("Akun ini tidak sesuai dengan role yang dipilih.")
     return _public_user(row)
@@ -180,7 +182,11 @@ async def request_password_reset(payload: ForgotPasswordPayload) -> dict:
     if not identifier:
         raise validation_error("Masukkan email atau nomor handphone.")
     row = await db.fetchrow(
-        "select id from users where email = $1 or phone_number = $1 limit 1",
+        """
+        select id from users
+        where (email = $1 or phone_number = $1) and is_active
+        limit 1
+        """,
         identifier,
     )
     if row is None:

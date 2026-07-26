@@ -1,6 +1,6 @@
 # Papikos Current Implementation
 
-Updated: 17 July 2026.
+Updated: 24 July 2026.
 
 ## Architecture
 
@@ -30,12 +30,13 @@ Routes include:
 | `/search` | Location/campus/area search |
 | `/results` | Filtered results and map |
 | `/kos/:id` | Listing details and renter actions |
-| `/login/:role` | Password login |
+| `/login` | Unified password login with role-aware redirect |
 | `/register/:role` | Account registration |
 | `/forgot-password` | Request a reset link |
 | `/reset-password` | Set a password using a one-time token |
 | `/activity` | Renter request history |
-| `/owner` | Owner request dashboard |
+| `/owner` | Owner properties, availability, and requests |
+| `/admin` | Listing moderation, owner verification, and users |
 | `/legal/:document` | Terms or privacy information |
 
 ## Backend API
@@ -52,7 +53,8 @@ responses. Implemented endpoints cover:
 - Password-reset request and completion.
 - Identity-aware survey, owner-contact, and rental-application creation.
 - Renter activity history.
-- Owner inbox and authorized request status changes.
+- Owner listing creation/editing, review submission, availability, and request handling.
+- Admin marketplace summaries, listing moderation, owner verification, and account activation.
 
 ## Authentication and authorization
 
@@ -65,8 +67,10 @@ responses. Implemented endpoints cover:
   after 30 minutes.
 - Resetting a password invalidates all active sessions.
 - Renter endpoints require a `pencari-kos` account.
-- Owner inbox/status endpoints require a `pemilik-kos` account and verify that
-  the request belongs to one of that owner's listings.
+- Owner management endpoints require a verified `pemilik-kos` account and
+  verify listing ownership.
+- Admin endpoints require the non-publicly-registrable `admin` role.
+- Deactivated accounts cannot log in and lose active sessions.
 
 Local Docker exposes password reset links in the UI for development. Public
 deployments must leave `EXPOSE_RESET_TOKEN=false` and deliver links through a
@@ -86,13 +90,22 @@ The renter can inspect these records and their statuses on `/activity`.
 
 ## Owner workflow
 
-Owner accounts are linked to seeded listings when the account's full name
-matches the listing's `owner_name`. The owner dashboard shows only requests for
-linked listings and allows valid status transitions for surveys, contacts, and
-rental applications.
+The seeded Ibu Sari account is explicitly linked to its listings by user ID.
+Verified owners create listings through five guided stages: identity/location,
+room inventory and pricing, an ordered showcase gallery, facilities/rules, and
+a final review. A listing represents one room type. Owners can save incomplete
+drafts, upload and reorder photos or MP4 video tours, choose a photo cover, add
+and edit listing-specific facilities/rules, see missing photo categories,
+preview the renter-facing result, and submit only after the readiness checklist
+reaches 100%. Availability remains a separate quick update.
 
-This name-based link is suitable for the current demo dataset. A production
-onboarding flow should verify ownership and assign `owner_user_id` explicitly.
+Admins can approve or reject owner verification, disable accounts, inspect
+platform requests, inspect full galleries, addresses, inventory, commercial
+terms, facilities, rules, and shared readiness checks, then move listings
+through draft, pending, published, rejected, and archived states. Rejections
+require a readable, actionable reason. Readiness is advisory for admins: an
+admin can explicitly publish an incomplete listing as an override, while owner
+submission still requires 100% completion.
 
 ## Database migrations
 
@@ -105,6 +118,10 @@ onboarding flow should verify ownership and assign `owner_user_id` explicitly.
 7. Normalized facility/rule catalogs and backend compatibility views.
 8. Completed location hierarchy and normalized nearby-campus assignments.
 9. Added visitor identity, contact preference, and move-in context to renter requests.
+10. Added admin access, owner verification, account activation, and listing moderation.
+11. Added room-type inventory, address notes, inventory timestamps, and the
+    structured owner listing workflow.
+12. Added owner-editable custom facilities/rules and the unified demo login data.
 
 ## Intentionally excluded integrations
 
@@ -115,7 +132,12 @@ onboarding flow should verify ownership and assign `owner_user_id` explicitly.
 - Password reset delivery needs an email or SMS provider in production.
 - Actual payment collection needs a payment gateway; the current backend
   creates trusted quotes and applications but does not charge money.
-- Owner listing creation/editing and media upload are not yet product screens.
+- Local Docker upload is implemented for JPG, PNG, and WebP files up to 5 MB
+  and MP4 video tours up to 50 MB. Files persist in the `media-data` volume;
+  production still needs object
+  storage, malware scanning, and image resizing. Papikos stores gallery
+  ordering, category, labels, and accessibility metadata in PostgreSQL.
+- Identity-document collection and a permanent admin audit log are still future work.
 
 ## Validation
 

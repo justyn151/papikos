@@ -36,6 +36,7 @@ def _scheduled_utc(value: datetime | None) -> datetime:
 
 async def create_survey_request(user: dict, kos_id: int, payload: SurveyPayload) -> dict:
     require_role(user, "pencari-kos", "Fitur ini hanya tersedia untuk pencari kos.")
+    await get_listing(kos_id)
     scheduled_for = _scheduled_utc(payload.scheduledFor)
     visitor_type = payload.visitorType
     notes = payload.notes.strip()[:1000]
@@ -86,6 +87,7 @@ async def create_survey_request(user: dict, kos_id: int, payload: SurveyPayload)
 
 async def create_contact_request(user: dict, kos_id: int, payload: ContactPayload) -> dict:
     require_role(user, "pencari-kos", "Fitur ini hanya tersedia untuk pencari kos.")
+    await get_listing(kos_id)
     message = payload.message.strip()[:2000]
     method = payload.preferredContactMethod
     if len(message) < 10:

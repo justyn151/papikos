@@ -27,6 +27,9 @@ database/
     007_normalize_facilities.sql
     008_normalize_locations.sql
     009_renter_request_context.sql
+    010_admin_owner_system.sql
+    011_owner_listing_content.sql
+    012_custom_listing_content_and_demo_login.sql
   seeds/
     001_mock_data.sql
 ```
@@ -36,14 +39,22 @@ database/
 The later migrations add users, secure browser sessions, survey requests,
 contact requests, rental applications, expiring password reset tokens, and
 listing ownership for owner dashboards, and normalized facility/rule catalogs.
-The final migration completes area/campus relationships and normalizes nearby
-campus assignments while preserving the existing read shape. Migration 009
-adds the visitor, contact, and move-in context owners need to evaluate requests.
+Migration 008 completes area/campus relationships and normalizes nearby-campus
+assignments while preserving the existing read shape. Migration 009 adds the
+visitor, contact, and move-in context owners need to evaluate requests.
+Migration 010 adds the admin role, owner verification, account activation, and
+the draft/review/publish lifecycle for owner-managed listings.
+Migration 011 adds one-room-type inventory, location notes, and inventory
+timestamps. It builds on the existing ordered media, facility, rule, duration,
+and payment tables used by the guided owner listing workflow.
+Migration 012 adds per-listing custom facilities/rules and the development
+pencari-kos account used by the unified demo login.
 
 See [SCHEMA.md](SCHEMA.md) for the current physical model, normalization
 decisions, and compatibility views.
 
-`001_mock_data.sql` inserts the current dummy data into PostgreSQL-friendly tables.
+`001_mock_data.sql` inserts the current dummy listings and development-only
+admin/owner accounts into PostgreSQL-friendly tables.
 
 ## Run locally with psql
 
@@ -88,8 +99,9 @@ The backend should transform SQL rows into the existing frontend shapes:
 - `KosSearchResult`
 - `SearchMetadata`
 
-The frontend calls listing, authentication, renter-action, payment-quote, and
-owner-management endpoints documented in `docs/API_CALLS_GUIDE.md`.
+The frontend calls listing, authentication, renter-action, payment-quote,
+owner-management, and admin-moderation endpoints documented in
+`docs/API_CALLS_GUIDE.md`.
 
 Core listing endpoints include:
 
@@ -110,5 +122,5 @@ For production, the backend should own location data in PostgreSQL and periodica
 
 - Add migrations through a migration tool such as Alembic or Flyway.
 - Add PostGIS if radius search, bounding-box search, or “near me” queries become important.
-- Add verified owner onboarding instead of demo name matching.
+- Add identity-document upload and a private review history for owner verification.
 - Add automated backups and a production migration runner before deployment.

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     public_app_url: str = "http://localhost:5173"
     expose_reset_token: bool = False
     app_timezone: str = "Asia/Jakarta"
+    media_root: str = "/app/uploads"
 
     @property
     def cors_origins(self) -> list[str]:

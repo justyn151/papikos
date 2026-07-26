@@ -27,8 +27,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isLoading,
     setUser,
-    logout: async () => {
+    logout: async (options) => {
       await logoutUser()
+      if (options?.redirectTo) {
+        window.location.replace(options.redirectTo)
+        return
+      }
       setUser(null)
     },
   }), [isLoading, user])

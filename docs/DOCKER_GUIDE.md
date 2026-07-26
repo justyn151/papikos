@@ -134,7 +134,9 @@ Papikos stores PostgreSQL data in the named `postgres-data` volume. Running
 the project again restores the existing database.
 
 Running `docker compose down --volumes` deletes the volume and all local
-Papikos database data. Treat that command as a database reset.
+Papikos database data and owner-uploaded showcase images. Papikos uses
+`postgres-data` for PostgreSQL and `media-data` for uploaded images. Treat that
+command as a full local data reset.
 
 ### Bind mount
 
@@ -154,7 +156,10 @@ empty database volume:
 7. `007_normalize_facilities.sql`
 8. `008_normalize_locations.sql`
 9. `009_renter_request_context.sql`
-10. `010_mock_data.sql` (the mounted seed file)
+10. `010_admin_owner_system.sql`
+11. `011_owner_listing_content.sql`
+12. `012_custom_listing_content_and_demo_login.sql`
+13. `013_mock_data.sql` (the mounted seed file)
 
 Changing a migration and restarting an existing database does not run it
 again. During early development, reset the volume to replay all scripts. In a
@@ -299,6 +304,20 @@ A healthy API returns:
 ```json
 {"ok": true}
 ```
+
+The local seed also creates dashboard accounts for development:
+
+| Role | Phone | Password |
+| --- | --- | --- |
+| Admin | `081111111111` | `admin12345` |
+| Pemilik Kos | `082222222222` | `owner12345` |
+| Pencari Kos | `083333333333` | `renter12345` |
+
+These credentials are intentionally local/demo data and must be replaced for
+any public deployment. The Docker frontend is built with
+`VITE_SHOW_DEMO_ACCOUNTS=true`, so the Admin and Pemilik Kos login pages also
+show three direct demo-login buttons on the unified `/login` page. A public
+build must set this flag to `false`.
 
 Press `Ctrl+C` to stop the foreground Compose process. Then run this to remove
 the stopped containers while retaining database data:

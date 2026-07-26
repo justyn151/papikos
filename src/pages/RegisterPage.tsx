@@ -1,8 +1,13 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { Icon } from '../components/Icon/Icon'
 import { useAuth } from '../auth/authContext'
-import { registerUser } from '../services/authService'
+import { usePageNavigate } from '../navigation/usePageNavigate'
+import {
+  authRoleDestinations,
+  registerUser,
+  type RegistrableAuthRole,
+} from '../services/authService'
 
 const roleLabels = {
   'pencari-kos': 'Pencari Kos',
@@ -12,7 +17,7 @@ const roleLabels = {
 const registerImage =
   'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267f?auto=format&fit=crop&w=1200&q=85'
 
-type RegisterRole = keyof typeof roleLabels
+type RegisterRole = RegistrableAuthRole
 
 function isRegisterRole(role: string | undefined): role is RegisterRole {
   return role === 'pencari-kos' || role === 'pemilik-kos'
@@ -44,7 +49,7 @@ function validateEmail(value: string) {
 }
 
 export function RegisterPage() {
-  const navigate = useNavigate()
+  const navigate = usePageNavigate()
   const { setUser } = useAuth()
   const { role } = useParams()
   const [showPassword, setShowPassword] = useState(false)
@@ -112,7 +117,7 @@ export function RegisterPage() {
         role,
       })
       setUser(response.user)
-      navigate(response.user.role === 'pemilik-kos' ? '/owner' : '/')
+      navigate(authRoleDestinations[response.user.role])
     } catch (error) {
       setFormMessage(
         error instanceof Error
@@ -298,7 +303,7 @@ export function RegisterPage() {
             Sudah punya akun Papikos?{' '}
             <button
               className="font-black text-green-600 hover:text-green-700"
-              onClick={() => navigate(`/login/${role}`)}
+              onClick={() => navigate('/login')}
               type="button"
             >
               Masuk di sini

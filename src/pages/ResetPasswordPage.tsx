@@ -38,7 +38,7 @@ export function ResetPasswordPage() {
         )}
         {!token && <p className="mt-5 font-bold text-red-500">Token reset tidak tersedia.</p>}
         {message && <p className="mt-5 font-bold text-neutral-600">{message}</p>}
-        <Link className="mt-6 inline-block font-black text-green-600" to="/login/pencari-kos">Kembali ke login</Link>
+        <Link className="mt-6 inline-block font-black text-green-600" to="/login">Kembali ke login</Link>
       </section>
     </main>
   )

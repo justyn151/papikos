@@ -1,19 +1,27 @@
 import logging
+import secrets
 from contextlib import asynccontextmanager
+from pathlib import Path as FilePath
 
-from fastapi import Depends, FastAPI, Path, Query, Request, Response, status
+from fastapi import Depends, FastAPI, File, Path, Query, Request, Response, UploadFile, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .database import db
 from .errors import ApiError, unauthenticated
 from .filters import parse_optional_integer
 from .schemas import (
+    AdminListingReviewPayload,
+    AdminUserUpdatePayload,
     ContactPayload,
     ForgotPasswordPayload,
     LoginPayload,
+    OwnerAvailabilityPayload,
+    OwnerListingCreatePayload,
+    OwnerListingUpdatePayload,
     OwnerStatusPayload,
     PaymentQuotePayload,
     RegisterPayload,
@@ -21,6 +29,7 @@ from .schemas import (
     ResetPasswordPayload,
     SurveyPayload,
 )
+from .services.admin import get_admin_dashboard, update_admin_listing, update_admin_user
 from .services.actions import (
     create_contact_request,
     create_payment_quote,
@@ -44,7 +53,16 @@ from .services.listings import (
     parse_filters,
     search_listings,
 )
-from .services.owner import get_owner_inbox, update_owner_request
+from .services.owner import (
+    create_owner_listing,
+    get_owner_dashboard,
+    get_owner_inbox,
+    require_verified_owner,
+    submit_owner_listing,
+    update_owner_availability,
+    update_owner_listing,
+    update_owner_request,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -52,6 +70,7 @@ LOGGER = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    FilePath(settings.media_root).mkdir(parents=True, exist_ok=True)
     await db.connect()
     yield
     await db.disconnect()
@@ -70,6 +89,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+app.mount(
+    "/api/media",
+    StaticFiles(directory=settings.media_root, check_dir=False),
+    name="owner-media",
 )
 
 
@@ -202,6 +226,86 @@ async def owner_inbox(user: dict = Depends(require_user)) -> dict:
     return await get_owner_inbox(user)
 
 
+@app.get("/api/owner/dashboard", tags=["Owner"])
+async def owner_dashboard(user: dict = Depends(require_user)) -> dict:
+    return await get_owner_dashboard(user)
+
+
+@app.post("/api/owner/media", status_code=status.HTTP_201_CREATED, tags=["Owner"])
+async def owner_media_upload(
+    file: UploadFile = File(...),
+    user: dict = Depends(require_user),
+) -> dict:
+    require_verified_owner(user)
+    allowed_types = {
+        "image/jpeg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "video/mp4": ".mp4",
+    }
+    extension = allowed_types.get(file.content_type or "")
+    if extension is None:
+        raise ApiError(
+            400,
+            "Media harus berformat JPG, PNG, WebP, atau MP4.",
+            "INVALID_MEDIA_TYPE",
+        )
+    is_video = file.content_type == "video/mp4"
+    maximum_size = 50 * 1024 * 1024 if is_video else 5 * 1024 * 1024
+    content = await file.read(maximum_size + 1)
+    await file.close()
+    if len(content) > maximum_size:
+        limit = "50 MB" if is_video else "5 MB"
+        raise ApiError(400, f"Ukuran media maksimal {limit}.", "MEDIA_TOO_LARGE")
+
+    filename = f"owner-{user['id']}-{secrets.token_urlsafe(16)}{extension}"
+    destination = FilePath(settings.media_root) / filename
+    destination.write_bytes(content)
+    return {
+        "media": {
+            "url": f"/media/{filename}",
+            "originalName": file.filename or "foto-kos",
+            "mediaType": "video" if is_video else "image",
+        }
+    }
+
+
+@app.post("/api/owner/listings", status_code=status.HTTP_201_CREATED, tags=["Owner"])
+async def owner_listing_create(
+    payload: OwnerListingCreatePayload,
+    user: dict = Depends(require_user),
+) -> dict:
+    return {"listing": await create_owner_listing(user, payload)}
+
+
+@app.patch("/api/owner/listings/{listing_id}", tags=["Owner"])
+async def owner_listing_update(
+    payload: OwnerListingUpdatePayload,
+    listing_id: int = Path(..., gt=0),
+    user: dict = Depends(require_user),
+) -> dict:
+    return {"listing": await update_owner_listing(user, listing_id, payload)}
+
+
+@app.post("/api/owner/listings/{listing_id}/submit", tags=["Owner"])
+async def owner_listing_submit(
+    listing_id: int = Path(..., gt=0),
+    user: dict = Depends(require_user),
+) -> dict:
+    return {"listing": await submit_owner_listing(user, listing_id)}
+
+
+@app.patch("/api/owner/listings/{listing_id}/availability", tags=["Owner"])
+async def owner_listing_availability(
+    payload: OwnerAvailabilityPayload,
+    listing_id: int = Path(..., gt=0),
+    user: dict = Depends(require_user),
+) -> dict:
+    return {
+        "listing": await update_owner_availability(user, listing_id, payload.availableRooms)
+    }
+
+
 @app.patch("/api/owner/requests/{request_type}/{request_id}", tags=["Owner"])
 async def owner_request_status(
     payload: OwnerStatusPayload,
@@ -215,6 +319,43 @@ async def owner_request_status(
             request_type,
             request_id,
             payload.status,
+        )
+    }
+
+
+@app.get("/api/admin/dashboard", tags=["Admin"])
+async def admin_dashboard(user: dict = Depends(require_user)) -> dict:
+    return await get_admin_dashboard(user)
+
+
+@app.patch("/api/admin/listings/{listing_id}", tags=["Admin"])
+async def admin_listing_update(
+    payload: AdminListingReviewPayload,
+    listing_id: int = Path(..., gt=0),
+    user: dict = Depends(require_user),
+) -> dict:
+    return {
+        "listing": await update_admin_listing(
+            user,
+            listing_id,
+            payload.status,
+            payload.reviewNotes,
+        )
+    }
+
+
+@app.patch("/api/admin/users/{user_id}", tags=["Admin"])
+async def admin_user_update(
+    payload: AdminUserUpdatePayload,
+    user_id: int = Path(..., gt=0),
+    user: dict = Depends(require_user),
+) -> dict:
+    return {
+        "user": await update_admin_user(
+            user,
+            user_id,
+            payload.isActive,
+            payload.verificationStatus,
         )
     }
 

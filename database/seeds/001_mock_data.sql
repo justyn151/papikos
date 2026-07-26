@@ -115,6 +115,7 @@ insert into kos_listings (
   address,
   description,
   room_size,
+  total_rooms,
   available_rooms,
   owner_name,
   image_url,
@@ -123,21 +124,21 @@ insert into kos_listings (
   latitude,
   longitude
 ) values
-  (1, 'Kos Melati Margonda Putri', 'Depok', 891000, 4.8, 'Putri', 'Jl. Margonda Raya No. 24, Depok', 'Kamar minimalis dengan pencahayaan hangat, cocok untuk mahasiswa atau pekerja yang butuh akses cepat ke transportasi umum.', '3 x 4 m', 4, 'Ibu Ratna', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Kamar kos minimalis dengan kasur, meja kecil, dan dekorasi hangat', true, -6.3728000, 106.8321000),
-  (2, 'Griya Kaliurang Residence', 'Yogyakarta', 1250000, 4.9, 'Campur', 'Jl. Kaliurang KM 5, Yogyakarta', 'Kos siap huni dengan interior modern, area komunal nyaman, dan lokasi strategis dekat kuliner serta kampus.', '3.5 x 4 m', 2, 'Pak Bima', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior kamar kos modern dengan tempat tidur dan jendela besar', true, -7.7557000, 110.3807000),
-  (3, 'Kos Tubagus Ismail Eksklusif', 'Bandung', 1650000, 4.7, 'Putra', 'Jl. Tubagus Ismail No. 12, Bandung', 'Kos eksklusif di lingkungan tenang dengan akses keamanan dan fasilitas lengkap untuk tinggal jangka panjang.', '4 x 4 m', 1, 'Mas Dimas', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Bangunan kos modern dengan ruang tinggal yang terang', true, -6.8796000, 107.6158000),
-  (101, 'Kos Putri Pogung Nyaman', 'Yogyakarta', 950000, 4.5, 'Putri', 'Pogung, Sinduadi, Mlati, Sleman, DI Yogyakarta', 'Kos nyaman di kawasan Pogung, Yogyakarta, dengan akses mudah menuju Universitas Gadjah Mada.', '3 x 4 m', 1, 'Ibu Sari', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Putri Pogung Nyaman di Pogung', false, -7.7652000, 110.3724000),
-  (102, 'Kos Campur Kaliurang Residence', 'Yogyakarta', 1350000, 4.6, 'Campur', 'Jl. Kaliurang KM 5, Caturtunggal, Sleman, DI Yogyakarta', 'Kos nyaman di kawasan Kaliurang, Yogyakarta, dekat UGM dan UNY.', '3.5 x 4 m', 2, 'Pak Andi', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Campur Kaliurang Residence di Kaliurang', false, -7.7557000, 110.3807000),
-  (103, 'Kos Kukusan Dekat UI', 'Depok', 1200000, 4.7, 'Campur', 'Kukusan, Beji, Kota Depok, Jawa Barat', 'Kos nyaman di kawasan Kukusan, Depok, dekat Universitas Indonesia.', '3 x 4 m', 3, 'Ibu Sari', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Kukusan Dekat UI di Kukusan', false, -6.3627000, 106.8249000),
-  (104, 'Kos Putri Margonda', 'Depok', 1500000, 4.8, 'Putri', 'Jl. Margonda Raya, Beji, Kota Depok, Jawa Barat', 'Kos nyaman di kawasan Margonda, Depok, dekat UI dan Gunadarma.', '3.5 x 4 m', 4, 'Pak Andi', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Putri Margonda di Margonda', false, -6.3728000, 106.8321000),
-  (105, 'Kos Putra Dago Asri', 'Bandung', 1650000, 4.9, 'Putra', 'Dago, Coblong, Kota Bandung, Jawa Barat', 'Kos nyaman di kawasan Dago, Bandung, dekat ITB.', '3 x 4 m', 0, 'Ibu Sari', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Putra Dago Asri di Dago', false, -6.8796000, 107.6158000),
-  (106, 'Kos Jatinangor Student House', 'Bandung', 1100000, 4.5, 'Campur', 'Jl. Raya Jatinangor, Sumedang, Jawa Barat', 'Kos nyaman di kawasan Jatinangor, Bandung, dekat Universitas Padjadjaran.', '3.5 x 4 m', 2, 'Pak Andi', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Jatinangor Student House di Jatinangor', false, -6.9281000, 107.7696000),
-  (107, 'Kos Dramaga Dekat IPB', 'Bogor', 850000, 4.6, 'Putra', 'Babakan, Dramaga, Kabupaten Bogor, Jawa Barat', 'Kos nyaman di kawasan Dramaga, Bogor, dekat IPB University.', '3 x 4 m', 3, 'Ibu Sari', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Dramaga Dekat IPB di Dramaga', false, -6.5591000, 106.7255000),
-  (108, 'Kos Jimbaran Kampus Udayana', 'Bali', 1450000, 4.7, 'Campur', 'Jimbaran, Kuta Selatan, Kabupaten Badung, Bali', 'Kos nyaman di kawasan Jimbaran, Bali, dekat Universitas Udayana.', '3.5 x 4 m', 4, 'Pak Andi', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Jimbaran Kampus Udayana di Jimbaran', false, -8.7908000, 115.1722000),
-  (109, 'Kos Kemanggisan BINUS', 'Jakarta', 2100000, 4.8, 'Campur', 'Kemanggisan, Palmerah, Jakarta Barat', 'Kos nyaman di kawasan Kemanggisan, Jakarta, dekat BINUS.', '3 x 4 m', 0, 'Ibu Sari', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Kemanggisan BINUS di Kemanggisan', false, -6.2017000, 106.7824000),
-  (110, 'Kos Rawamangun UNJ', 'Jakarta', 1750000, 4.9, 'Putri', 'Rawamangun, Pulo Gadung, Jakarta Timur', 'Kos nyaman di kawasan Rawamangun, Jakarta, dekat UNJ.', '3.5 x 4 m', 2, 'Pak Andi', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Rawamangun UNJ di Rawamangun', false, -6.1939000, 106.8841000),
-  (111, 'Kos Lowokwaru UB', 'Malang', 1000000, 4.5, 'Campur', 'Lowokwaru, Kota Malang, Jawa Timur', 'Kos nyaman di kawasan Lowokwaru, Malang, dekat UB dan UM.', '3 x 4 m', 3, 'Ibu Sari', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Lowokwaru UB di Lowokwaru', false, -7.9525000, 112.6138000),
-  (112, 'Kos Keputih ITS', 'Surabaya', 1250000, 4.6, 'Putra', 'Keputih, Sukolilo, Kota Surabaya', 'Kos nyaman di kawasan Keputih, Surabaya, dekat ITS.', '3.5 x 4 m', 4, 'Pak Andi', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Keputih ITS di Keputih', false, -7.2891000, 112.7978000)
+  (1, 'Kos Melati Margonda Putri', 'Depok', 891000, 4.8, 'Putri', 'Jl. Margonda Raya No. 24, Depok', 'Kamar minimalis dengan pencahayaan hangat, cocok untuk mahasiswa atau pekerja yang butuh akses cepat ke transportasi umum.', '3 x 4 m', 12, 4, 'Ibu Ratna', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Kamar kos minimalis dengan kasur, meja kecil, dan dekorasi hangat', true, -6.3728000, 106.8321000),
+  (2, 'Griya Kaliurang Residence', 'Yogyakarta', 1250000, 4.9, 'Campur', 'Jl. Kaliurang KM 5, Yogyakarta', 'Kos siap huni dengan interior modern, area komunal nyaman, dan lokasi strategis dekat kuliner serta kampus.', '3.5 x 4 m', 10, 2, 'Pak Bima', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior kamar kos modern dengan tempat tidur dan jendela besar', true, -7.7557000, 110.3807000),
+  (3, 'Kos Tubagus Ismail Eksklusif', 'Bandung', 1650000, 4.7, 'Putra', 'Jl. Tubagus Ismail No. 12, Bandung', 'Kos eksklusif di lingkungan tenang dengan akses keamanan dan fasilitas lengkap untuk tinggal jangka panjang.', '4 x 4 m', 8, 1, 'Mas Dimas', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Bangunan kos modern dengan ruang tinggal yang terang', true, -6.8796000, 107.6158000),
+  (101, 'Kos Putri Pogung Nyaman', 'Yogyakarta', 950000, 4.5, 'Putri', 'Pogung, Sinduadi, Mlati, Sleman, DI Yogyakarta', 'Kos nyaman di kawasan Pogung, Yogyakarta, dengan akses mudah menuju Universitas Gadjah Mada.', '3 x 4 m', 8, 1, 'Ibu Sari', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Putri Pogung Nyaman di Pogung', false, -7.7652000, 110.3724000),
+  (102, 'Kos Campur Kaliurang Residence', 'Yogyakarta', 1350000, 4.6, 'Campur', 'Jl. Kaliurang KM 5, Caturtunggal, Sleman, DI Yogyakarta', 'Kos nyaman di kawasan Kaliurang, Yogyakarta, dekat UGM dan UNY.', '3.5 x 4 m', 10, 2, 'Pak Andi', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Campur Kaliurang Residence di Kaliurang', false, -7.7557000, 110.3807000),
+  (103, 'Kos Kukusan Dekat UI', 'Depok', 1200000, 4.7, 'Campur', 'Kukusan, Beji, Kota Depok, Jawa Barat', 'Kos nyaman di kawasan Kukusan, Depok, dekat Universitas Indonesia.', '3 x 4 m', 12, 3, 'Ibu Sari', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Kukusan Dekat UI di Kukusan', false, -6.3627000, 106.8249000),
+  (104, 'Kos Putri Margonda', 'Depok', 1500000, 4.8, 'Putri', 'Jl. Margonda Raya, Beji, Kota Depok, Jawa Barat', 'Kos nyaman di kawasan Margonda, Depok, dekat UI dan Gunadarma.', '3.5 x 4 m', 14, 4, 'Pak Andi', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Putri Margonda di Margonda', false, -6.3728000, 106.8321000),
+  (105, 'Kos Putra Dago Asri', 'Bandung', 1650000, 4.9, 'Putra', 'Dago, Coblong, Kota Bandung, Jawa Barat', 'Kos nyaman di kawasan Dago, Bandung, dekat ITB.', '3 x 4 m', 9, 0, 'Ibu Sari', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Putra Dago Asri di Dago', false, -6.8796000, 107.6158000),
+  (106, 'Kos Jatinangor Student House', 'Bandung', 1100000, 4.5, 'Campur', 'Jl. Raya Jatinangor, Sumedang, Jawa Barat', 'Kos nyaman di kawasan Jatinangor, Bandung, dekat Universitas Padjadjaran.', '3.5 x 4 m', 16, 2, 'Pak Andi', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Jatinangor Student House di Jatinangor', false, -6.9281000, 107.7696000),
+  (107, 'Kos Dramaga Dekat IPB', 'Bogor', 850000, 4.6, 'Putra', 'Babakan, Dramaga, Kabupaten Bogor, Jawa Barat', 'Kos nyaman di kawasan Dramaga, Bogor, dekat IPB University.', '3 x 4 m', 10, 3, 'Ibu Sari', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Dramaga Dekat IPB di Dramaga', false, -6.5591000, 106.7255000),
+  (108, 'Kos Jimbaran Kampus Udayana', 'Bali', 1450000, 4.7, 'Campur', 'Jimbaran, Kuta Selatan, Kabupaten Badung, Bali', 'Kos nyaman di kawasan Jimbaran, Bali, dekat Universitas Udayana.', '3.5 x 4 m', 12, 4, 'Pak Andi', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Jimbaran Kampus Udayana di Jimbaran', false, -8.7908000, 115.1722000),
+  (109, 'Kos Kemanggisan BINUS', 'Jakarta', 2100000, 4.8, 'Campur', 'Kemanggisan, Palmerah, Jakarta Barat', 'Kos nyaman di kawasan Kemanggisan, Jakarta, dekat BINUS.', '3 x 4 m', 10, 0, 'Ibu Sari', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Kemanggisan BINUS di Kemanggisan', false, -6.2017000, 106.7824000),
+  (110, 'Kos Rawamangun UNJ', 'Jakarta', 1750000, 4.9, 'Putri', 'Rawamangun, Pulo Gadung, Jakarta Timur', 'Kos nyaman di kawasan Rawamangun, Jakarta, dekat UNJ.', '3.5 x 4 m', 11, 2, 'Pak Andi', 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=85', 'Interior Kos Rawamangun UNJ di Rawamangun', false, -6.1939000, 106.8841000),
+  (111, 'Kos Lowokwaru UB', 'Malang', 1000000, 4.5, 'Campur', 'Lowokwaru, Kota Malang, Jawa Timur', 'Kos nyaman di kawasan Lowokwaru, Malang, dekat UB dan UM.', '3 x 4 m', 15, 3, 'Ibu Sari', 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=85', 'Interior Kos Lowokwaru UB di Lowokwaru', false, -7.9525000, 112.6138000),
+  (112, 'Kos Keputih ITS', 'Surabaya', 1250000, 4.6, 'Putra', 'Keputih, Sukolilo, Kota Surabaya', 'Kos nyaman di kawasan Keputih, Surabaya, dekat ITS.', '3.5 x 4 m', 13, 4, 'Pak Andi', 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=900&q=85', 'Interior Kos Keputih ITS di Keputih', false, -7.2891000, 112.7978000)
 on conflict (id) do nothing;
 
 insert into kos_payment_terms (
@@ -325,5 +326,62 @@ join admin_locations campus
   on campus.name = seed.campus_name and campus.type = 'campus'
 on conflict (kos_id, campus_id) do update
 set sort_order = excluded.sort_order;
+
+-- Development-only demo accounts. The static hashes are PBKDF2-SHA512 values
+-- produced by backend/app/security.py; plaintext passwords never enter users.
+-- Admin: 081111111111 / admin12345
+-- Owner: 082222222222 / owner12345
+insert into users (
+  full_name,
+  phone_number,
+  email,
+  password_hash,
+  password_salt,
+  role,
+  is_active,
+  verification_status
+) values
+  (
+    'Admin Papikos',
+    '081111111111',
+    'admin@papikos.local',
+    '574f6aad3cca2670f88564ad306c1dbf587bc823d190a4c9b39fe267113ea7a524c0c47ac0f383a5cb92cd932c9fed88f0fb8b096999c09e49fd9cf93b536aa2',
+    'papikos-admin-demo-2026',
+    'admin',
+    true,
+    'not_required'
+  ),
+  (
+    'Ibu Sari',
+    '082222222222',
+    'ibusari@papikos.local',
+    'b24de4756886e469517debdd14c6cb37d2a683bda0b2b7e4d37337a6a75207456baa3d912ff2c827e7b3d5ae1b488ed3671e965e720ae140ca9e4cd9fb9b6e70',
+    'papikos-owner-demo-2026',
+    'pemilik-kos',
+    true,
+    'verified'
+  )
+on conflict (phone_number) do update
+set
+  full_name = excluded.full_name,
+  email = excluded.email,
+  password_hash = excluded.password_hash,
+  password_salt = excluded.password_salt,
+  role = excluded.role,
+  is_active = excluded.is_active,
+  verification_status = excluded.verification_status,
+  updated_at = now();
+
+update kos_listings listing
+set owner_user_id = owner_account.id
+from users owner_account
+where owner_account.phone_number = '082222222222'
+  and lower(listing.owner_name) = lower(owner_account.full_name);
+
+select setval(
+  pg_get_serial_sequence('kos_listings', 'id'),
+  coalesce((select max(id) from kos_listings), 1),
+  true
+);
 
 commit;

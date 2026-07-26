@@ -32,11 +32,14 @@ export type KosListing = {
   rating: number
   tag: string
   address: string
+  addressNotes?: string
   description: string
   facilities: string[]
   facilityCategories: FacilityCategory[]
   rules: string[]
+  roomTypeName?: string
   roomSize: string
+  totalRooms?: number
   availableRooms: number
   rentalDurations: RentalDuration[]
   owner: string

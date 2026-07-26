@@ -17,7 +17,7 @@ export function ActivityPage() {
   }, [user])
 
   if (isAuthLoading) return <main className="p-10 text-center font-bold">Memuat akun...</main>
-  if (!user) return <Navigate replace to="/login/pencari-kos" />
+  if (!user) return <Navigate replace to="/login" />
   if (user.role !== 'pencari-kos') return <Navigate replace to="/" />
 
   return (
