@@ -16,6 +16,7 @@ import {
   UserRoundSearch,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import {
   type CSSProperties,
   type FormEvent,
@@ -225,7 +226,7 @@ function ListingCard({
   locale,
   favorite,
   onFavorite,
-  onComingSoon,
+  detailHref,
   match,
   animationIndex,
 }: {
@@ -233,7 +234,7 @@ function ListingCard({
   locale: Locale;
   favorite: boolean;
   onFavorite: () => void;
-  onComingSoon: () => void;
+  detailHref: string;
   match?: MatchResult;
   animationIndex: number;
 }) {
@@ -323,10 +324,9 @@ function ListingCard({
               {listing.availableRooms} {t.roomsLeft} · {t.perMonth}
             </p>
           </div>
-          <button
+          <Link
             className="detail-button inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200"
-            onClick={onComingSoon}
-            type="button"
+            href={detailHref}
           >
             {t.viewDetail}
             <ChevronRight
@@ -334,7 +334,7 @@ function ListingCard({
               size={15}
               aria-hidden="true"
             />
-          </button>
+          </Link>
         </div>
       </div>
     </article>
@@ -863,12 +863,14 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                   {visibleListings.map((listing, index) => (
                     <ListingCard
                       animationIndex={index}
+                      detailHref={`/kos/${listing.id}?from=${encodeURIComponent(
+                        `/${serializeFilters(appliedFilters)}`,
+                      )}`}
                       favorite={favoriteIds.includes(listing.id)}
                       key={`${resultsAnimationKey}:${listing.id}`}
                       listing={listing}
                       locale={locale}
                       match={matchById.get(listing.id)}
-                      onComingSoon={comingSoon}
                       onFavorite={() => toggleFavorite(listing.id)}
                     />
                   ))}
@@ -895,7 +897,10 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
           </div>
         </section>
 
-        <section className="contour-surface contour-surface-soft bg-white py-14 sm:py-16">
+        <section
+          className="contour-surface contour-surface-soft scroll-mt-24 bg-white py-14 sm:py-16"
+          id="preference-survey"
+        >
           <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
             <Reveal className="rounded-[2rem] border border-blue-100 bg-blue-50/80 px-6 py-10 shadow-[0_22px_70px_-55px_rgba(37,99,235,0.45)] sm:px-10 sm:py-12 lg:flex lg:items-center lg:justify-between lg:gap-12">
               <div className="max-w-3xl">

@@ -97,3 +97,53 @@ test("switches language and completes the preference survey", async ({
     page.getByRole("heading", { name: /Find a kos that fits your life/i }),
   ).toBeVisible();
 });
+
+test("opens a complete kos detail page and preserves the search return path", async ({
+  page,
+}) => {
+  await page.getByRole("textbox", { name: "Lokasi", exact: true }).fill("Jakarta");
+  await page.getByRole("button", { name: "Cari kos" }).click();
+  await page.getByRole("link", { name: "Lihat detail" }).first().click();
+
+  await expect(page).toHaveURL(/\/kos\/senja-setiabudi/);
+  await expect(
+    page.getByRole("heading", { name: "Papikos Senja Setiabudi" }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Rincian biaya" })).toBeVisible();
+  await expect(page.getByText("Tidak ada deposit")).toBeVisible();
+
+  await page.getByRole("link", { name: "Kembali ke hasil" }).click();
+  await expect(page).toHaveURL(/\?q=Jakarta/);
+  await expect(page.getByText("Nara House Kemang")).toBeVisible();
+});
+
+test("persists a local booking request and structured question", async ({
+  page,
+}) => {
+  await page.goto("/kos/senja-setiabudi");
+  await page.waitForFunction(
+    () => document.documentElement.dataset.papikosReady === "true",
+  );
+
+  await page.getByRole("button", { name: "Pilih kamar" }).first().click();
+  await page.getByRole("button", { name: "Kirim permintaan" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Tutup" }).click();
+
+  await page
+    .getByLabel("Pertanyaanmu")
+    .fill("Apakah saya boleh membawa kursi kerja sendiri?");
+  await page.getByRole("button", { name: "Kirim pertanyaan" }).click();
+  await expect(
+    page.getByText("Apakah saya boleh membawa kursi kerja sendiri?"),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText("Menunggu jawaban")).toBeVisible();
+  await page.getByRole("button", { name: "Pilih kamar" }).first().click();
+  await expect(
+    page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
+  ).toBeVisible();
+});
