@@ -11,6 +11,7 @@ describe("kos detail page", () => {
     window.localStorage.clear();
     window.history.replaceState(null, "", `/kos/${listing.id}`);
     delete document.documentElement.dataset.papikosReady;
+    document.documentElement.dataset.theme = "light";
   });
 
   function renderPage() {
@@ -85,6 +86,24 @@ describe("kos detail page", () => {
         '"roomId":"senja-setiabudi-plus"',
       ),
     );
+  });
+
+  it("animates the booking dialog out before restoring trigger focus", async () => {
+    renderPage();
+    const trigger = screen.getAllByRole("button", { name: "Ajukan sewa" })[0];
+    fireEvent.click(trigger);
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Ajukan permintaan sewa",
+    });
+    expect(dialog).toHaveAttribute("data-dialog-state", "open");
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Tutup" }));
+
+    expect(dialog).toHaveAttribute("data-dialog-state", "closing");
+    expect(dialog).toBeInTheDocument();
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it("stores a structured question without publishing it in the Q&A list", async () => {

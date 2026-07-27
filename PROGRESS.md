@@ -10,7 +10,7 @@ Completed renter-facing capabilities:
 
 - Location search, popular-city shortcuts, room-type filtering, and shareable search URLs.
 - Eight fictional kos listings with local favorites and transparent rule-based preference matching.
-- Subtle motion, reduced-motion support, responsive desktop/mobile layouts, and map-contour visual texture.
+- Persistent light/dark themes, animated language switching, reduced-motion support, responsive desktop/mobile layouts, and map-contour visual texture.
 - A dynamic detail route for every listing with an abstract gallery, room comparisons, transparent cost breakdowns, facilities, rules, approximate location, landmarks, and verification information.
 - Browser-local booking requests, structured listing Q&A, reporting, related listings, and preserved return-to-search navigation.
 
@@ -20,8 +20,14 @@ Completed renter-facing capabilities:
 
 - Added reusable `/kos/[id]` routes for all eight listings.
 - Added room-level availability, costs, location privacy, owner verification, booking requests, Q&A, reports, and related alternatives.
-- Refined room comparison, availability copy, CTA feedback, and private prototype-safe Q&A confirmation.
+- Refined room comparison, availability copy, animated booking-dialog feedback, and private prototype-safe Q&A confirmation.
 - Reference: `b1fb53c` (`feat(web): add kos detail experience`).
+
+### 27 July 2026 — Display Preferences and Motion
+
+- Added a system-aware, browser-persisted light/dark theme across the homepage and detail experience.
+- Added a sliding ID/EN selector with a reduced-motion-safe copy transition.
+- Added complete booking-dialog entrance and delayed exit motion with trigger-focus restoration.
 
 ### 26 July 2026 — Discovery and Visual Refinement
 

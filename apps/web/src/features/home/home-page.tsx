@@ -38,6 +38,12 @@ import {
   serializeFilters,
 } from "./home-utils";
 import { amenities, cities, listings } from "./mock-listings";
+import {
+  LanguageToggle,
+  ThemeToggle,
+  useLocaleTransition,
+  useTheme,
+} from "@/features/preferences/preferences";
 import type {
   Amenity,
   Listing,
@@ -49,7 +55,6 @@ import type {
 } from "./types";
 
 const STORAGE_KEYS = {
-  locale: "papikos.locale",
   favorites: "papikos.favorites",
   survey: "papikos.survey",
 } as const;
@@ -136,47 +141,13 @@ function BrandMark({ inverse = false }: { inverse?: boolean }) {
         <Building2 size={21} strokeWidth={2.4} aria-hidden="true" />
       </span>
       <span
-        className={`text-xl font-black tracking-[-0.04em] ${
-          inverse ? "text-white" : "text-slate-950"
+        className={`brand-wordmark text-xl font-black tracking-[-0.04em] ${
+          inverse ? "text-white" : "text-slate-950 dark:text-slate-50"
         }`}
       >
-        papi<span className={inverse ? "text-cyan-300" : "text-blue-600"}>kos</span>
+        papi<span className={inverse ? "text-cyan-300" : "text-blue-600 dark:text-blue-400"}>kos</span>
       </span>
     </span>
-  );
-}
-
-function LanguageToggle({
-  locale,
-  onChange,
-  label,
-}: {
-  locale: Locale;
-  onChange: (locale: Locale) => void;
-  label: string;
-}) {
-  return (
-    <div
-      className="inline-flex rounded-full border border-slate-200 bg-white p-1 shadow-sm"
-      aria-label={label}
-      role="group"
-    >
-      {(["id", "en"] as const).map((item) => (
-        <button
-          className={`rounded-full px-3 py-1.5 text-xs font-bold transition ${
-            locale === item
-              ? "bg-blue-600 text-white"
-              : "text-slate-500 hover:text-slate-900"
-          }`}
-          key={item}
-          onClick={() => onChange(item)}
-          type="button"
-          aria-pressed={locale === item}
-        >
-          {item.toUpperCase()}
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -242,7 +213,7 @@ function ListingCard({
 
   return (
     <article
-      className="listing-card result-card-enter group h-full overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_65px_-30px_rgba(37,99,235,0.35)]"
+      className="listing-card result-card-enter group h-full overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_65px_-30px_rgba(37,99,235,0.35)]"
       style={
         {
           "--card-delay": `${Math.min(animationIndex, 5) * 45}ms`,
@@ -252,7 +223,7 @@ function ListingCard({
       <div className="relative">
         <PropertyPlaceholder listing={listing} />
         <button
-          className="favorite-button absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white text-slate-600 shadow-lg transition hover:scale-105 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-blue-200"
+          className="favorite-button absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 shadow-lg transition hover:scale-105 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-blue-200"
           onClick={onFavorite}
           type="button"
           aria-label={favorite ? t.favoriteRemove : t.favoriteAdd}
@@ -275,27 +246,27 @@ function ListingCard({
       </div>
       <div className="p-5">
         <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-bold">
-          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-blue-700">
+          <span className="rounded-full bg-blue-50 dark:bg-blue-950/35 px-2.5 py-1 text-blue-700 dark:text-blue-300">
             {shortTypeLabels[locale][listing.type]}
           </span>
           {listing.verified ? (
-            <span className="inline-flex items-center gap-1 text-emerald-700">
+            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
               <BadgeCheck size={14} aria-hidden="true" />
               {t.verified}
             </span>
           ) : null}
         </div>
-        <h3 className="text-lg font-black tracking-[-0.025em] text-slate-950">
+        <h3 className="text-lg font-black tracking-[-0.025em] text-slate-950 dark:text-slate-50">
           {listing.name}
         </h3>
-        <p className="mt-1.5 flex items-center gap-1.5 text-sm text-slate-500">
+        <p className="mt-1.5 flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
           <MapPin size={15} aria-hidden="true" />
           {listing.district}, {listing.city}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           {listing.amenities.slice(0, 3).map((amenity) => (
             <span
-              className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300"
               key={amenity}
             >
               {amenityLabels[locale][amenity]}
@@ -306,7 +277,7 @@ function ListingCard({
           <ul className="mt-4 space-y-1.5 border-t border-dashed border-blue-200 pt-4">
             {match.reasons.slice(0, 3).map((reason) => (
               <li
-                className="flex items-center gap-2 text-xs font-semibold text-blue-800"
+                className="flex items-center gap-2 text-xs font-semibold text-blue-800 dark:text-blue-200"
                 key={reason.kind}
               >
                 <Check size={14} aria-hidden="true" />
@@ -315,12 +286,12 @@ function ListingCard({
             ))}
           </ul>
         ) : null}
-        <div className="mt-5 flex items-end justify-between gap-3 border-t border-slate-100 pt-4">
+        <div className="mt-5 flex items-end justify-between gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
           <div>
-            <p className="text-lg font-black tracking-[-0.03em] text-slate-950">
+            <p className="text-lg font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50">
               {formatPrice(listing.price, locale)}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {listing.availableRooms} {t.roomsLeft} · {t.perMonth}
             </p>
           </div>
@@ -426,7 +397,7 @@ function SurveyModal({
     >
       <div
         ref={panelRef}
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-white p-6 shadow-2xl sm:p-8"
+        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[2rem] bg-white dark:bg-slate-900 p-6 shadow-2xl sm:p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="survey-title"
@@ -435,21 +406,21 @@ function SurveyModal({
       >
         <div className="flex items-start justify-between gap-5">
           <div>
-            <span className="mb-3 inline-grid size-11 place-items-center rounded-2xl bg-blue-100 text-blue-700">
+            <span className="mb-3 inline-grid size-11 place-items-center rounded-2xl bg-blue-100 dark:bg-blue-900/45 text-blue-700 dark:text-blue-300">
               <Sparkles size={21} aria-hidden="true" />
             </span>
             <h2
-              className="text-2xl font-black tracking-[-0.04em] text-slate-950"
+              className="text-2xl font-black tracking-[-0.04em] text-slate-950 dark:text-slate-50"
               id="survey-title"
             >
               {t.surveyDialogTitle}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600" id="survey-description">
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300" id="survey-description">
               {t.surveyDialogBody}
             </p>
           </div>
           <button
-            className="grid size-10 shrink-0 place-items-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-blue-200"
+            className="grid size-10 shrink-0 place-items-center rounded-full border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-200"
             onClick={onClose}
             type="button"
             aria-label={t.close}
@@ -465,10 +436,10 @@ function SurveyModal({
             onSubmit(preferences);
           }}
         >
-          <label className="grid gap-2 text-sm font-bold text-slate-800">
+          <label className="grid gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
             {t.city}
             <select
-              className="h-12 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              className="h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
               value={preferences.city}
               onChange={(event) =>
                 setPreferences((current) => ({
@@ -482,10 +453,10 @@ function SurveyModal({
               ))}
             </select>
           </label>
-          <label className="grid gap-2 text-sm font-bold text-slate-800">
+          <label className="grid gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
             {t.maxBudget}
             <select
-              className="h-12 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              className="h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
               value={preferences.maxBudget}
               onChange={(event) =>
                 setPreferences((current) => ({
@@ -501,10 +472,10 @@ function SurveyModal({
               ))}
             </select>
           </label>
-          <label className="grid gap-2 text-sm font-bold text-slate-800 sm:col-span-2">
+          <label className="grid gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 sm:col-span-2">
             {t.roomType}
             <select
-              className="h-12 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              className="h-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-medium outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
               value={preferences.roomType}
               onChange={(event) =>
                 setPreferences((current) => ({
@@ -521,7 +492,7 @@ function SurveyModal({
             </select>
           </label>
           <fieldset className="sm:col-span-2">
-            <legend className="text-sm font-bold text-slate-800">
+            <legend className="text-sm font-bold text-slate-800 dark:text-slate-200">
               {t.desiredAmenities}
             </legend>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -532,7 +503,7 @@ function SurveyModal({
                     className={`rounded-full border px-3.5 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
                       selected
                         ? "border-blue-600 bg-blue-600 text-white"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300"
+                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-blue-300"
                     }`}
                     key={amenity}
                     onClick={() => toggleAmenity(amenity)}
@@ -560,10 +531,9 @@ function SurveyModal({
 }
 
 export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) {
-  const [locale, setLocale] = usePersistentState<Locale>(
-    STORAGE_KEYS.locale,
-    "id",
-  );
+  const { changeLocale, locale, selectedLocale, transitionState } =
+    useLocaleTransition();
+  const { theme, toggleTheme } = useTheme();
   const [favoriteIds, setFavoriteIds] = usePersistentState<string[]>(
     STORAGE_KEYS.favorites,
     [],
@@ -580,10 +550,6 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
   const resultsRef = useRef<HTMLElement>(null);
   const surveyTriggerRef = useRef<HTMLButtonElement>(null);
   const t = copy[locale];
-
-  useEffect(() => {
-    document.documentElement.lang = locale === "id" ? "id" : "en";
-  }, [locale]);
 
   useEffect(() => {
     document.documentElement.dataset.papikosReady = "true";
@@ -675,45 +641,54 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
         {t.skip}
       </a>
 
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-5 sm:px-8">
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-8">
           <a href="#" className="rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200">
             <BrandMark />
           </a>
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <LanguageToggle
-              locale={locale}
-              onChange={setLocale}
+              locale={selectedLocale}
+              onChange={changeLocale}
               label={t.language}
             />
-            <button className="btn-secondary" onClick={comingSoon} type="button">
+            <ThemeToggle locale={locale} theme={theme} onToggle={toggleTheme} />
+            <button
+              className="btn-secondary"
+              onClick={comingSoon}
+              type="button"
+            >
               {t.login}
             </button>
           </div>
         </div>
       </header>
 
-      <main id="main-content">
-        <section className="relative overflow-hidden bg-[#f7faff]">
+      <main
+        className="locale-content"
+        data-locale-transition={transitionState}
+        id="main-content"
+      >
+        <section className="relative overflow-hidden bg-[#f7faff] dark:bg-slate-950">
           <div className="hero-grid absolute inset-0 opacity-40" aria-hidden="true" />
           <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.08fr_.92fr] lg:py-24">
             <div>
               <h1
-                className="hero-enter max-w-3xl text-4xl font-black leading-[1.04] tracking-[-0.05em] text-slate-950 sm:text-5xl lg:text-6xl"
+                className="hero-enter max-w-3xl text-4xl font-black leading-[1.04] tracking-[-0.05em] text-slate-950 dark:text-slate-50 sm:text-5xl lg:text-6xl"
                 style={{ "--hero-delay": "40ms" } as CSSProperties}
               >
                 {t.heroTitleStart}{" "}
-                <span className="text-blue-600">{t.heroTitleAccent}</span>
+                <span className="text-blue-600 dark:text-blue-400">{t.heroTitleAccent}</span>
               </h1>
               <p
-                className="hero-enter mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg"
+                className="hero-enter mt-5 max-w-lg text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg"
                 style={{ "--hero-delay": "120ms" } as CSSProperties}
               >
                 {t.heroBody}
               </p>
 
               <form
-                className="hero-enter mt-7 max-w-2xl rounded-[1.35rem] border border-slate-200 bg-white p-2 shadow-[0_24px_60px_-36px_rgba(30,64,175,0.45)]"
+                className="hero-enter mt-7 max-w-2xl rounded-[1.35rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 shadow-[0_24px_60px_-36px_rgba(30,64,175,0.45)]"
                 style={{ "--hero-delay": "200ms" } as CSSProperties}
                 onSubmit={(event: FormEvent<HTMLFormElement>) => {
                   event.preventDefault();
@@ -727,9 +702,9 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                   <label className="search-field">
                     <span>{t.location}</span>
                     <span className="flex items-center gap-2">
-                      <MapPin size={17} className="text-blue-600" aria-hidden="true" />
+                      <MapPin size={17} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
                       <input
-                        className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-900 outline-none placeholder:text-slate-400"
+                        className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400"
                         placeholder={t.locationPlaceholder}
                         value={draftFilters.query}
                         onChange={(event) =>
@@ -757,12 +732,12 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
             </div>
 
             <div className="relative mx-auto min-h-[280px] w-full max-w-[500px] sm:min-h-[340px]" aria-hidden="true">
-              <div className="map-float absolute inset-3 overflow-hidden rounded-[2.5rem] border border-blue-100 bg-blue-50/80 sm:inset-5">
+              <div className="map-float absolute inset-3 overflow-hidden rounded-[2.5rem] border border-blue-100 bg-blue-50/80 dark:bg-blue-950/35 sm:inset-5">
                 <div className="map-pattern absolute inset-0">
-                  <div className="absolute left-[-8%] top-[34%] h-3 w-[116%] -rotate-6 rounded-full bg-white/90" />
-                  <div className="absolute left-[38%] top-[-14%] h-[130%] w-3 rotate-[18deg] rounded-full bg-white/90" />
-                  <div className="absolute bottom-[18%] left-[-5%] h-2.5 w-[92%] rotate-[10deg] rounded-full bg-white/80" />
-                  <div className="absolute left-[16%] top-[14%] size-24 rounded-[1.8rem] bg-blue-100/80" />
+                  <div className="absolute left-[-8%] top-[34%] h-3 w-[116%] -rotate-6 rounded-full bg-white/90 dark:bg-slate-950/90" />
+                  <div className="absolute left-[38%] top-[-14%] h-[130%] w-3 rotate-[18deg] rounded-full bg-white/90 dark:bg-slate-950/90" />
+                  <div className="absolute bottom-[18%] left-[-5%] h-2.5 w-[92%] rotate-[10deg] rounded-full bg-white/80 dark:bg-slate-900/80" />
+                  <div className="absolute left-[16%] top-[14%] size-24 rounded-[1.8rem] bg-blue-100/80 dark:bg-blue-900/45" />
                   <div className="absolute bottom-[12%] right-[10%] size-32 rounded-[2rem] bg-cyan-100/70" />
                   <div className="map-marker absolute left-1/2 top-1/2 grid size-16 place-items-center rounded-full border-[7px] border-white bg-blue-600 text-white shadow-lg shadow-blue-900/15">
                     <Building2 size={23} />
@@ -773,11 +748,11 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
           </div>
         </section>
 
-        <section className="border-y border-slate-100 bg-white">
+        <section className="border-y border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
           <Reveal className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-sm font-black text-slate-950">{t.popular}</h2>
-              <p className="mt-1 text-sm text-slate-500">{t.popularBody}</p>
+              <h2 className="text-sm font-black text-slate-950 dark:text-slate-50">{t.popular}</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t.popularBody}</p>
             </div>
             <div className="flex flex-wrap gap-2" aria-label={t.popular}>
               {["", ...cities].map((city) => {
@@ -789,7 +764,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                     className={`filter-chip inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
                       isActive
                         ? "border-blue-600 bg-blue-600 text-white"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/35 hover:text-blue-700 dark:hover:text-blue-300"
                     }`}
                     key={city || "all"}
                     onClick={() =>
@@ -811,7 +786,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
         </section>
 
         <section
-          className="contour-surface scroll-mt-24 bg-white py-20 sm:py-24"
+          className="contour-surface scroll-mt-24 bg-white dark:bg-slate-900 py-20 sm:py-24"
           id="featured"
           ref={resultsRef}
         >
@@ -823,7 +798,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                   {matches.length > 0 ? t.yourMatches : t.featuredEyebrow}
                 </p>
                 <h2 className="section-title mt-4">{t.featured}</h2>
-                <p className="mt-3 max-w-xl text-slate-600">{t.featuredBody}</p>
+                <p className="mt-3 max-w-xl text-slate-600 dark:text-slate-300">{t.featuredBody}</p>
               </div>
               <div className="flex flex-wrap gap-2" aria-label={t.roomType}>
                 {(["all", "putra", "putri", "campur"] as const).map((type) => (
@@ -831,7 +806,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                     className={`filter-chip rounded-full px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
                       appliedFilters.type === type && matches.length === 0
                         ? "bg-blue-600 text-white"
-                        : "border border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700"
+                        : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-300"
                     }`}
                     key={type}
                     onClick={() =>
@@ -850,7 +825,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
             </Reveal>
 
             <p
-              className="result-count-enter mt-8 text-sm font-bold text-slate-500"
+              className="result-count-enter mt-8 text-sm font-bold text-slate-500 dark:text-slate-400"
               key={`count:${resultsAnimationKey}`}
               aria-live="polite"
             >
@@ -877,12 +852,12 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                 </div>
               </Reveal>
             ) : (
-              <div className="mt-6 rounded-[2rem] border border-dashed border-blue-200 bg-blue-50 px-6 py-16 text-center">
-                <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-white text-blue-600 shadow-sm">
+              <div className="mt-6 rounded-[2rem] border border-dashed border-blue-200 bg-blue-50 dark:bg-blue-950/35 px-6 py-16 text-center">
+                <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm">
                   <Search size={24} aria-hidden="true" />
                 </span>
-                <h3 className="mt-5 text-xl font-black text-slate-950">{t.emptyTitle}</h3>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">
+                <h3 className="mt-5 text-xl font-black text-slate-950 dark:text-slate-50">{t.emptyTitle}</h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
                   {t.emptyBody}
                 </p>
                 <button
@@ -898,20 +873,20 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
         </section>
 
         <section
-          className="contour-surface contour-surface-soft scroll-mt-24 bg-white py-14 sm:py-16"
+          className="contour-surface contour-surface-soft scroll-mt-24 bg-white dark:bg-slate-900 py-14 sm:py-16"
           id="preference-survey"
         >
           <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8">
-            <Reveal className="rounded-[2rem] border border-blue-100 bg-blue-50/80 px-6 py-10 shadow-[0_22px_70px_-55px_rgba(37,99,235,0.45)] sm:px-10 sm:py-12 lg:flex lg:items-center lg:justify-between lg:gap-12">
+            <Reveal className="rounded-[2rem] border border-blue-100 bg-blue-50/80 dark:bg-blue-950/35 px-6 py-10 shadow-[0_22px_70px_-55px_rgba(37,99,235,0.45)] sm:px-10 sm:py-12 lg:flex lg:items-center lg:justify-between lg:gap-12">
               <div className="max-w-3xl">
-                <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-blue-700">
+                <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
                   <Sparkles size={15} aria-hidden="true" />
                   {t.surveyEyebrow}
                 </p>
-                <h2 className="mt-4 text-3xl font-black leading-tight tracking-[-0.04em] text-slate-950 sm:text-4xl">
+                <h2 className="mt-4 text-3xl font-black leading-tight tracking-[-0.04em] text-slate-950 dark:text-slate-50 sm:text-4xl">
                   {t.surveyTitle}
                 </h2>
-                <p className="mt-4 max-w-2xl leading-7 text-slate-600">
+                <p className="mt-4 max-w-2xl leading-7 text-slate-600 dark:text-slate-300">
                   {t.surveyBody}
                 </p>
               </div>
@@ -932,11 +907,14 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
           </div>
         </section>
 
-        <section className="bg-[#f7faff] py-14 sm:py-16" id="how-it-works">
+        <section
+          className="bg-[#f7faff] py-14 dark:bg-slate-950 sm:py-16"
+          id="how-it-works"
+        >
           <div className="mx-auto max-w-7xl px-5 sm:px-8">
             <Reveal className="mx-auto max-w-2xl text-center">
               <p className="eyebrow justify-center">{t.howEyebrow}</p>
-              <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] text-slate-950 sm:text-4xl">
+              <h2 className="mt-4 text-3xl font-black tracking-[-0.04em] text-slate-950 dark:text-slate-50 sm:text-4xl">
                 {t.howTitle}
               </h2>
             </Reveal>
@@ -947,17 +925,17 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                   delay={index * 70}
                   key={t.howSteps[index].title}
                 >
-                  <article className="workflow-card relative h-full rounded-[1.5rem] border border-slate-200 bg-white p-6">
+                  <article className="workflow-card relative h-full rounded-[1.5rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
                     <span className="absolute right-5 top-5 text-4xl font-black text-blue-50">
                       0{index + 1}
                     </span>
-                    <span className="grid size-11 place-items-center rounded-xl bg-blue-100 text-blue-700">
+                    <span className="grid size-11 place-items-center rounded-xl bg-blue-100 dark:bg-blue-900/45 text-blue-700 dark:text-blue-300">
                       <Icon size={20} aria-hidden="true" />
                     </span>
-                    <h3 className="mt-5 text-lg font-black tracking-[-0.025em] text-slate-950">
+                    <h3 className="mt-5 text-lg font-black tracking-[-0.025em] text-slate-950 dark:text-slate-50">
                       {t.howSteps[index].title}
                     </h3>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                    <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                       {t.howSteps[index].body}
                     </p>
                   </article>
@@ -968,7 +946,10 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 bg-slate-950 text-white">
+      <footer
+        className="locale-content border-t border-slate-200 dark:border-slate-700 bg-slate-950 text-white"
+        data-locale-transition={transitionState}
+      >
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <BrandMark inverse />
@@ -1024,7 +1005,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
           ))}
         </div>
         <div className="border-t border-white/10">
-          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-5 text-xs text-slate-500 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <p>© 2026 Papikos. Prototype experience.</p>
             <p>Jakarta, Indonesia</p>
           </div>

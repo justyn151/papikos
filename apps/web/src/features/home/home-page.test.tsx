@@ -14,6 +14,7 @@ describe("Papikos homepage", () => {
   beforeEach(() => {
     window.localStorage.clear();
     window.history.replaceState(null, "", "/");
+    document.documentElement.dataset.theme = "light";
   });
 
   it("filters listings on the page and syncs the URL", async () => {
@@ -98,11 +99,27 @@ describe("Papikos homepage", () => {
     fireEvent.click(screen.getAllByRole("button", { name: "EN" })[0]);
 
     expect(
-      screen.getByRole("heading", { name: /Find a kos that fits your life/i }),
+      await screen.findByRole("heading", {
+        name: /Find a kos that fits your life/i,
+      }),
     ).toBeInTheDocument();
     await waitFor(() =>
       expect(window.localStorage.getItem("papikos.locale")).toBe('"en"'),
     );
+  });
+
+  it("exposes a persistent light and dark mode control", () => {
+    render(<HomePage initialFilters={defaultFilters} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Aktifkan mode gelap" }),
+    );
+
+    expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+    expect(window.localStorage.getItem("papikos.theme")).toBe('"dark"');
+    expect(
+      screen.getByRole("button", { name: "Aktifkan mode terang" }),
+    ).toBeVisible();
   });
 
   it("persists favorites locally", async () => {

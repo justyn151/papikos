@@ -79,7 +79,9 @@ test("uses concise all labels and supports reduced motion", async ({ page }) => 
 test("switches language and completes the preference survey", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "EN", exact: true }).click();
+  const languageControl = page.locator(".language-toggle");
+  await languageControl.getByRole("button", { name: "EN", exact: true }).click();
+  await expect(languageControl).toHaveAttribute("data-locale", "en");
   await expect(
     page.getByRole("heading", { name: /Find a kos that fits your life/i }),
   ).toBeVisible();
@@ -95,6 +97,24 @@ test("switches language and completes the preference survey", async ({
   await page.reload();
   await expect(
     page.getByRole("heading", { name: /Find a kos that fits your life/i }),
+  ).toBeVisible();
+});
+
+test("persists dark mode across homepage and detail navigation", async ({
+  page,
+}) => {
+  await page
+    .getByRole("button", { name: "Aktifkan mode gelap" })
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect
+    .poll(() => page.evaluate(() => window.localStorage.getItem("papikos.theme")))
+    .toBe('"dark"');
+
+  await page.getByRole("link", { name: "Lihat detail" }).first().click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(
+    page.getByRole("button", { name: "Aktifkan mode terang" }),
   ).toBeVisible();
 });
 
@@ -135,14 +155,19 @@ test("persists a local booking request and structured question", async ({
     .filter({ hasText: "Ajukan sewa" })
     .first();
   await expect(requestCta).toBeVisible();
-  await expect(requestCta).toHaveClass(/request-cta/);
   await requestCta.click();
+  const bookingDialog = page.getByRole("dialog", {
+    name: "Ajukan permintaan sewa",
+  });
+  await expect(bookingDialog).toHaveAttribute("data-dialog-state", "open");
   await page.getByLabel("Pilihan kamar").selectOption("senja-setiabudi-plus");
   await page.getByRole("button", { name: "Kirim permintaan" }).click();
   await expect(
     page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Tutup" }).click();
+  await expect(bookingDialog).toHaveAttribute("data-dialog-state", "closing");
+  await expect(bookingDialog).toHaveCount(0);
 
   await page
     .getByLabel("Pertanyaanmu")
