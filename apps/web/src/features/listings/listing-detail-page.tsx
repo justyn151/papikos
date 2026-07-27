@@ -326,7 +326,7 @@ export function ListingDetailPage({
     STORAGE_KEYS.bookings,
     [],
   );
-  const [submittedQuestions, setSubmittedQuestions] = usePersistentState<
+  const [, setSubmittedQuestions] = usePersistentState<
     SubmittedQuestion[]
   >(STORAGE_KEYS.questions, []);
   const [reports, setReports] = usePersistentState<ListingReport[]>(
@@ -336,7 +336,7 @@ export function ListingDetailPage({
   const [selectedGallery, setSelectedGallery] = useState(0);
   const initialRoom =
     listing.rooms.find((room) => room.availableRooms > 0) ?? listing.rooms[0];
-  const [selectedRoomId, setSelectedRoomId] = useState(initialRoom.id);
+  const [bookingRoomId, setBookingRoomId] = useState(initialRoom.id);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
   const [moveInDate, setMoveInDate] = useState(listing.availableFrom);
@@ -354,11 +354,8 @@ export function ListingDetailPage({
   const summaryRef = useRef<HTMLDivElement>(null);
   const t = detailCopy[locale];
   const favorite = favoriteIds.includes(listing.id);
-  const selectedRoom =
-    listing.rooms.find((room) => room.id === selectedRoomId) ?? initialRoom;
-  const listingQuestions = submittedQuestions.filter(
-    (item) => item.listingId === listing.id,
-  );
+  const bookingRoom =
+    listing.rooms.find((room) => room.id === bookingRoomId) ?? initialRoom;
   const existingBooking = bookings.find((item) => item.listingId === listing.id);
   const match = useMemo(
     () => (survey ? rankListings([listing], survey)[0] : null),
@@ -424,8 +421,8 @@ export function ListingDetailPage({
     }
   };
 
-  const openBooking = (roomId = selectedRoomId) => {
-    setSelectedRoomId(roomId);
+  const openBooking = () => {
+    if (existingBooking) setBookingRoomId(existingBooking.roomId);
     setBookingSubmitted(Boolean(existingBooking));
     setBookingOpen(true);
   };
@@ -435,7 +432,7 @@ export function ListingDetailPage({
     const request: BookingRequest = {
       id: createId("booking"),
       listingId: listing.id,
-      roomId: selectedRoomId,
+      roomId: bookingRoomId,
       moveInDate,
       durationMonths: Number(duration),
       note: bookingNote.trim(),
@@ -582,11 +579,7 @@ export function ListingDetailPage({
               })}
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-sm font-bold text-slate-600">
-              {listing.gallery[selectedGallery].label[locale]} · {selectedGallery + 1}/
-              {listing.gallery.length}
-            </p>
+          <div className="mt-3 flex justify-end">
             <div className="flex gap-2">
               <button
                 className="grid size-10 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-blue-300 hover:text-blue-700"
@@ -714,15 +707,10 @@ export function ListingDetailPage({
             <Section id="rooms" title={t.rooms} body={t.roomsBody}>
               <div className="space-y-4">
                 {listing.rooms.map((room) => {
-                  const isSelected = room.id === selectedRoomId;
                   const available = room.availableRooms > 0;
                   return (
                     <article
-                      className={`rounded-[1.5rem] border p-5 transition sm:p-6 ${
-                        isSelected
-                          ? "border-blue-300 bg-blue-50/55 shadow-[0_16px_45px_-34px_rgba(37,99,235,.5)]"
-                          : "border-slate-200 bg-white"
-                      }`}
+                      className="rounded-[1.5rem] border border-slate-200 bg-white p-5 sm:p-6"
                       key={room.id}
                     >
                       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -731,11 +719,6 @@ export function ListingDetailPage({
                             <h3 className="text-xl font-black text-slate-950">
                               {room.name[locale]}
                             </h3>
-                            {isSelected ? (
-                              <span className="rounded-full bg-blue-600 px-2.5 py-1 text-xs font-black text-white">
-                                {t.selected}
-                              </span>
-                            ) : null}
                           </div>
                           <p className="mt-2 text-sm font-semibold text-slate-500">
                             {room.size} ·{" "}
@@ -764,25 +747,9 @@ export function ListingDetailPage({
                             }`}
                           >
                             {available
-                              ? `${room.availableRooms} ${t.roomsAvailable}`
+                              ? `${room.availableRooms} ${t.roomAvailabilityCount}`
                               : t.unavailable}
                           </p>
-                          <button
-                            className={`mt-4 rounded-full px-4 py-2.5 text-sm font-black transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
-                              available
-                                ? "bg-slate-950 text-white hover:bg-blue-600"
-                                : "cursor-not-allowed bg-slate-100 text-slate-400"
-                            }`}
-                            disabled={!available}
-                            onClick={(event) => {
-                              bookingTriggerRef.current = event.currentTarget;
-                              setSelectedRoomId(room.id);
-                              openBooking(room.id);
-                            }}
-                            type="button"
-                          >
-                            {available ? t.chooseRoom : t.unavailable}
-                          </button>
                         </div>
                       </div>
                     </article>
@@ -796,10 +763,10 @@ export function ListingDetailPage({
                 <div className="flex items-center justify-between gap-4 bg-slate-950 px-5 py-4 text-white">
                   <span className="inline-flex items-center gap-2 font-black">
                     <WalletCards size={19} aria-hidden="true" />
-                    {selectedRoom.name[locale]}
+                    {initialRoom.name[locale]}
                   </span>
                   <span className="font-black">
-                    {formatPrice(selectedRoom.price, locale)}
+                    {formatPrice(initialRoom.price, locale)}
                   </span>
                 </div>
                 <dl className="divide-y divide-slate-100 bg-white">
@@ -1038,18 +1005,6 @@ export function ListingDetailPage({
                     ) : null}
                   </article>
                 ))}
-                {listingQuestions.map((item) => (
-                  <article
-                    className="rounded-[1.25rem] border border-dashed border-amber-300 bg-amber-50/50 p-5"
-                    key={item.id}
-                  >
-                    <p className="font-black text-slate-950">{item.question}</p>
-                    <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-amber-700">
-                      <Clock3 size={14} />
-                      {t.pending}
-                    </p>
-                  </article>
-                ))}
               </div>
               <form
                 className="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5"
@@ -1077,16 +1032,16 @@ export function ListingDetailPage({
 
           <aside className="hidden lg:sticky lg:top-24 lg:block lg:py-11">
             <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_24px_70px_-42px_rgba(15,23,42,.35)]">
-              <p className="text-sm font-bold text-slate-500">{selectedRoom.name[locale]}</p>
+              <p className="text-sm font-bold text-slate-500">{t.startingFrom}</p>
               <p className="mt-2 text-3xl font-black tracking-[-0.04em] text-slate-950">
-                {formatPrice(selectedRoom.price, locale)}
+                {formatPrice(initialRoom.price, locale)}
               </p>
               <p className="mt-1 text-sm text-slate-500">{t.perMonth}</p>
               <dl className="mt-6 space-y-3 border-y border-slate-100 py-5 text-sm">
                 <div className="flex justify-between gap-4">
                   <dt className="text-slate-500">{t.roomsAvailable}</dt>
                   <dd className="font-black text-emerald-700">
-                    {selectedRoom.availableRooms}
+                    {listing.availableRooms}
                   </dd>
                 </div>
                 <div className="flex justify-between gap-4">
@@ -1103,7 +1058,7 @@ export function ListingDetailPage({
                 </div>
               </dl>
               <button
-                className="btn-primary mt-6 w-full gap-2"
+                className="request-cta btn-primary mt-6 w-full gap-2"
                 onClick={(event) => {
                   bookingTriggerRef.current = event.currentTarget;
                   openBooking();
@@ -1194,14 +1149,16 @@ export function ListingDetailPage({
         <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-xs font-bold text-slate-500">
-              {selectedRoom.name[locale]}
+              {t.startingFrom}
             </p>
             <p className="font-black text-slate-950">
-              {formatPrice(selectedRoom.price, locale)}
+              {formatPrice(initialRoom.price, locale)}
             </p>
           </div>
           <button
-            className="btn-primary shrink-0 gap-2"
+            className={`btn-primary shrink-0 gap-2 ${
+              mobileCtaVisible ? "request-cta" : ""
+            }`}
             onClick={(event) => {
               bookingTriggerRef.current = event.currentTarget;
               openBooking();
@@ -1233,7 +1190,7 @@ export function ListingDetailPage({
                     ? listing.rooms.find((room) => room.id === existingBooking.roomId)?.name[
                         locale
                       ]
-                    : selectedRoom.name[locale]}
+                    : bookingRoom.name[locale]}
                 </p>
                 <p className="mt-1 text-slate-500">
                   {t.pending} · {t.prototypeLabel}
@@ -1264,8 +1221,8 @@ export function ListingDetailPage({
                   {t.roomChoice}
                   <select
                     className="h-12 rounded-xl border border-slate-200 bg-white px-3 font-semibold outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                    onChange={(event) => setSelectedRoomId(event.target.value)}
-                    value={selectedRoomId}
+                    onChange={(event) => setBookingRoomId(event.target.value)}
+                    value={bookingRoomId}
                   >
                     {listing.rooms
                       .filter((room) => room.availableRooms > 0)
@@ -1316,7 +1273,7 @@ export function ListingDetailPage({
                 </label>
                 <div className="rounded-xl bg-blue-50 p-4 text-sm text-blue-900">
                   <p className="font-black">
-                    {formatPrice(selectedRoom.price, locale)} / {t.month}
+                    {formatPrice(bookingRoom.price, locale)} / {t.month}
                   </p>
                   <p className="mt-1 text-xs">{t.prototypeLabel}</p>
                 </div>

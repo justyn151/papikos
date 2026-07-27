@@ -296,6 +296,16 @@ button {
   transform: translateY(-0.2rem);
 }
 
+.request-cta {
+  animation: request-cta-pop 440ms var(--motion-ease) backwards;
+  transform-origin: center;
+}
+
+.request-cta:active {
+  animation: none;
+  transform: scale(0.92);
+}
+
 .property-artwork {
   background-size: 115% 115%;
   transition:
@@ -368,6 +378,23 @@ button:hover > .property-artwork {
 @keyframes favorite-pop {
   45% {
     transform: scale(1.28) rotate(-7deg);
+  }
+}
+
+@keyframes request-cta-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  68% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

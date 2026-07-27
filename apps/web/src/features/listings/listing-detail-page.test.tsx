@@ -32,6 +32,12 @@ describe("kos detail page", () => {
     expect(screen.getByRole("heading", { name: "Pilihan kamar" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Rincian biaya" })).toBeVisible();
     expect(screen.getByText("Tidak ada deposit")).toBeInTheDocument();
+    expect(screen.queryByText("Kamar utama · 1/5")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Pilih kamar" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("Kamar tersedia").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("1 kamar tersedia").length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Kembali ke hasil" })).toHaveAttribute(
       "href",
       "/?q=Jakarta",
@@ -62,6 +68,9 @@ describe("kos detail page", () => {
       name: "Ajukan permintaan sewa",
     });
     expect(within(dialog).getByText(/tidak ada pembayaran/i)).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText("Pilihan kamar"), {
+      target: { value: "senja-setiabudi-plus" },
+    });
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Kirim permintaan" }),
     );
@@ -73,27 +82,32 @@ describe("kos detail page", () => {
     ).toBeVisible();
     await waitFor(() =>
       expect(window.localStorage.getItem("papikos.bookingRequests")).toContain(
-        '"status":"pending"',
+        '"roomId":"senja-setiabudi-plus"',
       ),
     );
   });
 
-  it("stores a structured listing question as pending", async () => {
-    renderPage();
+  it("stores a structured question without publishing it in the Q&A list", async () => {
+    const { unmount } = renderPage();
+    const submittedText = "Apakah saya boleh membawa kursi kerja sendiri?";
     fireEvent.change(screen.getByLabelText("Pertanyaanmu"), {
-      target: { value: "Apakah saya boleh membawa kursi kerja sendiri?" },
+      target: { value: submittedText },
     });
     fireEvent.click(screen.getByRole("button", { name: "Kirim pertanyaan" }));
 
     expect(
-      await screen.findByText("Apakah saya boleh membawa kursi kerja sendiri?"),
+      await screen.findByText("Pertanyaan tersimpan untuk pemilik (prototipe)."),
     ).toBeVisible();
-    expect(screen.getByText("Menunggu jawaban")).toBeVisible();
+    expect(screen.queryByText(submittedText)).not.toBeInTheDocument();
     await waitFor(() =>
       expect(window.localStorage.getItem("papikos.listingQuestions")).toContain(
         '"status":"pending"',
       ),
     );
+
+    unmount();
+    renderPage();
+    expect(screen.queryByText(submittedText)).not.toBeInTheDocument();
   });
 
   it("switches the detail experience to English", async () => {

@@ -1,6 +1,11 @@
 # Papikos
 
-Papikos is a cross-platform Indonesian kos marketplace in development. This first prototype implements a polished, bilingual web homepage with local mock listings, on-page search, favorites, and transparent preference matching.
+Papikos is a cross-platform Indonesian kos marketplace in development. The current bilingual web prototype includes listing discovery, transparent preference matching, and complete kos detail pages with room, cost, location, verification, booking-request, and structured Q&A interactions.
+
+Project tracking:
+
+- [TODO.md](TODO.md) — prioritized upcoming work.
+- [PROGRESS.md](PROGRESS.md) — completed milestones and current capabilities.
 
 ## Prerequisites
 
@@ -43,4 +48,4 @@ The web container is available on port `3000`. Expo, Tauri, the NestJS API, and 
 
 ## Prototype Notes
 
-All property data is fictional and stored locally under `apps/web/src/features/home/`. Locale, favorites, and survey preferences use browser storage; search filters use URL parameters. No backend, authentication, payments, or real booking flow is connected yet.
+All property data is fictional and stored locally under `apps/web/src/features/listings/`. Locale, favorites, survey preferences, booking requests, questions, and reports use browser storage; search filters use URL parameters. No backend, authentication, payment processing, or external message delivery is connected yet.

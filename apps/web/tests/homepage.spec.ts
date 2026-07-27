@@ -111,6 +111,8 @@ test("opens a complete kos detail page and preserves the search return path", as
   ).toBeVisible();
   await expect(page.getByRole("heading", { name: "Rincian biaya" })).toBeVisible();
   await expect(page.getByText("Tidak ada deposit")).toBeVisible();
+  await expect(page.getByText("Kamar utama · 1/5")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Pilih kamar" })).toHaveCount(0);
 
   await page.getByRole("link", { name: "Kembali ke hasil" }).click();
   await expect(page).toHaveURL(/\?q=Jakarta/);
@@ -125,7 +127,17 @@ test("persists a local booking request and structured question", async ({
     () => document.documentElement.dataset.papikosReady === "true",
   );
 
-  await page.getByRole("button", { name: "Pilih kamar" }).first().click();
+  await page
+    .getByRole("heading", { name: "Pilihan kamar" })
+    .scrollIntoViewIfNeeded();
+  const requestCta = page
+    .locator("button:visible")
+    .filter({ hasText: "Ajukan sewa" })
+    .first();
+  await expect(requestCta).toBeVisible();
+  await expect(requestCta).toHaveClass(/request-cta/);
+  await requestCta.click();
+  await page.getByLabel("Pilihan kamar").selectOption("senja-setiabudi-plus");
   await page.getByRole("button", { name: "Kirim permintaan" }).click();
   await expect(
     page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
@@ -137,12 +149,24 @@ test("persists a local booking request and structured question", async ({
     .fill("Apakah saya boleh membawa kursi kerja sendiri?");
   await page.getByRole("button", { name: "Kirim pertanyaan" }).click();
   await expect(
-    page.getByText("Apakah saya boleh membawa kursi kerja sendiri?"),
+    page.getByText("Pertanyaan tersimpan untuk pemilik (prototipe)."),
   ).toBeVisible();
+  await expect(
+    page.getByText("Apakah saya boleh membawa kursi kerja sendiri?"),
+  ).toHaveCount(0);
 
   await page.reload();
-  await expect(page.getByText("Menunggu jawaban")).toBeVisible();
-  await page.getByRole("button", { name: "Pilih kamar" }).first().click();
+  await expect(
+    page.getByText("Apakah saya boleh membawa kursi kerja sendiri?"),
+  ).toHaveCount(0);
+  await page
+    .getByRole("heading", { name: "Pilihan kamar" })
+    .scrollIntoViewIfNeeded();
+  await page
+    .locator("button:visible")
+    .filter({ hasText: "Ajukan sewa" })
+    .first()
+    .click();
   await expect(
     page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
   ).toBeVisible();
