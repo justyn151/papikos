@@ -1,3 +1,5 @@
+import { effectivePrice } from "@/features/home/home-utils";
+
 import type {
   Amenity,
   CostItem,
@@ -33,6 +35,7 @@ export const listings: Listing[] = [
     district: "Setiabudi",
     type: "campur",
     price: 2450000,
+    promoPrice: null,
     amenities: ["wifi", "ac", "privateBathroom", "laundry"],
     availableRooms: 2,
     verified: true,
@@ -46,6 +49,7 @@ export const listings: Listing[] = [
     district: "Coblong",
     type: "putri",
     price: 1650000,
+    promoPrice: null,
     amenities: ["wifi", "privateBathroom", "motorParking", "kitchen"],
     availableRooms: 3,
     verified: true,
@@ -59,6 +63,7 @@ export const listings: Listing[] = [
     district: "Depok",
     type: "putri",
     price: 1350000,
+    promoPrice: 1150000,
     amenities: ["wifi", "ac", "privateBathroom", "motorParking"],
     availableRooms: 1,
     verified: true,
@@ -72,6 +77,7 @@ export const listings: Listing[] = [
     district: "Sukolilo",
     type: "putra",
     price: 1200000,
+    promoPrice: null,
     amenities: ["wifi", "motorParking", "kitchen"],
     availableRooms: 4,
     verified: false,
@@ -85,6 +91,7 @@ export const listings: Listing[] = [
     district: "Mampang Prapatan",
     type: "campur",
     price: 2850000,
+    promoPrice: 2450000,
     amenities: ["wifi", "ac", "privateBathroom", "motorParking", "kitchen"],
     availableRooms: 2,
     verified: true,
@@ -98,6 +105,7 @@ export const listings: Listing[] = [
     district: "Sukajadi",
     type: "putra",
     price: 1850000,
+    promoPrice: null,
     amenities: ["wifi", "ac", "motorParking", "laundry"],
     availableRooms: 5,
     verified: true,
@@ -111,6 +119,7 @@ export const listings: Listing[] = [
     district: "Mlati",
     type: "campur",
     price: 950000,
+    promoPrice: null,
     amenities: ["wifi", "motorParking", "kitchen", "laundry"],
     availableRooms: 3,
     verified: false,
@@ -124,6 +133,7 @@ export const listings: Listing[] = [
     district: "Rungkut",
     type: "putri",
     price: 1550000,
+    promoPrice: null,
     amenities: ["wifi", "ac", "privateBathroom", "kitchen", "laundry"],
     availableRooms: 2,
     verified: true,
@@ -137,6 +147,7 @@ export const listings: Listing[] = [
     district: "Tebet",
     type: "putri",
     price: 1750000,
+    promoPrice: null,
     amenities: ["wifi", "ac", "privateBathroom", "laundry"],
     availableRooms: 0,
     verified: true,
@@ -463,7 +474,11 @@ export function getRelatedListings(listing: ListingDetail, limit = 3) {
         (candidate.type === listing.type ? 3 : 0) +
         Math.max(
           0,
-          3 - Math.floor(Math.abs(candidate.price - listing.price) / 500000),
+          3 -
+            Math.floor(
+              Math.abs(effectivePrice(candidate) - effectivePrice(listing)) /
+                500000,
+            ),
         ),
     }))
     .sort(

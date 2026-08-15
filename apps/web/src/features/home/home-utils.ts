@@ -103,10 +103,11 @@ export function filterListings(
     const matchesQuery = !query || searchable.includes(query);
     const matchesType =
       filters.type === "all" || listing.type === filters.type;
+    const price = effectivePrice(listing);
     const matchesMinPrice =
-      filters.minPrice === null || listing.price >= filters.minPrice;
+      filters.minPrice === null || price >= filters.minPrice;
     const matchesMaxPrice =
-      filters.maxPrice === null || listing.price <= filters.maxPrice;
+      filters.maxPrice === null || price <= filters.maxPrice;
     const matchesAmenities =
       filters.amenities.length === 0 ||
       filters.amenities.every((amenity) =>
@@ -137,7 +138,7 @@ export function rankListings(
       let score = 0;
       const reasons: MatchReason[] = [];
 
-      if (listing.price <= preferences.maxBudget) {
+      if (effectivePrice(listing) <= preferences.maxBudget) {
         score += 35;
         reasons.push({ kind: "budget" });
       }
@@ -182,6 +183,39 @@ export function rankListings(
       score: result.score,
       reasons: result.reasons,
     }));
+}
+
+/**
+ * The price a renter would actually pay. Filtering, matching, and sorting must
+ * use this rather than `listing.price`, otherwise a kos discounted below a
+ * renter's budget would be hidden by a filter it genuinely satisfies.
+ */
+export function effectivePrice(listing: Listing): number {
+  return listing.promoPrice ?? listing.price;
+}
+
+/**
+ * How much is taken off, in rupiah. A promo is a listing-level discount, so
+ * the same amount comes off every room rate — otherwise the summary price and
+ * the room list would contradict each other.
+ */
+export function discountDelta(listing: Listing): number {
+  return Math.max(0, listing.price - effectivePrice(listing));
+}
+
+/** A room's rate after the listing's promo is applied. */
+export function roomEffectivePrice(listing: Listing, roomPrice: number): number {
+  return Math.max(0, roomPrice - discountDelta(listing));
+}
+
+/** Whole-percent discount, or null when the kos is not discounted. */
+export function discountPercent(listing: Listing): number | null {
+  if (listing.promoPrice === null || listing.promoPrice >= listing.price) {
+    return null;
+  }
+  return Math.round(
+    ((listing.price - listing.promoPrice) / listing.price) * 100,
+  );
 }
 
 export function formatPrice(value: number, locale: Locale): string {

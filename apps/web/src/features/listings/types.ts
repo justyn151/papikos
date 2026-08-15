@@ -21,6 +21,13 @@ export interface Listing {
   district: string;
   type: ListingType;
   price: number;
+  /**
+   * Owner-set discounted price, or null when the kos is not discounted.
+   * Every price decision (filtering, matching, sorting) must go through
+   * `effectivePrice`, not `price`, or a discounted kos would be filtered out
+   * by a budget it actually meets.
+   */
+  promoPrice: number | null;
   amenities: Amenity[];
   availableRooms: number;
   verified: boolean;

@@ -10,7 +10,11 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { amenityLabels, copy, shortTypeLabels } from "@/features/home/copy";
-import { formatPrice } from "@/features/home/home-utils";
+import {
+  discountPercent,
+  effectivePrice,
+  formatPrice,
+} from "@/features/home/home-utils";
 import type {
   Listing,
   Locale,
@@ -77,6 +81,7 @@ export function ListingCard({
   animationIndex: number;
 }) {
   const t = copy[locale];
+  const discount = discountPercent(listing);
 
   return (
     <article
@@ -104,6 +109,11 @@ export function ListingCard({
             aria-hidden="true"
           />
         </button>
+        {discount ? (
+          <span className="absolute right-4 top-16 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-black text-white shadow-lg">
+            -{discount}%
+          </span>
+        ) : null}
         {match ? (
           <span className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-blue-950 px-3 py-1.5 text-xs font-black text-white shadow-lg">
             <Sparkles size={13} aria-hidden="true" />
@@ -157,8 +167,13 @@ export function ListingCard({
         </div>
         <div className="mt-5 flex items-end justify-between gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
           <div>
+            {discount ? (
+              <p className="text-xs font-bold text-slate-400 line-through dark:text-slate-500">
+                {formatPrice(listing.price, locale)}
+              </p>
+            ) : null}
             <p className="text-lg font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50">
-              {formatPrice(listing.price, locale)}
+              {formatPrice(effectivePrice(listing), locale)}
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {listing.availableRooms} {t.roomsLeft} · {t.perMonth}

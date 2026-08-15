@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { accountCopy } from "@/features/account/account-copy";
-import { formatPrice } from "@/features/home/home-utils";
+import { effectivePrice, formatPrice } from "@/features/home/home-utils";
 import { listings } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
 import { useAuditLog, useModeration } from "@/features/prototype-data/store";
@@ -84,7 +84,7 @@ export function OwnerListingsPage() {
                       </div>
                       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                         {listing.district}, {listing.city} ·{" "}
-                        {formatPrice(listing.price, locale)} ·{" "}
+                        {formatPrice(effectivePrice(listing), locale)} ·{" "}
                         {listing.availableRooms > 0
                           ? `${listing.availableRooms} ${t.roomsAvailable}`
                           : t.fullyBooked}

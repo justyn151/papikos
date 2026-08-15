@@ -44,8 +44,10 @@ import {
 import { copy as homeCopy, shortTypeLabels } from "@/features/home/copy";
 import {
   defaultFilters,
+  discountPercent,
   formatPrice,
   rankListings,
+  roomEffectivePrice,
   serializeFilters,
 } from "@/features/home/home-utils";
 import type { MatchReason, SurveyPreferences } from "@/features/home/types";
@@ -239,6 +241,7 @@ export function ListingDetailPage({
     STORAGE_KEYS.reports,
     [],
   );
+  const discount = discountPercent(listing);
   const [explainedCostId, setExplainedCostId] = useState<string | null>(null);
   const [selectedGallery, setSelectedGallery] = useState(0);
   const initialRoom =
@@ -682,7 +685,15 @@ export function ListingDetailPage({
                         </div>
                         <div className="shrink-0 sm:text-right">
                           <p className="text-xl font-black text-slate-950 dark:text-slate-50">
-                            {formatPrice(room.price, locale)}
+                            {discount ? (
+                              <span className="mr-1.5 text-xs font-bold text-slate-400 line-through dark:text-slate-500">
+                                {formatPrice(room.price, locale)}
+                              </span>
+                            ) : null}
+                            {formatPrice(
+                              roomEffectivePrice(listing, room.price),
+                              locale,
+                            )}
                           </p>
                           <p
                             className={`mt-1 text-xs font-bold ${
@@ -709,7 +720,7 @@ export function ListingDetailPage({
                     {initialRoom.name[locale]}
                   </span>
                   <span className="font-black">
-                    {formatPrice(initialRoom.price, locale)}
+                    {formatPrice(roomEffectivePrice(listing, initialRoom.price), locale)}
                   </span>
                 </div>
                 <dl className="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-900">
@@ -1027,7 +1038,7 @@ export function ListingDetailPage({
             <div className="rounded-[1.75rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-[0_24px_70px_-42px_rgba(15,23,42,.35)]">
               <p className="text-sm font-bold text-slate-500 dark:text-slate-400">{t.startingFrom}</p>
               <p className="mt-2 text-3xl font-black tracking-[-0.04em] text-slate-950 dark:text-slate-50">
-                {formatPrice(initialRoom.price, locale)}
+                {formatPrice(roomEffectivePrice(listing, initialRoom.price), locale)}
               </p>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t.perMonth}</p>
               <dl className="mt-6 space-y-3 border-y border-slate-100 dark:border-slate-800 py-5 text-sm">
@@ -1148,7 +1159,7 @@ export function ListingDetailPage({
               {t.startingFrom}
             </p>
             <p className="font-black text-slate-950 dark:text-slate-50">
-              {formatPrice(initialRoom.price, locale)}
+              {formatPrice(roomEffectivePrice(listing, initialRoom.price), locale)}
             </p>
           </div>
           <button
@@ -1226,7 +1237,8 @@ export function ListingDetailPage({
                       .filter((room) => room.availableRooms > 0)
                       .map((room) => (
                         <option key={room.id} value={room.id}>
-                          {room.name[locale]} — {formatPrice(room.price, locale)}
+                          {room.name[locale]} —{" "}
+                          {formatPrice(roomEffectivePrice(listing, room.price), locale)}
                         </option>
                       ))}
                   </select>
@@ -1271,7 +1283,8 @@ export function ListingDetailPage({
                 </label>
                 <div className="rounded-xl bg-blue-50 dark:bg-blue-950/35 p-4 text-sm text-blue-900 dark:text-blue-100">
                   <p className="font-black">
-                    {formatPrice(bookingRoom.price, locale)} / {t.month}
+                    {formatPrice(roomEffectivePrice(listing, bookingRoom.price), locale)} /{" "}
+                    {t.month}
                   </p>
                   <p className="mt-1 text-xs">{t.prototypeLabel}</p>
                 </div>

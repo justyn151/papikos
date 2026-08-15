@@ -1,6 +1,6 @@
 "use client";
 
-import { formatPrice } from "@/features/home/home-utils";
+import { effectivePrice, formatPrice } from "@/features/home/home-utils";
 import { cities, listings } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
 import {
@@ -45,7 +45,7 @@ export function AdminOverviewPage() {
     (report) => report.status === "submitted" || report.status === "reviewing",
   ).length;
   const averagePrice = Math.round(
-    listings.reduce((total, listing) => total + listing.price, 0) /
+    listings.reduce((total, listing) => total + effectivePrice(listing), 0) /
       listings.length,
   );
 
