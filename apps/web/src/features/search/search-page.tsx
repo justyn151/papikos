@@ -13,6 +13,8 @@ import type { SearchFilters } from "@/features/home/types";
 import { ListingCard } from "@/features/listings/listing-card";
 import { listings } from "@/features/listings/mock-listings";
 import { SiteHeader } from "@/features/navigation/site-header";
+import { useModeration } from "@/features/prototype-data/store";
+import { isListingVisible } from "@/features/prototype-data/transitions";
 import {
   useLocaleTransition,
   useTheme,
@@ -38,6 +40,7 @@ export function SearchPage({
     FAVORITES_STORAGE_KEY,
     [],
   );
+  const { moderationFor } = useModeration();
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
   const [headerQuery, setHeaderQuery] = useState(initialFilters.query);
   const [syncedQuery, setSyncedQuery] = useState(initialFilters.query);
@@ -87,11 +90,21 @@ export function SearchPage({
     }, URL_SYNC_DELAY_MS);
   };
 
-  const results = useMemo(() => filterListings(listings, filters), [filters]);
+  // Unpublished and admin-suspended listings must not reach renters at all,
+  // so visibility is applied before any filtering or facet counting.
+  const visibleListings = useMemo(
+    () => listings.filter((listing) => isListingVisible(moderationFor(listing.id))),
+    [moderationFor],
+  );
+
+  const results = useMemo(
+    () => filterListings(visibleListings, filters),
+    [filters, visibleListings],
+  );
 
   const countFor = useCallback(
-    (next: SearchFilters) => filterListings(listings, next).length,
-    [],
+    (next: SearchFilters) => filterListings(visibleListings, next).length,
+    [visibleListings],
   );
 
   const toggleFavorite = (listingId: string) => {
