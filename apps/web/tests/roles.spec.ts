@@ -141,3 +141,48 @@ test("a cost row explains itself and rules out in-app payment", async ({
   await expect(dialog.getByText(/meteran/)).toBeVisible();
   await expect(dialog.getByText(/tidak memproses pembayaran/)).toBeVisible();
 });
+
+test("an owner edit reaches renter search, filtering, and the audit trail", async ({
+  page,
+}) => {
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+
+  await page.getByLabel("Nama kos").fill("Kos Senja Diperbarui");
+  await page.getByLabel("Harga bulanan").fill("2000000");
+  await page.getByLabel("Harga promo").fill("1700000");
+  await page.getByRole("button", { name: "Simpan perubahan" }).click();
+  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+
+  await page.goto("/kos?q=Senja");
+  await waitForReady(page);
+  const card = page.locator(".listing-card").first();
+  await expect(card).toContainText("Kos Senja Diperbarui");
+  await expect(card).toContainText("-15%");
+  await expect(card).toContainText("Rp 1.700.000");
+
+  // The discounted price, not the list price, is what a budget filter matches.
+  await page.goto("/kos?max=1800000");
+  await waitForReady(page);
+  await expect(page.getByText("Kos Senja Diperbarui")).toBeVisible();
+
+  await page.goto("/admin/audit");
+  await waitForReady(page);
+  await expect(page.getByText("listing.edited")).toBeVisible();
+});
+
+test("resetting an edit restores the seeded listing", async ({ page }) => {
+  await page.goto("/pemilik/kos/asri-dago");
+  await waitForReady(page);
+
+  await page.getByLabel("Nama kos").fill("Nama Sementara");
+  await page.getByRole("button", { name: "Simpan perubahan" }).click();
+  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Kembalikan ke data awal" }).click();
+  await expect(page.getByLabel("Nama kos")).toHaveValue("Kos Asri Dago");
+
+  await page.goto("/kos?q=Dago");
+  await waitForReady(page);
+  await expect(page.getByText("Kos Asri Dago")).toBeVisible();
+});

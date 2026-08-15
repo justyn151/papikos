@@ -50,7 +50,12 @@ test("combines location, room type, price range, and amenities, and survives a r
   await expect(page).toHaveURL(/amenities=ac/);
 
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
-  await expect(page.getByText("Nara House Kemang")).toHaveCount(0);
+  // Excluded by the room-type filter rather than by price: Kos Melati Tebet is
+  // in Jakarta and within budget, but it is putri, not campur.
+  await expect(page.getByText("Kos Melati Tebet")).toHaveCount(0);
+  // Nara House Kemang lists at 2,850,000 but is discounted to 2,450,000, so it
+  // belongs in a 2,600,000 budget.
+  await expect(page.getByText("Nara House Kemang")).toBeVisible();
 
   const url = page.url();
   await page.reload();
