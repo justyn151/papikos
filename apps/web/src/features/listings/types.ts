@@ -110,6 +110,17 @@ export interface ListingDetail extends Listing {
   };
 }
 
+/** Who performed an action in the prototype's role-switching model. */
+export type PrototypeRole = "renter" | "owner" | "admin";
+
+export type BookingStatus = "pending" | "approved" | "rejected" | "cancelled";
+
+export interface BookingStatusChange {
+  status: BookingStatus;
+  at: string;
+  by: PrototypeRole;
+}
+
 export interface BookingRequest {
   id: string;
   listingId: string;
@@ -117,23 +128,50 @@ export interface BookingRequest {
   moveInDate: string;
   durationMonths: number;
   note: string;
-  status: "pending";
+  status: BookingStatus;
+  /** Full history is preserved rather than overwritten on each change. */
+  statusHistory: BookingStatusChange[];
   createdAt: string;
 }
+
+export type QuestionStatus = "pending" | "answered";
 
 export interface SubmittedQuestion {
   id: string;
   listingId: string;
   question: string;
-  status: "pending";
+  status: QuestionStatus;
+  answer?: string;
+  answeredAt?: string;
   createdAt: string;
 }
+
+export type ReportStatus = "submitted" | "reviewing" | "resolved" | "dismissed";
 
 export interface ListingReport {
   id: string;
   listingId: string;
   reason: string;
   details: string;
-  status: "submitted";
+  status: ReportStatus;
   createdAt: string;
+  resolvedAt?: string;
+}
+
+/** Administrator/owner overrides layered on top of the seeded listing data. */
+export interface ListingModeration {
+  listingId: string;
+  published: boolean;
+  suspended: boolean;
+  verifiedOverride: boolean | null;
+  updatedAt: string;
+}
+
+export interface AuditEntry {
+  id: string;
+  actor: PrototypeRole;
+  action: string;
+  targetId: string;
+  at: string;
+  note?: string;
 }
