@@ -50,6 +50,7 @@ import {
 } from "@/features/home/home-utils";
 import type { MatchReason, SurveyPreferences } from "@/features/home/types";
 import { BrandMark } from "@/features/navigation/brand-mark";
+import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
 import { SiteHeader } from "@/features/navigation/site-header";
 import {
   useLocaleTransition,
@@ -443,6 +444,8 @@ export function ListingDetailPage({
       >
         {t.skip}
       </a>
+
+      <PrototypeRoleBar locale={locale} />
 
       <SiteHeader
         locale={locale}

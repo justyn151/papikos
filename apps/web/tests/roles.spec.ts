@@ -1,14 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-async function waitForReady(page: import("@playwright/test").Page) {
-  await page.waitForFunction(
-    () => document.documentElement.dataset.papikosReady === "true",
-  );
-}
+import { openRequestDialog, waitForReady } from "./helpers";
 
 async function switchRole(
   page: import("@playwright/test").Page,
-  label: "Pencari kos" | "Pemilik kos" | "Admin",
+  label: "Penyewa" | "Pemilik kos" | "Admin",
 ) {
   await page.getByRole("button", { name: label, exact: true }).click();
 }
@@ -21,14 +17,7 @@ test("a rental request travels from renter to owner and back", async ({
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
 
-  await page
-    .getByRole("heading", { name: "Pilihan kamar" })
-    .scrollIntoViewIfNeeded();
-  await page
-    .locator("button:visible")
-    .filter({ hasText: "Ajukan sewa" })
-    .first()
-    .click();
+  await openRequestDialog(page);
   await page.getByRole("button", { name: "Kirim permintaan" }).click();
   await expect(
     page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
@@ -50,7 +39,7 @@ test("a rental request travels from renter to owner and back", async ({
   await expect(page.getByText("Sudah diputuskan")).toBeVisible();
 
   // The decision is visible to the renter, with both history entries kept.
-  await switchRole(page, "Pencari kos");
+  await switchRole(page, "Penyewa");
   await page.goto("/permintaan");
   await waitForReady(page);
   await expect(page.getByText("Disetujui").first()).toBeVisible();

@@ -7,7 +7,9 @@ import type { Locale, PrototypeRole } from "@/features/listings/types";
 import { prototypeRoles, usePrototypeRole } from "@/features/prototype-data/role";
 
 const roleCopy: Record<Locale, Record<PrototypeRole, string>> = {
-  id: { renter: "Pencari kos", owner: "Pemilik kos", admin: "Admin" },
+  // "Penyewa" rather than "Pencari kos": it matches the wording the owner
+  // pages already use, and avoids colliding with the "Cari kos" search button.
+  id: { renter: "Penyewa", owner: "Pemilik kos", admin: "Admin" },
   en: { renter: "Renter", owner: "Owner", admin: "Admin" },
 };
 

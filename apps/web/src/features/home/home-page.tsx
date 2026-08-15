@@ -32,6 +32,7 @@ import {
 import { amenities, cities, listings } from "./mock-listings";
 import { ListingCard } from "@/features/listings/listing-card";
 import { BrandMark } from "@/features/navigation/brand-mark";
+import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
 import { SiteHeader } from "@/features/navigation/site-header";
 import {
   useLocaleTransition,
@@ -364,6 +365,8 @@ export function HomePage() {
       >
         {t.skip}
       </a>
+
+      <PrototypeRoleBar locale={locale} />
 
       <SiteHeader
         locale={locale}

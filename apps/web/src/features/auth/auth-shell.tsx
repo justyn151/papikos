@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { copy } from "@/features/home/copy";
 import { defaultFilters, serializeFilters } from "@/features/home/home-utils";
 import type { Locale } from "@/features/home/types";
+import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
 import { SiteHeader } from "@/features/navigation/site-header";
 import {
   useLocaleTransition,
@@ -52,6 +53,8 @@ export function AuthShell({
       >
         {t.skip}
       </a>
+
+      <PrototypeRoleBar locale={locale} />
 
       <SiteHeader
         locale={locale}

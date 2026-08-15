@@ -12,6 +12,7 @@ import {
 import type { SearchFilters } from "@/features/home/types";
 import { ListingCard } from "@/features/listings/listing-card";
 import { listings } from "@/features/listings/mock-listings";
+import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
 import { SiteHeader } from "@/features/navigation/site-header";
 import { useModeration } from "@/features/prototype-data/store";
 import { isListingVisible } from "@/features/prototype-data/transitions";
@@ -125,6 +126,8 @@ export function SearchPage({
       >
         {t.skip}
       </a>
+
+      <PrototypeRoleBar locale={locale} />
 
       <SiteHeader
         locale={locale}

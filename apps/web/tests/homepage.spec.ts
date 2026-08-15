@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+import { openRequestDialog } from "./helpers";
+
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
   await page.evaluate(() => window.localStorage.clear());
@@ -116,15 +118,10 @@ test("persists a local booking request and structured question", async ({
     () => document.documentElement.dataset.papikosReady === "true",
   );
 
-  await page
-    .getByRole("heading", { name: "Pilihan kamar" })
-    .scrollIntoViewIfNeeded();
-  const requestCta = page
-    .locator("button:visible")
-    .filter({ hasText: "Ajukan sewa" })
-    .first();
-  await expect(requestCta).toBeVisible();
-  await requestCta.click();
+  // On mobile the only request CTA is the sticky bottom bar, which slides up
+  // once the summary scrolls away, so scroll deliberately rather than relying
+  // on an exact offset.
+  await openRequestDialog(page);
   const bookingDialog = page.getByRole("dialog", {
     name: "Ajukan permintaan sewa",
   });
@@ -153,14 +150,7 @@ test("persists a local booking request and structured question", async ({
   await expect(
     page.getByText("Apakah saya boleh membawa kursi kerja sendiri?"),
   ).toHaveCount(0);
-  await page
-    .getByRole("heading", { name: "Pilihan kamar" })
-    .scrollIntoViewIfNeeded();
-  await page
-    .locator("button:visible")
-    .filter({ hasText: "Ajukan sewa" })
-    .first()
-    .click();
+  await openRequestDialog(page);
   await expect(
     page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
   ).toBeVisible();
