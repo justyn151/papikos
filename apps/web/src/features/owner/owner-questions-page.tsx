@@ -7,13 +7,13 @@ import { type FormEvent, useState } from "react";
 import { accountCopy } from "@/features/account/account-copy";
 import { StatusBadge } from "@/features/account/requests-page";
 import { getListingDetail } from "@/features/listings/mock-listings";
-import { AppShell } from "@/features/navigation/app-shell";
+import { ConsoleShell } from "@/features/navigation/console-shell";
 import { useAuditLog, useQuestions } from "@/features/prototype-data/store";
 import { questionStatusLabels } from "@/features/prototype-data/status-copy";
 import { answerQuestion } from "@/features/prototype-data/transitions";
 
 import { ownerCopy } from "./owner-copy";
-import { OwnerNav } from "./owner-nav";
+import { ownerNavItems } from "./owner-nav";
 
 export function OwnerQuestionsPage() {
   const { questions, replace } = useQuestions();
@@ -26,7 +26,12 @@ export function OwnerQuestionsPage() {
   ).length;
 
   return (
-    <AppShell toast={toast}>
+    <ConsoleShell
+      activeId="questions"
+      areaLabel={(locale) => ownerCopy[locale].area}
+      items={(locale) => ownerNavItems(locale, { questions: pendingCount })}
+      toast={toast}
+    >
       {(locale) => {
         const t = ownerCopy[locale];
         const a = accountCopy[locale];
@@ -56,21 +61,13 @@ export function OwnerQuestionsPage() {
 
         return (
           <>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
-              {t.area}
-            </p>
-            <h1 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
+            <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
               {t.questionsTitle}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
               {t.questionsBody}
             </p>
 
-            <OwnerNav
-              active="questions"
-              locale={locale}
-              badges={{ questions: pendingCount }}
-            />
 
             {questions.length === 0 ? (
               <div className="mt-8 rounded-[2rem] border border-dashed border-blue-200 bg-blue-50 px-6 py-16 text-center dark:bg-blue-950/35">
@@ -165,6 +162,6 @@ export function OwnerQuestionsPage() {
           </>
         );
       }}
-    </AppShell>
+    </ConsoleShell>
   );
 }

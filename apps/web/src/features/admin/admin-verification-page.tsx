@@ -6,12 +6,12 @@ import { useState } from "react";
 
 import { accountCopy } from "@/features/account/account-copy";
 import { listings } from "@/features/listings/mock-listings";
-import { AppShell } from "@/features/navigation/app-shell";
+import { ConsoleShell } from "@/features/navigation/console-shell";
 import { useAuditLog, useModeration } from "@/features/prototype-data/store";
 import { setVerification } from "@/features/prototype-data/transitions";
 
 import { adminCopy } from "./admin-copy";
-import { AdminNav } from "./admin-nav";
+import { adminNavItems } from "./admin-nav";
 
 export function AdminVerificationPage() {
   const { moderationFor, replace } = useModeration();
@@ -19,7 +19,12 @@ export function AdminVerificationPage() {
   const [toast, setToast] = useState("");
 
   return (
-    <AppShell toast={toast}>
+    <ConsoleShell
+      activeId="verification"
+      areaLabel={(locale) => adminCopy[locale].area}
+      items={(locale) => adminNavItems(locale)}
+      toast={toast}
+    >
       {(locale) => {
         const t = adminCopy[locale];
         const a = accountCopy[locale];
@@ -34,17 +39,13 @@ export function AdminVerificationPage() {
 
         return (
           <>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
-              {t.area}
-            </p>
-            <h1 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
+            <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
               {t.verificationTitle}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
               {t.verificationBody}
             </p>
 
-            <AdminNav active="verification" locale={locale} />
 
             <ul className="mt-8 grid gap-3">
               {listings.map((listing) => {
@@ -108,6 +109,6 @@ export function AdminVerificationPage() {
           </>
         );
       }}
-    </AppShell>
+    </ConsoleShell>
   );
 }

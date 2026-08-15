@@ -2,7 +2,7 @@
 
 import { formatPrice } from "@/features/home/home-utils";
 import { cities, listings } from "@/features/listings/mock-listings";
-import { AppShell } from "@/features/navigation/app-shell";
+import { ConsoleShell } from "@/features/navigation/console-shell";
 import {
   useBookings,
   useModeration,
@@ -11,7 +11,7 @@ import {
 import { isListingVisible } from "@/features/prototype-data/transitions";
 
 import { adminCopy } from "./admin-copy";
-import { AdminNav } from "./admin-nav";
+import { adminNavItems } from "./admin-nav";
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
@@ -50,27 +50,23 @@ export function AdminOverviewPage() {
   );
 
   return (
-    <AppShell>
+    <ConsoleShell
+      activeId="overview"
+      areaLabel={(locale) => adminCopy[locale].area}
+      items={(locale) => adminNavItems(locale, { reports: openReports })}
+    >
       {(locale) => {
         const t = adminCopy[locale];
 
         return (
           <>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
-              {t.area}
-            </p>
-            <h1 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
+            <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
               {t.overviewTitle}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
               {t.overviewBody}
             </p>
 
-            <AdminNav
-              active="overview"
-              locale={locale}
-              badges={{ reports: openReports }}
-            />
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Stat label={t.statListings} value={listings.length} />
@@ -115,6 +111,6 @@ export function AdminOverviewPage() {
           </>
         );
       }}
-    </AppShell>
+    </ConsoleShell>
   );
 }

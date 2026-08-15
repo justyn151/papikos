@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { listings } from "@/features/listings/mock-listings";
-import { AppShell } from "@/features/navigation/app-shell";
+import { ConsoleShell } from "@/features/navigation/console-shell";
 import {
   useBookings,
   useModeration,
@@ -14,7 +14,7 @@ import {
 import { isListingVisible } from "@/features/prototype-data/transitions";
 
 import { ownerCopy } from "./owner-copy";
-import { OwnerNav } from "./owner-nav";
+import { ownerNavItems } from "./owner-nav";
 
 function StatCard({
   icon,
@@ -66,27 +66,23 @@ export function OwnerDashboardPage() {
   ).length;
 
   return (
-    <AppShell>
+    <ConsoleShell
+      activeId="dashboard"
+      areaLabel={(locale) => ownerCopy[locale].area}
+      items={(locale) => ownerNavItems(locale, { requests: pendingRequests, questions: unanswered })}
+    >
       {(locale) => {
         const t = ownerCopy[locale];
 
         return (
           <>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
-              {t.area}
-            </p>
-            <h1 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
+            <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
               {t.dashboardTitle}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
               {t.dashboardBody}
             </p>
 
-            <OwnerNav
-              active="dashboard"
-              locale={locale}
-              badges={{ requests: pendingRequests, questions: unanswered }}
-            />
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <StatCard
@@ -120,6 +116,6 @@ export function OwnerDashboardPage() {
           </>
         );
       }}
-    </AppShell>
+    </ConsoleShell>
   );
 }

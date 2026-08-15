@@ -3,17 +3,21 @@
 import { ScrollText } from "lucide-react";
 
 import { actorLabel } from "@/features/account/requests-page";
-import { AppShell } from "@/features/navigation/app-shell";
+import { ConsoleShell } from "@/features/navigation/console-shell";
 import { useAuditLog } from "@/features/prototype-data/store";
 
 import { adminCopy } from "./admin-copy";
-import { AdminNav } from "./admin-nav";
+import { adminNavItems } from "./admin-nav";
 
 export function AdminAuditPage() {
   const { entries } = useAuditLog();
 
   return (
-    <AppShell>
+    <ConsoleShell
+      activeId="audit"
+      areaLabel={(locale) => adminCopy[locale].area}
+      items={(locale) => adminNavItems(locale)}
+    >
       {(locale) => {
         const t = adminCopy[locale];
         const dateFormatter = new Intl.DateTimeFormat(
@@ -35,17 +39,13 @@ export function AdminAuditPage() {
 
         return (
           <>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
-              {t.area}
-            </p>
-            <h1 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
+            <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
               {t.auditTitle}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
               {t.auditBody}
             </p>
 
-            <AdminNav active="audit" locale={locale} />
 
             {entries.length === 0 ? (
               <div className="mt-8 rounded-[2rem] border border-dashed border-blue-200 bg-blue-50 px-6 py-16 text-center dark:bg-blue-950/35">
@@ -101,6 +101,6 @@ export function AdminAuditPage() {
           </>
         );
       }}
-    </AppShell>
+    </ConsoleShell>
   );
 }

@@ -7,7 +7,7 @@ import { useState } from "react";
 import { StatusBadge, actorLabel } from "@/features/account/requests-page";
 import { accountCopy } from "@/features/account/account-copy";
 import { getListingDetail } from "@/features/listings/mock-listings";
-import { AppShell } from "@/features/navigation/app-shell";
+import { ConsoleShell } from "@/features/navigation/console-shell";
 import { useAuditLog, useBookings } from "@/features/prototype-data/store";
 import { bookingStatusLabels } from "@/features/prototype-data/status-copy";
 import {
@@ -16,7 +16,7 @@ import {
 } from "@/features/prototype-data/transitions";
 
 import { ownerCopy } from "./owner-copy";
-import { OwnerNav } from "./owner-nav";
+import { ownerNavItems } from "./owner-nav";
 
 export function OwnerRequestsPage() {
   const { bookings, replace } = useBookings();
@@ -28,7 +28,12 @@ export function OwnerRequestsPage() {
   ).length;
 
   return (
-    <AppShell toast={toast}>
+    <ConsoleShell
+      activeId="requests"
+      areaLabel={(locale) => ownerCopy[locale].area}
+      items={(locale) => ownerNavItems(locale, { requests: pendingCount })}
+      toast={toast}
+    >
       {(locale) => {
         const t = ownerCopy[locale];
         const a = accountCopy[locale];
@@ -58,21 +63,13 @@ export function OwnerRequestsPage() {
 
         return (
           <>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
-              {t.area}
-            </p>
-            <h1 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
+            <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
               {t.requestsTitle}
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
               {t.requestsBody}
             </p>
 
-            <OwnerNav
-              active="requests"
-              locale={locale}
-              badges={{ requests: pendingCount }}
-            />
 
             {bookings.length === 0 ? (
               <div className="mt-8 rounded-[2rem] border border-dashed border-blue-200 bg-blue-50 px-6 py-16 text-center dark:bg-blue-950/35">
@@ -207,6 +204,6 @@ export function OwnerRequestsPage() {
           </>
         );
       }}
-    </AppShell>
+    </ConsoleShell>
   );
 }
