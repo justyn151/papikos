@@ -174,6 +174,26 @@ export interface ListingModeration {
   updatedAt: string;
 }
 
+/**
+ * Owner edits layered over the seeded listing data. Every field is optional;
+ * an absent field means "keep whatever the seed says", which is what lets a
+ * reset be a simple delete rather than a restore.
+ */
+export interface ListingOverride {
+  listingId: string;
+  name?: string;
+  description?: string;
+  price?: number;
+  promoPrice?: number | null;
+  type?: ListingType;
+  district?: string;
+  amenities?: Amenity[];
+  rules?: { id: string; allowed: boolean }[];
+  rooms?: { id: string; price: number; availableRooms: number }[];
+  costs?: { id: string; amount: number | null; included: boolean }[];
+  updatedAt: string;
+}
+
 export interface AuditEntry {
   id: string;
   actor: PrototypeRole;

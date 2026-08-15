@@ -6,8 +6,8 @@ import { type FormEvent, useState } from "react";
 
 import { accountCopy } from "@/features/account/account-copy";
 import { StatusBadge } from "@/features/account/requests-page";
-import { getListingDetail } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { useAuditLog, useQuestions } from "@/features/prototype-data/store";
 import { questionStatusLabels } from "@/features/prototype-data/status-copy";
 import { answerQuestion } from "@/features/prototype-data/transitions";
@@ -20,6 +20,7 @@ export function OwnerQuestionsPage() {
   const { append } = useAuditLog();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [toast, setToast] = useState("");
+  const { detailFor } = useResolvedListings();
 
   const pendingCount = questions.filter(
     (question) => question.status === "pending",
@@ -81,7 +82,7 @@ export function OwnerQuestionsPage() {
             ) : (
               <ul className="mt-8 grid gap-4">
                 {questions.map((question) => {
-                  const listing = getListingDetail(question.listingId);
+                  const listing = detailFor(question.listingId);
                   return (
                     <li
                       className="rounded-[1.5rem] border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"

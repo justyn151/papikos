@@ -6,9 +6,9 @@ import { useState } from "react";
 
 import { accountCopy } from "@/features/account/account-copy";
 import { StatusBadge } from "@/features/account/requests-page";
-import { getListingDetail } from "@/features/listings/mock-listings";
 import type { ReportStatus } from "@/features/listings/types";
 import { ConsoleShell } from "@/features/navigation/console-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { useAuditLog, useReports } from "@/features/prototype-data/store";
 import { reportStatusLabels } from "@/features/prototype-data/status-copy";
 import { setReportStatus } from "@/features/prototype-data/transitions";
@@ -20,6 +20,7 @@ export function AdminReportsPage() {
   const { reports, replace } = useReports();
   const { append } = useAuditLog();
   const [toast, setToast] = useState("");
+  const { detailFor } = useResolvedListings();
 
   const openReports = reports.filter(
     (report) => report.status === "submitted" || report.status === "reviewing",
@@ -79,7 +80,7 @@ export function AdminReportsPage() {
             ) : (
               <ul className="mt-8 grid gap-4">
                 {reports.map((report) => {
-                  const listing = getListingDetail(report.listingId);
+                  const listing = detailFor(report.listingId);
                   return (
                     <li
                       className="rounded-[1.5rem] border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"

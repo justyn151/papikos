@@ -58,7 +58,9 @@ import {
   useLocaleTransition,
   useTheme,
 } from "@/features/preferences/preferences";
+import { resolveListingDetail } from "@/features/prototype-data/resolve-listing";
 import { statusTone } from "@/features/prototype-data/status-copy";
+import { useOverrides } from "@/features/prototype-data/store";
 import { createId } from "@/features/shared/create-id";
 import { Dialog } from "@/features/shared/dialog";
 import {
@@ -205,7 +207,7 @@ function matchReasonText(
 }
 
 export function ListingDetailPage({
-  listing,
+  listing: seedListing,
   related,
   returnTo,
 }: {
@@ -213,6 +215,16 @@ export function ListingDetailPage({
   related: ListingDetail[];
   returnTo: string;
 }) {
+  // The route is a server component, so owner edits (which live in browser
+  // storage) are merged here after hydration rather than on the server.
+  const { overrideFor } = useOverrides();
+  const override = overrideFor(seedListing.id);
+  // Memoized so the resolved listing keeps a stable identity between renders;
+  // downstream memos depend on it.
+  const listing = useMemo(
+    () => resolveListingDetail(seedListing, override),
+    [override, seedListing],
+  );
   const { changeLocale, locale, selectedLocale, transitionState } =
     useLocaleTransition();
   const { theme, toggleTheme } = useTheme();

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { Locale, PrototypeRole } from "@/features/listings/types";
-import { getListingDetail } from "@/features/listings/mock-listings";
 import { AppShell } from "@/features/navigation/app-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { useAuditLog, useBookings } from "@/features/prototype-data/store";
 import {
   bookingStatusLabels,
@@ -39,6 +39,7 @@ export function RequestsPage() {
   const { bookings, replace } = useBookings();
   const { append } = useAuditLog();
   const [toast, setToast] = useState("");
+  const { detailFor } = useResolvedListings();
 
   return (
     <AppShell toast={toast}>
@@ -93,7 +94,7 @@ export function RequestsPage() {
             ) : (
               <ul className="mt-8 grid gap-4">
                 {bookings.map((booking) => {
-                  const listing = getListingDetail(booking.listingId);
+                  const listing = detailFor(booking.listingId);
                   const room = listing?.rooms.find(
                     (item) => item.id === booking.roomId,
                   );

@@ -11,9 +11,9 @@ import {
 } from "@/features/home/home-utils";
 import type { SearchFilters } from "@/features/home/types";
 import { ListingCard } from "@/features/listings/listing-card";
-import { listings } from "@/features/listings/mock-listings";
 import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
 import { SiteHeader } from "@/features/navigation/site-header";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { useModeration } from "@/features/prototype-data/store";
 import { isListingVisible } from "@/features/prototype-data/transitions";
 import {
@@ -42,6 +42,7 @@ export function SearchPage({
     [],
   );
   const { moderationFor } = useModeration();
+  const { listings } = useResolvedListings();
   const [filters, setFilters] = useState<SearchFilters>(initialFilters);
   const [headerQuery, setHeaderQuery] = useState(initialFilters.query);
   const [syncedQuery, setSyncedQuery] = useState(initialFilters.query);
@@ -95,7 +96,7 @@ export function SearchPage({
   // so visibility is applied before any filtering or facet counting.
   const visibleListings = useMemo(
     () => listings.filter((listing) => isListingVisible(moderationFor(listing.id))),
-    [moderationFor],
+    [listings, moderationFor],
   );
 
   const results = useMemo(

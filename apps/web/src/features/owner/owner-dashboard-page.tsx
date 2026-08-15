@@ -4,8 +4,8 @@ import { Building2, CircleHelp, Inbox } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { listings } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import {
   useBookings,
   useModeration,
@@ -54,6 +54,7 @@ export function OwnerDashboardPage() {
   const { bookings } = useBookings();
   const { questions } = useQuestions();
   const { moderationFor } = useModeration();
+  const { listings } = useResolvedListings();
 
   const pendingRequests = bookings.filter(
     (booking) => booking.status === "pending",

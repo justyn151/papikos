@@ -6,8 +6,8 @@ import { useState } from "react";
 
 import { StatusBadge, actorLabel } from "@/features/account/requests-page";
 import { accountCopy } from "@/features/account/account-copy";
-import { getListingDetail } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { useAuditLog, useBookings } from "@/features/prototype-data/store";
 import { bookingStatusLabels } from "@/features/prototype-data/status-copy";
 import {
@@ -22,6 +22,7 @@ export function OwnerRequestsPage() {
   const { bookings, replace } = useBookings();
   const { append } = useAuditLog();
   const [toast, setToast] = useState("");
+  const { detailFor } = useResolvedListings();
 
   const pendingCount = bookings.filter(
     (booking) => booking.status === "pending",
@@ -83,7 +84,7 @@ export function OwnerRequestsPage() {
             ) : (
               <ul className="mt-8 grid gap-4">
                 {bookings.map((booking) => {
-                  const listing = getListingDetail(booking.listingId);
+                  const listing = detailFor(booking.listingId);
                   const room = listing?.rooms.find(
                     (item) => item.id === booking.roomId,
                   );

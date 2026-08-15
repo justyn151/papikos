@@ -6,8 +6,8 @@ import { useMemo, useState } from "react";
 
 import { copy } from "@/features/home/copy";
 import { ListingCard } from "@/features/listings/listing-card";
-import { listings } from "@/features/listings/mock-listings";
 import { AppShell } from "@/features/navigation/app-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { FAVORITES_STORAGE_KEY } from "@/features/shared/storage-keys";
 import { usePersistentState } from "@/features/shared/use-persistent-state";
 
@@ -19,11 +19,12 @@ export function FavoritesPage() {
     [],
   );
   const [toast, setToast] = useState("");
+  const { listings } = useResolvedListings();
 
   // Preserve the order listings are defined in, not the order they were saved.
   const saved = useMemo(
     () => listings.filter((listing) => favoriteIds.includes(listing.id)),
-    [favoriteIds],
+    [favoriteIds, listings],
   );
 
   return (

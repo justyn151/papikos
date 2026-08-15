@@ -1,8 +1,9 @@
 "use client";
 
 import { effectivePrice, formatPrice } from "@/features/home/home-utils";
-import { cities, listings } from "@/features/listings/mock-listings";
+import { cities } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import {
   useBookings,
   useModeration,
@@ -30,6 +31,7 @@ export function AdminOverviewPage() {
   const { bookings } = useBookings();
   const { reports } = useReports();
   const { moderationFor } = useModeration();
+  const { listings } = useResolvedListings();
 
   const live = listings.filter((listing) =>
     isListingVisible(moderationFor(listing.id)),

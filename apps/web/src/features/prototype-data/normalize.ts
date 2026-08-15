@@ -1,8 +1,12 @@
+import { amenities as knownAmenities } from "@/features/listings/mock-listings";
 import type {
+  Amenity,
   AuditEntry,
   BookingRequest,
   BookingStatus,
   ListingModeration,
+  ListingOverride,
+  ListingType,
   ListingReport,
   PrototypeRole,
   QuestionStatus,
@@ -137,6 +141,76 @@ export function normalizeModeration(value: unknown): ListingModeration | null {
       typeof raw.verifiedOverride === "boolean" ? raw.verifiedOverride : null,
     updatedAt: asString(raw.updatedAt, new Date().toISOString()),
   };
+}
+
+const listingTypes: ListingType[] = ["putra", "putri", "campur"];
+
+export function normalizeOverride(value: unknown): ListingOverride | null {
+  const raw = asRecord(value);
+  if (!raw || !asString(raw.listingId)) return null;
+
+  const override: ListingOverride = {
+    listingId: asString(raw.listingId),
+    updatedAt: asString(raw.updatedAt, new Date().toISOString()),
+  };
+
+  if (typeof raw.name === "string") override.name = raw.name;
+  if (typeof raw.description === "string") override.description = raw.description;
+  if (typeof raw.price === "number") override.price = raw.price;
+  // `promoPrice: null` is meaningful (discount cleared), so presence matters.
+  if ("promoPrice" in raw) {
+    override.promoPrice =
+      typeof raw.promoPrice === "number" ? raw.promoPrice : null;
+  }
+  if (listingTypes.includes(raw.type as ListingType)) {
+    override.type = raw.type as ListingType;
+  }
+  if (typeof raw.district === "string") override.district = raw.district;
+
+  if (Array.isArray(raw.amenities)) {
+    const known = new Set<string>(knownAmenities);
+    override.amenities = raw.amenities.filter(
+      (item): item is Amenity =>
+        typeof item === "string" && known.has(item),
+    );
+  }
+
+  if (Array.isArray(raw.rules)) {
+    override.rules = raw.rules
+      .map((item) => asRecord(item))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .filter((item) => asString(item.id))
+      .map((item) => ({
+        id: asString(item.id),
+        allowed: item.allowed === true,
+      }));
+  }
+
+  if (Array.isArray(raw.rooms)) {
+    override.rooms = raw.rooms
+      .map((item) => asRecord(item))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .filter((item) => asString(item.id))
+      .map((item) => ({
+        id: asString(item.id),
+        price: Math.max(0, asNumber(item.price, 0)),
+        availableRooms: Math.max(0, asNumber(item.availableRooms, 0)),
+      }));
+  }
+
+  if (Array.isArray(raw.costs)) {
+    override.costs = raw.costs
+      .map((item) => asRecord(item))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .filter((item) => asString(item.id))
+      .map((item) => ({
+        id: asString(item.id),
+        amount: typeof item.amount === "number" ? item.amount : null,
+        included: item.included === true,
+      }));
+  }
+
+  return override;
 }
 
 export function normalizeAuditEntry(value: unknown): AuditEntry | null {

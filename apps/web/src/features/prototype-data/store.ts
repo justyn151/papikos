@@ -6,6 +6,7 @@ import type {
   AuditEntry,
   BookingRequest,
   ListingModeration,
+  ListingOverride,
   ListingReport,
   SubmittedQuestion,
 } from "@/features/listings/types";
@@ -13,6 +14,7 @@ import {
   AUDIT_STORAGE_KEY,
   BOOKINGS_STORAGE_KEY,
   MODERATION_STORAGE_KEY,
+  OVERRIDES_STORAGE_KEY,
   QUESTIONS_STORAGE_KEY,
   REPORTS_STORAGE_KEY,
 } from "@/features/shared/storage-keys";
@@ -23,6 +25,7 @@ import {
   normalizeBooking,
   normalizeList,
   normalizeModeration,
+  normalizeOverride,
   normalizeQuestion,
   normalizeReport,
 } from "./normalize";
@@ -140,4 +143,42 @@ export function useAuditLog() {
   );
 
   return { entries, append };
+}
+
+export function useOverrides() {
+  const [raw, setRaw] = usePersistentState<unknown>(OVERRIDES_STORAGE_KEY, []);
+  const entries = normalizeList<ListingOverride>(raw, normalizeOverride);
+
+  const overrideFor = useCallback(
+    (listingId: string) =>
+      entries.find((entry) => entry.listingId === listingId),
+    [entries],
+  );
+
+  const replace = useCallback(
+    (next: ListingOverride) =>
+      setRaw((current: unknown) => {
+        const list = normalizeList<ListingOverride>(current, normalizeOverride);
+        const exists = list.some((item) => item.listingId === next.listingId);
+        return exists
+          ? list.map((item) =>
+              item.listingId === next.listingId ? next : item,
+            )
+          : [...list, next];
+      }),
+    [setRaw],
+  );
+
+  /** Resetting is a delete, so the seeded values simply show through again. */
+  const clear = useCallback(
+    (listingId: string) =>
+      setRaw((current: unknown) =>
+        normalizeList<ListingOverride>(current, normalizeOverride).filter(
+          (item) => item.listingId !== listingId,
+        ),
+      ),
+    [setRaw],
+  );
+
+  return { entries, overrideFor, replace, clear };
 }

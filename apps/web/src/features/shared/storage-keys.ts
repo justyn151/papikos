@@ -8,5 +8,6 @@ export const REPORTS_STORAGE_KEY = "papikos.listingReports";
 
 // Owner/admin state layered on top of the seeded listing data.
 export const MODERATION_STORAGE_KEY = "papikos.listingModeration";
+export const OVERRIDES_STORAGE_KEY = "papikos.listingOverrides";
 export const AUDIT_STORAGE_KEY = "papikos.auditLog";
 export const ROLE_STORAGE_KEY = "papikos.role";

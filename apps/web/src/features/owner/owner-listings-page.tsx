@@ -6,8 +6,8 @@ import { useState } from "react";
 
 import { accountCopy } from "@/features/account/account-copy";
 import { effectivePrice, formatPrice } from "@/features/home/home-utils";
-import { listings } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { useAuditLog, useModeration } from "@/features/prototype-data/store";
 import { setPublication } from "@/features/prototype-data/transitions";
 
@@ -18,6 +18,7 @@ export function OwnerListingsPage() {
   const { moderationFor, replace } = useModeration();
   const { append } = useAuditLog();
   const [toast, setToast] = useState("");
+  const { listings } = useResolvedListings();
 
   return (
     <ConsoleShell
@@ -97,6 +98,12 @@ export function OwnerListingsPage() {
                     </div>
 
                     <div className="flex shrink-0 flex-wrap gap-2">
+                      <Link
+                        className="btn-secondary"
+                        href={`/pemilik/kos/${listing.id}`}
+                      >
+                        {t.edit}
+                      </Link>
                       <Link className="btn-secondary" href={`/kos/${listing.id}`}>
                         {a.viewListing}
                       </Link>

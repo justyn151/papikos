@@ -6,8 +6,8 @@ import { useState } from "react";
 
 import { accountCopy } from "@/features/account/account-copy";
 import { effectivePrice, formatPrice } from "@/features/home/home-utils";
-import { listings } from "@/features/listings/mock-listings";
 import { ConsoleShell } from "@/features/navigation/console-shell";
+import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
 import { useAuditLog, useModeration } from "@/features/prototype-data/store";
 import {
   setPublication,
@@ -21,6 +21,7 @@ export function AdminListingsPage() {
   const { moderationFor, replace } = useModeration();
   const { append } = useAuditLog();
   const [toast, setToast] = useState("");
+  const { listings } = useResolvedListings();
 
   return (
     <ConsoleShell
