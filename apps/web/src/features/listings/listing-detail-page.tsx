@@ -56,6 +56,7 @@ import {
   useLocaleTransition,
   useTheme,
 } from "@/features/preferences/preferences";
+import { statusTone } from "@/features/prototype-data/status-copy";
 import { createId } from "@/features/shared/create-id";
 import { Dialog } from "@/features/shared/dialog";
 import {
@@ -711,49 +712,64 @@ export function ListingDetailPage({
                     {formatPrice(initialRoom.price, locale)}
                   </span>
                 </div>
-                <dl className="divide-y divide-slate-100 bg-white dark:bg-slate-900">
-                  {listing.costs.map((cost) => (
-                    <div
-                      className="flex items-center justify-between gap-5 px-5 py-4"
-                      key={cost.id}
-                    >
-                      <div>
-                        <dt className="font-bold text-slate-800 dark:text-slate-200">
-                          <button
-                            aria-label={`${cost.label[locale]} — ${t.explainCost}`}
-                            className="inline-flex items-center gap-1.5 rounded-lg text-left underline decoration-dotted underline-offset-4 transition hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 dark:hover:text-blue-300 dark:focus:ring-blue-950"
-                            onClick={() => setExplainedCostId(cost.id)}
-                            type="button"
-                          >
-                            {cost.label[locale]}
-                            <CircleHelp
-                              size={14}
-                              className="shrink-0 text-slate-400"
-                              aria-hidden="true"
-                            />
-                          </button>
-                        </dt>
-                        {cost.note ? (
-                          <dd className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            {cost.note[locale]}
+                <dl className="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-900">
+                  {listing.costs.map((cost) => {
+                    // Charged rows keep the amount prominent; the rest read as
+                    // a status, so they share the app's status-pill palette.
+                    const charged = !cost.included && cost.amount;
+                    const value = cost.included
+                      ? cost.id === "deposit"
+                        ? t.noCharge
+                        : t.included
+                      : cost.amount
+                        ? `${formatPrice(cost.amount, locale)} / ${t.month}`
+                        : cost.note?.[locale];
+
+                    return (
+                      <div key={cost.id}>
+                        {/* The whole row is the target, not just the label. */}
+                        <button
+                          aria-label={`${cost.label[locale]} — ${t.explainCost}`}
+                          className="flex w-full items-center justify-between gap-5 px-5 py-4 text-left transition hover:bg-slate-50 focus:outline-none focus-visible:bg-slate-50 focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-blue-100 dark:hover:bg-slate-800/60 dark:focus-visible:bg-slate-800/60 dark:focus-visible:ring-blue-950"
+                          onClick={() => setExplainedCostId(cost.id)}
+                          type="button"
+                        >
+                          <span className="min-w-0">
+                            <dt className="flex items-center gap-1.5 font-black text-slate-900 dark:text-slate-100">
+                              {cost.label[locale]}
+                              <CircleHelp
+                                size={14}
+                                className="shrink-0 text-slate-400"
+                                aria-hidden="true"
+                              />
+                            </dt>
+                            {cost.note ? (
+                              <dd className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                {cost.note[locale]}
+                              </dd>
+                            ) : null}
+                          </span>
+                          <dd className="shrink-0">
+                            {charged ? (
+                              <span className="text-sm font-black tabular-nums text-slate-900 dark:text-slate-100">
+                                {value}
+                              </span>
+                            ) : (
+                              <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-black ${
+                                  cost.included
+                                    ? statusTone.resolved
+                                    : statusTone.reviewing
+                                }`}
+                              >
+                                {value}
+                              </span>
+                            )}
                           </dd>
-                        ) : null}
+                        </button>
                       </div>
-                      <dd
-                        className={`shrink-0 text-sm font-black ${
-                          cost.included ? "text-emerald-700 dark:text-emerald-300" : "text-slate-700 dark:text-slate-300"
-                        }`}
-                      >
-                        {cost.included
-                          ? cost.id === "deposit"
-                            ? t.noCharge
-                            : t.included
-                          : cost.amount
-                            ? `${formatPrice(cost.amount, locale)} / ${t.month}`
-                            : cost.note?.[locale]}
-                      </dd>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </dl>
                 <p className="border-t border-slate-100 bg-slate-50 px-5 py-3 text-xs leading-5 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
                   {costPaymentNotice[locale]}
