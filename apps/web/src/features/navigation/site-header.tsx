@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Heart, Search } from "lucide-react";
 import Link from "next/link";
 import type { FormEvent } from "react";
 
@@ -21,6 +21,9 @@ export interface SiteHeaderProps {
   onToggleTheme: () => void;
   loginHref: string;
   loginLabel: string;
+  /** Omitted on surfaces where a saved-kos shortcut would be noise (auth). */
+  favoritesHref?: string;
+  favoritesLabel?: string;
   languageLabel: string;
   searchLabel: string;
   searchPlaceholder: string;
@@ -38,6 +41,8 @@ export function SiteHeader({
   onToggleTheme,
   loginHref,
   loginLabel,
+  favoritesHref,
+  favoritesLabel,
   languageLabel,
   searchLabel,
   searchPlaceholder,
@@ -69,6 +74,16 @@ export function SiteHeader({
               label={languageLabel}
             />
             <ThemeToggle locale={locale} theme={theme} onToggle={onToggleTheme} />
+            {favoritesHref && favoritesLabel ? (
+              <Link
+                aria-label={favoritesLabel}
+                className="grid size-10 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-rose-200 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-rose-900"
+                href={favoritesHref}
+                title={favoritesLabel}
+              >
+                <Heart size={17} aria-hidden="true" />
+              </Link>
+            ) : null}
             <Link className="btn-secondary" href={loginHref}>
               {loginLabel}
             </Link>

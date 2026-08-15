@@ -444,6 +444,8 @@ export function ListingDetailPage({
         onToggleTheme={toggleTheme}
         loginHref="/masuk"
         loginLabel={t.login}
+        favoritesHref="/favorit"
+        favoritesLabel={homeCopy[locale].favorites}
         languageLabel={t.language}
         searchLabel={homeCopy[locale].location}
         searchPlaceholder={homeCopy[locale].locationPlaceholder}

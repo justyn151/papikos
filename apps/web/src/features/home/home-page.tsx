@@ -373,6 +373,8 @@ export function HomePage() {
         onToggleTheme={toggleTheme}
         loginHref="/masuk"
         loginLabel={t.login}
+        favoritesHref="/favorit"
+        favoritesLabel={t.favorites}
         languageLabel={t.language}
         searchLabel={t.location}
         searchPlaceholder={t.locationPlaceholder}

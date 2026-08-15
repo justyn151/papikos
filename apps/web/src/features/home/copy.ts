@@ -4,6 +4,8 @@ export const copy = {
   id: {
     skip: "Lewati ke konten utama",
     login: "Masuk",
+    favorites: "Kos favorit",
+    myRequests: "Permintaan sewa",
     heroTitleStart: "Temukan kos yang",
     heroTitleAccent: "pas dengan hidupmu.",
     heroBody: "Masukkan kota atau area untuk mulai menemukan kos yang tepat.",
@@ -86,6 +88,8 @@ export const copy = {
   en: {
     skip: "Skip to main content",
     login: "Sign in",
+    favorites: "Saved kos",
+    myRequests: "Rental requests",
     heroTitleStart: "Find a kos that",
     heroTitleAccent: "fits your life.",
     heroBody: "Enter a city or area to start finding the right kos.",
