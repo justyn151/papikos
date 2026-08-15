@@ -14,7 +14,11 @@ export type {
 export interface SearchFilters {
   query: string;
   type: ListingTypeFilter;
+  minPrice: number | null;
   maxPrice: number | null;
+  amenities: Amenity[];
+  availableOnly: boolean;
+  verifiedOnly: boolean;
 }
 
 export interface SurveyPreferences {

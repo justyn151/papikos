@@ -35,12 +35,14 @@ body {
     color var(--motion-fast) ease;
 }
 
-button,
-input,
-select,
-textarea {
-  color: inherit;
-  font: inherit;
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    color: inherit;
+    font: inherit;
+  }
 }
 
 button,

@@ -41,15 +41,25 @@ import {
   useState,
 } from "react";
 
-import { shortTypeLabels } from "@/features/home/copy";
-import { formatPrice, rankListings, readStoredValue } from "@/features/home/home-utils";
-import type { MatchReason, SurveyPreferences } from "@/features/home/types";
+import { copy as homeCopy, shortTypeLabels } from "@/features/home/copy";
 import {
-  LanguageToggle,
-  ThemeToggle,
+  defaultFilters,
+  formatPrice,
+  rankListings,
+  serializeFilters,
+} from "@/features/home/home-utils";
+import type { MatchReason, SurveyPreferences } from "@/features/home/types";
+import { BrandMark } from "@/features/navigation/brand-mark";
+import { SiteHeader } from "@/features/navigation/site-header";
+import {
   useLocaleTransition,
   useTheme,
 } from "@/features/preferences/preferences";
+import {
+  FAVORITES_STORAGE_KEY,
+  SURVEY_STORAGE_KEY,
+} from "@/features/shared/storage-keys";
+import { usePersistentState } from "@/features/shared/use-persistent-state";
 
 import { detailCopy } from "./detail-copy";
 import type {
@@ -64,8 +74,8 @@ import type {
 } from "./types";
 
 const STORAGE_KEYS = {
-  favorites: "papikos.favorites",
-  survey: "papikos.survey",
+  favorites: FAVORITES_STORAGE_KEY,
+  survey: SURVEY_STORAGE_KEY,
   bookings: "papikos.bookingRequests",
   questions: "papikos.listingQuestions",
   reports: "papikos.listingReports",
@@ -96,42 +106,6 @@ const landmarkIcons = {
 
 function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function usePersistentState<T>(key: string, initialValue: T) {
-  const initialRef = useRef(initialValue);
-  const [value, setValue] = useState<T>(initialValue);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    setValue(readStoredValue(key, initialRef.current));
-    setReady(true);
-  }, [key]);
-
-  useEffect(() => {
-    if (!ready) return;
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }, [key, ready, value]);
-
-  return [value, setValue] as const;
-}
-
-function BrandMark({ inverse = false }: { inverse?: boolean }) {
-  return (
-    <span className="inline-flex items-center gap-2.5" aria-label="Papikos">
-      <span className="grid size-10 place-items-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-        <Building2 size={21} strokeWidth={2.4} aria-hidden="true" />
-      </span>
-      <span
-        className={`brand-wordmark text-xl font-black tracking-[-0.04em] ${
-          inverse ? "text-white" : "text-slate-950 dark:text-slate-50"
-        }`}
-      >
-        papi
-        <span className={inverse ? "text-cyan-300" : "text-blue-600 dark:text-blue-400"}>kos</span>
-      </span>
-    </span>
-  );
 }
 
 function Dialog({
@@ -333,6 +307,7 @@ export function ListingDetailPage({
   const [reportDetails, setReportDetails] = useState("");
   const [toast, setToast] = useState("");
   const [mobileCtaVisible, setMobileCtaVisible] = useState(false);
+  const [headerQuery, setHeaderQuery] = useState("");
   const bookingTriggerRef = useRef<HTMLButtonElement | null>(null);
   const bookingCloseTimerRef = useRef<number | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
@@ -514,37 +489,26 @@ export function ListingDetailPage({
         {t.skip}
       </a>
 
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-8">
-          <Link
-            className="rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200"
-            href="/"
-          >
-            <BrandMark />
-          </Link>
-          <div className="flex items-center gap-2">
-            <LanguageToggle
-              locale={selectedLocale}
-              onChange={changeLocale}
-              label={t.language}
-            />
-            <ThemeToggle locale={locale} theme={theme} onToggle={toggleTheme} />
-            <button
-              className="btn-secondary"
-              onClick={() =>
-                announce(
-                  locale === "id"
-                    ? "Masuk akan hadir pada prototipe akun."
-                    : "Sign in will arrive with the account prototype.",
-                )
-              }
-              type="button"
-            >
-              {t.login}
-            </button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        locale={locale}
+        selectedLocale={selectedLocale}
+        onChangeLocale={changeLocale}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        loginHref="/masuk"
+        loginLabel={t.login}
+        languageLabel={t.language}
+        searchLabel={homeCopy[locale].location}
+        searchPlaceholder={homeCopy[locale].locationPlaceholder}
+        searchButtonLabel={homeCopy[locale].search}
+        searchValue={headerQuery}
+        onSearchChange={setHeaderQuery}
+        onSearchSubmit={(value) =>
+          window.location.assign(
+            `/kos${serializeFilters({ ...defaultFilters, query: value })}`,
+          )
+        }
+      />
 
       <main
         className="locale-content pb-24 lg:pb-0"

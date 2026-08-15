@@ -9,61 +9,51 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test("searches mock listings and preserves the query in the URL", async ({
+test("navigates to the search page via the header search bar", async ({
   page,
 }) => {
   await page.getByRole("textbox", { name: "Lokasi", exact: true }).fill("Bandung");
   await page.getByRole("button", { name: "Cari kos" }).click();
 
-  await expect(page).toHaveURL(/\?q=Bandung/);
+  await expect(page).toHaveURL(/\/kos\?q=Bandung/);
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
   await expect(page.getByText("Nara House Kemang")).toHaveCount(0);
 });
 
-test("shows a focused header and location-only hero", async ({ page }) => {
-  const header = page.getByRole("banner");
-  await expect(header.getByLabel("Papikos")).toBeVisible();
-  await expect(header.getByRole("button", { name: "Masuk" })).toBeVisible();
-  await expect(header.getByRole("navigation")).toHaveCount(0);
-  await expect(
-    header.getByRole("button", { name: "Daftarkan kos" }),
-  ).toHaveCount(0);
-
-  const searchForm = page
-    .getByRole("button", { name: "Cari kos" })
-    .locator("xpath=ancestor::form");
-  await expect(searchForm.getByRole("textbox")).toHaveCount(1);
-  await expect(searchForm.getByRole("combobox")).toHaveCount(0);
-  await expect(page.getByText("4 kota demo")).toHaveCount(0);
-});
-
-test("filters by a popular location and restores all locations", async ({
+test("shows a focused header search and a hero CTA into search", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "Bandung" }).click();
-  await expect(page).toHaveURL(/\?q=Bandung/);
-  await expect(page.getByText("Kos Asri Dago")).toBeVisible();
+  const header = page.getByRole("banner");
+  await expect(header.getByLabel("Papikos")).toBeVisible();
+  await expect(header.getByRole("link", { name: "Masuk" })).toHaveAttribute(
+    "href",
+    "/masuk",
+  );
+  await expect(header.getByRole("navigation")).toHaveCount(0);
+  await expect(header.getByRole("textbox", { name: "Lokasi" })).toBeVisible();
 
-  await page
-    .getByLabel("Lokasi populer", { exact: true })
-    .getByRole("button", { name: "Semua", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByText("Nara House Kemang")).toBeVisible();
+  const heroCta = page.getByRole("link", { name: "Mulai cari kos" });
+  await expect(heroCta).toBeVisible();
+  await expect(heroCta).toHaveAttribute("href", "/kos");
 });
 
-test("uses concise all labels and supports reduced motion", async ({ page }) => {
+test("links popular locations and the explore-all CTA to the search page", async ({
+  page,
+}) => {
+  const popularLocations = page.getByLabel("Lokasi populer", { exact: true });
   await expect(
-    page
-      .getByLabel("Lokasi populer", { exact: true })
-      .getByRole("button", { name: "Semua", exact: true }),
-  ).toBeVisible();
+    popularLocations.getByRole("link", { name: "Bandung" }),
+  ).toHaveAttribute("href", "/kos?q=Bandung");
   await expect(
-    page
-      .getByLabel("Tipe kos", { exact: true })
-      .getByRole("button", { name: "Semua", exact: true }),
-  ).toBeVisible();
+    popularLocations.getByRole("link", { name: "Semua", exact: true }),
+  ).toHaveAttribute("href", "/kos");
 
+  await expect(
+    page.getByRole("link", { name: "Lihat semua kos" }),
+  ).toHaveAttribute("href", "/kos");
+});
+
+test("supports reduced motion", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
 
@@ -116,27 +106,6 @@ test("persists dark mode across homepage and detail navigation", async ({
   await expect(
     page.getByRole("button", { name: "Aktifkan mode terang" }),
   ).toBeVisible();
-});
-
-test("opens a complete kos detail page and preserves the search return path", async ({
-  page,
-}) => {
-  await page.getByRole("textbox", { name: "Lokasi", exact: true }).fill("Jakarta");
-  await page.getByRole("button", { name: "Cari kos" }).click();
-  await page.getByRole("link", { name: "Lihat detail" }).first().click();
-
-  await expect(page).toHaveURL(/\/kos\/senja-setiabudi/);
-  await expect(
-    page.getByRole("heading", { name: "Papikos Senja Setiabudi" }),
-  ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Rincian biaya" })).toBeVisible();
-  await expect(page.getByText("Tidak ada deposit")).toBeVisible();
-  await expect(page.getByText("Kamar utama · 1/5")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Pilih kamar" })).toHaveCount(0);
-
-  await page.getByRole("link", { name: "Kembali ke hasil" }).click();
-  await expect(page).toHaveURL(/\?q=Jakarta/);
-  await expect(page.getByText("Nara House Kemang")).toBeVisible();
 });
 
 test("persists a local booking request and structured question", async ({

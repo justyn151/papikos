@@ -130,6 +130,19 @@ export const listings: Listing[] = [
     tone: "from-indigo-900 via-blue-700 to-cyan-400",
     accent: "bg-fuchsia-200",
   },
+  {
+    id: "melati-tebet",
+    name: "Kos Melati Tebet",
+    city: "Jakarta",
+    district: "Tebet",
+    type: "putri",
+    price: 1750000,
+    amenities: ["wifi", "ac", "privateBathroom", "laundry"],
+    availableRooms: 0,
+    verified: true,
+    tone: "from-blue-800 via-indigo-600 to-sky-400",
+    accent: "bg-rose-200",
+  },
 ];
 
 const descriptions: Record<string, LocalizedText> = {
@@ -164,6 +177,10 @@ const descriptions: Record<string, LocalizedText> = {
   "taman-rungkut": text(
     "Kos putri yang tertata di Rungkut dengan fasilitas harian lengkap dan suasana lingkungan yang lebih tenang.",
     "A well-kept women-only kos in Rungkut with practical facilities and a quieter neighborhood atmosphere.",
+  ),
+  "melati-tebet": text(
+    "Kos putri di Tebet dengan kamar ber-AC dan akses cepat ke stasiun; seluruh kamar sedang terisi penuh.",
+    "A women-only kos in Tebet with air-conditioned rooms and quick station access; every room is currently occupied.",
   ),
 };
 
@@ -244,7 +261,10 @@ function createGallery(listing: Listing, index: number): GalleryItem[] {
 
 function createRooms(listing: Listing, index: number): RoomOption[] {
   const privateBath = listing.amenities.includes("privateBathroom");
-  const standardAvailable = Math.max(1, Math.ceil(listing.availableRooms / 2));
+  const standardAvailable =
+    listing.availableRooms === 0
+      ? 0
+      : Math.max(1, Math.ceil(listing.availableRooms / 2));
   return [
     {
       id: `${listing.id}-standard`,
@@ -400,6 +420,7 @@ export const listingDetails: ListingDetail[] = listings.map((listing, index) => 
     "Fajar Nugraha",
     "Mira Handayani",
     "Sinta Maharani",
+    "Laras Pertiwi",
   ][index],
   ownerSince: 2018 + (index % 5),
   gallery: createGallery(listing, index),

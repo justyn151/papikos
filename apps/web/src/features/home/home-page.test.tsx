@@ -5,9 +5,8 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { defaultFilters } from "./home-utils";
 import { HomePage } from "./home-page";
 
 describe("Papikos homepage", () => {
@@ -17,73 +16,70 @@ describe("Papikos homepage", () => {
     document.documentElement.dataset.theme = "light";
   });
 
-  it("filters listings on the page and syncs the URL", async () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+  it("navigates to the search page via the header search bar", () => {
+    const assign = vi.fn();
+    const originalLocation = window.location;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...originalLocation, assign },
+    });
+
+    render(<HomePage />);
 
     fireEvent.change(screen.getByLabelText("Lokasi"), {
       target: { value: "Bandung" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Cari kos" }));
 
-    expect(await screen.findByText("Kos Asri Dago")).toBeInTheDocument();
-    expect(screen.getByText("Bumi Pasteur Residence")).toBeInTheDocument();
-    expect(screen.queryByText("Nara House Kemang")).not.toBeInTheDocument();
-    expect(window.location.search).toBe("?q=Bandung");
+    expect(assign).toHaveBeenCalledWith("/kos?q=Bandung");
+
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 
-  it("keeps the header and hero focused on renter location search", () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+  it("renders exactly 8 static preview cards with no room-type filter controls", () => {
+    render(<HomePage />);
+
+    expect(document.querySelectorAll(".listing-card")).toHaveLength(8);
+    expect(screen.queryByLabelText("Tipe kos")).not.toBeInTheDocument();
+  });
+
+  it("keeps the header search focused on renter location search and the hero as a plain CTA", () => {
+    render(<HomePage />);
 
     const header = screen.getByRole("banner");
     expect(within(header).getByLabelText("Papikos")).toBeInTheDocument();
-    expect(within(header).getByRole("button", { name: "Masuk" })).toBeInTheDocument();
-    expect(within(header).queryByRole("navigation")).not.toBeInTheDocument();
-    expect(
-      within(header).queryByRole("button", { name: "Daftarkan kos" }),
-    ).not.toBeInTheDocument();
-
-    const searchForm = screen
-      .getByRole("button", { name: "Cari kos" })
-      .closest("form");
-    expect(searchForm).not.toBeNull();
-    expect(within(searchForm!).getAllByRole("textbox")).toHaveLength(1);
-    expect(within(searchForm!).queryByRole("combobox")).not.toBeInTheDocument();
-    expect(screen.queryByText("4 kota demo")).not.toBeInTheDocument();
-  });
-
-  it("filters with popular locations and restores all locations", async () => {
-    render(<HomePage initialFilters={defaultFilters} />);
-    const popularLocations = screen.getByLabelText("Lokasi populer");
-
-    fireEvent.click(screen.getByRole("button", { name: "Bandung" }));
-    expect(await screen.findByText("Kos Asri Dago")).toBeInTheDocument();
-    expect(window.location.search).toBe("?q=Bandung");
-
-    fireEvent.click(
-      within(popularLocations).getByRole("button", { name: /^Semua$/ }),
+    expect(within(header).getByRole("link", { name: "Masuk" })).toHaveAttribute(
+      "href",
+      "/masuk",
     );
-    expect(await screen.findByText("Nara House Kemang")).toBeInTheDocument();
-    expect(window.location.search).toBe("");
+    expect(within(header).queryByRole("navigation")).not.toBeInTheDocument();
+
+    expect(screen.getAllByLabelText("Lokasi")).toHaveLength(1);
+    const heroCta = screen.getByRole("link", { name: "Mulai cari kos" });
+    expect(heroCta).toHaveAttribute("href", "/kos");
   });
 
-  it("uses the concise all label for location and room-type filters", () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+  it("links popular locations and the explore-all CTA to the search page", () => {
+    render(<HomePage />);
+
+    const popularLocations = screen.getByLabelText("Lokasi populer");
+    expect(
+      within(popularLocations).getByRole("link", { name: "Bandung" }),
+    ).toHaveAttribute("href", "/kos?q=Bandung");
+    expect(
+      within(popularLocations).getByRole("link", { name: /^Semua$/ }),
+    ).toHaveAttribute("href", "/kos");
 
     expect(
-      within(screen.getByLabelText("Lokasi populer")).getByRole("button", {
-        name: /^Semua$/,
-      }),
-    ).toBeInTheDocument();
-    expect(
-      within(screen.getByLabelText("Tipe kos")).getByRole("button", {
-        name: /^Semua$/,
-      }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Semua tipe")).not.toBeInTheDocument();
+      screen.getByRole("link", { name: "Lihat semua kos" }),
+    ).toHaveAttribute("href", "/kos");
   });
 
   it("keeps reveal content visible without IntersectionObserver", () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+    render(<HomePage />);
 
     expect(
       screen.getByRole("heading", { name: "Kos yang layak dilihat" }),
@@ -94,7 +90,7 @@ describe("Papikos homepage", () => {
   });
 
   it("switches all primary copy to English and persists the locale", async () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+    render(<HomePage />);
 
     fireEvent.click(screen.getAllByRole("button", { name: "EN" })[0]);
 
@@ -109,7 +105,7 @@ describe("Papikos homepage", () => {
   });
 
   it("exposes a persistent light and dark mode control", () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+    render(<HomePage />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Aktifkan mode gelap" }),
@@ -123,7 +119,7 @@ describe("Papikos homepage", () => {
   });
 
   it("persists favorites locally", async () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+    render(<HomePage />);
 
     fireEvent.click(screen.getAllByRole("button", { name: "Simpan ke favorit" })[0]);
 
@@ -135,7 +131,7 @@ describe("Papikos homepage", () => {
   });
 
   it("completes the preference survey and exposes match reasons", async () => {
-    render(<HomePage initialFilters={defaultFilters} />);
+    render(<HomePage />);
 
     fireEvent.click(
       screen.getByRole("button", { name: "Coba survei preferensi" }),

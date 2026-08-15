@@ -2,11 +2,7 @@
 
 import {
   ArrowRight,
-  BadgeCheck,
   Building2,
-  Check,
-  ChevronRight,
-  Heart,
   KeyRound,
   Map as MapIcon,
   MapPin,
@@ -19,298 +15,42 @@ import {
 import Link from "next/link";
 import {
   type CSSProperties,
-  type FormEvent,
   type KeyboardEvent as ReactKeyboardEvent,
-  type ReactNode,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 
-import { amenityLabels, copy, shortTypeLabels, typeLabels } from "./copy";
+import { amenityLabels, copy, typeLabels } from "./copy";
 import {
   defaultFilters,
-  filterListings,
   formatPrice,
   rankListings,
-  readStoredValue,
   serializeFilters,
 } from "./home-utils";
 import { amenities, cities, listings } from "./mock-listings";
+import { ListingCard } from "@/features/listings/listing-card";
+import { BrandMark } from "@/features/navigation/brand-mark";
+import { SiteHeader } from "@/features/navigation/site-header";
 import {
-  LanguageToggle,
-  ThemeToggle,
   useLocaleTransition,
   useTheme,
 } from "@/features/preferences/preferences";
+import { Reveal } from "@/features/shared/reveal";
+import {
+  FAVORITES_STORAGE_KEY,
+  SURVEY_STORAGE_KEY,
+} from "@/features/shared/storage-keys";
+import { usePersistentState } from "@/features/shared/use-persistent-state";
 import type {
   Amenity,
   Listing,
-  Locale,
-  MatchReason,
   MatchResult,
-  SearchFilters,
   SurveyPreferences,
 } from "./types";
 
-const STORAGE_KEYS = {
-  favorites: "papikos.favorites",
-  survey: "papikos.survey",
-} as const;
-
 const budgetOptions = [1000000, 1500000, 2000000, 2500000, 3000000];
-
-function Reveal({
-  children,
-  className = "",
-  delay = 0,
-}: {
-  children: ReactNode;
-  className?: string;
-  delay?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [state, setState] = useState<"static" | "pending" | "visible">(
-    "static",
-  );
-
-  useEffect(() => {
-    const node = ref.current;
-    const reduceMotion = window.matchMedia?.(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    if (!node || reduceMotion || !("IntersectionObserver" in window)) {
-      return;
-    }
-
-    let frame = window.requestAnimationFrame(() => {
-      setState("pending");
-      frame = window.requestAnimationFrame(() => observer.observe(node));
-    });
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setState("visible");
-        observer.disconnect();
-      },
-      { rootMargin: "0px 0px -8%", threshold: 0.08 },
-    );
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
-  }, []);
-
-  return (
-    <div
-      className={className}
-      data-reveal={state}
-      ref={ref}
-      style={{ "--reveal-delay": `${delay}ms` } as CSSProperties}
-    >
-      {children}
-    </div>
-  );
-}
-
-function usePersistentState<T>(key: string, initialValue: T) {
-  const initialRef = useRef(initialValue);
-  const [value, setValue] = useState<T>(initialValue);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    setValue(readStoredValue(key, initialRef.current));
-    setReady(true);
-  }, [key]);
-
-  useEffect(() => {
-    if (!ready) return;
-    window.localStorage.setItem(key, JSON.stringify(value));
-  }, [key, ready, value]);
-
-  return [value, setValue] as const;
-}
-
-function BrandMark({ inverse = false }: { inverse?: boolean }) {
-  return (
-    <span className="inline-flex items-center gap-2.5" aria-label="Papikos">
-      <span className="grid size-10 place-items-center rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-        <Building2 size={21} strokeWidth={2.4} aria-hidden="true" />
-      </span>
-      <span
-        className={`brand-wordmark text-xl font-black tracking-[-0.04em] ${
-          inverse ? "text-white" : "text-slate-950 dark:text-slate-50"
-        }`}
-      >
-        papi<span className={inverse ? "text-cyan-300" : "text-blue-600 dark:text-blue-400"}>kos</span>
-      </span>
-    </span>
-  );
-}
-
-function PropertyPlaceholder({ listing }: { listing: Listing }) {
-  return (
-    <div
-      className={`relative h-48 overflow-hidden bg-gradient-to-br ${listing.tone}`}
-      aria-hidden="true"
-    >
-      <div className="absolute -right-8 -top-10 size-36 rounded-full bg-white/10" />
-      <div className="absolute -bottom-16 -left-10 size-44 rounded-full bg-cyan-100/15" />
-      <div className="absolute bottom-0 left-8 right-8 h-32 rounded-t-[2rem] border border-white/25 bg-white/15 shadow-2xl backdrop-blur-sm">
-        <div className="absolute left-1/2 top-[-25px] size-16 -translate-x-1/2 rotate-45 rounded-xl bg-white/20" />
-        <div className="absolute inset-x-5 top-7 grid grid-cols-3 gap-3">
-          {[0, 1, 2, 3, 4, 5].map((window) => (
-            <span
-              className={`h-7 rounded-md ${
-                window === 1 || window === 5
-                  ? listing.accent
-                  : "bg-white/35"
-              }`}
-              key={window}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="absolute left-4 top-4 rounded-full border border-white/25 bg-slate-950/25 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md">
-        {listing.city}
-      </div>
-    </div>
-  );
-}
-
-function reasonText(
-  reason: MatchReason,
-  locale: Locale,
-  t: (typeof copy)[Locale],
-) {
-  if (reason.kind === "budget") return t.matchBudget;
-  if (reason.kind === "location") return t.matchLocation;
-  if (reason.kind === "roomType") return t.matchRoomType;
-  return `${reason.matched}/${reason.total} ${t.matchAmenities}`;
-}
-
-function ListingCard({
-  listing,
-  locale,
-  favorite,
-  onFavorite,
-  detailHref,
-  match,
-  animationIndex,
-}: {
-  listing: Listing;
-  locale: Locale;
-  favorite: boolean;
-  onFavorite: () => void;
-  detailHref: string;
-  match?: MatchResult;
-  animationIndex: number;
-}) {
-  const t = copy[locale];
-
-  return (
-    <article
-      className="listing-card result-card-enter group h-full overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_65px_-30px_rgba(37,99,235,0.35)]"
-      style={
-        {
-          "--card-delay": `${Math.min(animationIndex, 5) * 45}ms`,
-        } as CSSProperties
-      }
-    >
-      <div className="relative">
-        <PropertyPlaceholder listing={listing} />
-        <button
-          className="favorite-button absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 shadow-lg transition hover:scale-105 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-blue-200"
-          onClick={onFavorite}
-          type="button"
-          aria-label={favorite ? t.favoriteRemove : t.favoriteAdd}
-          aria-pressed={favorite}
-        >
-          <Heart
-            size={19}
-            className={`favorite-heart ${
-              favorite ? "is-favorite fill-rose-500 text-rose-500" : ""
-            }`}
-            aria-hidden="true"
-          />
-        </button>
-        {match ? (
-          <span className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-blue-950 px-3 py-1.5 text-xs font-black text-white shadow-lg">
-            <Sparkles size={13} aria-hidden="true" />
-            {match.score}% {t.match}
-          </span>
-        ) : null}
-      </div>
-      <div className="p-5">
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-bold">
-          <span className="rounded-full bg-blue-50 dark:bg-blue-950/35 px-2.5 py-1 text-blue-700 dark:text-blue-300">
-            {shortTypeLabels[locale][listing.type]}
-          </span>
-          {listing.verified ? (
-            <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
-              <BadgeCheck size={14} aria-hidden="true" />
-              {t.verified}
-            </span>
-          ) : null}
-        </div>
-        <h3 className="text-lg font-black tracking-[-0.025em] text-slate-950 dark:text-slate-50">
-          {listing.name}
-        </h3>
-        <p className="mt-1.5 flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-          <MapPin size={15} aria-hidden="true" />
-          {listing.district}, {listing.city}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {listing.amenities.slice(0, 3).map((amenity) => (
-            <span
-              className="rounded-lg border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300"
-              key={amenity}
-            >
-              {amenityLabels[locale][amenity]}
-            </span>
-          ))}
-        </div>
-        {match && match.reasons.length > 0 ? (
-          <ul className="mt-4 space-y-1.5 border-t border-dashed border-blue-200 pt-4">
-            {match.reasons.slice(0, 3).map((reason) => (
-              <li
-                className="flex items-center gap-2 text-xs font-semibold text-blue-800 dark:text-blue-200"
-                key={reason.kind}
-              >
-                <Check size={14} aria-hidden="true" />
-                {reasonText(reason, locale, t)}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <div className="mt-5 flex items-end justify-between gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
-          <div>
-            <p className="text-lg font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50">
-              {formatPrice(listing.price, locale)}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {listing.availableRooms} {t.roomsLeft} · {t.perMonth}
-            </p>
-          </div>
-          <Link
-            className="detail-button inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200"
-            href={detailHref}
-          >
-            {t.viewDetail}
-            <ChevronRight
-              className="cta-arrow"
-              size={15}
-              aria-hidden="true"
-            />
-          </Link>
-        </div>
-      </div>
-    </article>
-  );
-}
 
 function SurveyModal({
   open,
@@ -320,7 +60,7 @@ function SurveyModal({
   onSubmit,
 }: {
   open: boolean;
-  locale: Locale;
+  locale: "id" | "en";
   initialPreferences: SurveyPreferences | null;
   onClose: () => void;
   onSubmit: (preferences: SurveyPreferences) => void;
@@ -530,20 +270,17 @@ function SurveyModal({
   );
 }
 
-export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) {
+export function HomePage() {
   const { changeLocale, locale, selectedLocale, transitionState } =
     useLocaleTransition();
   const { theme, toggleTheme } = useTheme();
   const [favoriteIds, setFavoriteIds] = usePersistentState<string[]>(
-    STORAGE_KEYS.favorites,
+    FAVORITES_STORAGE_KEY,
     [],
   );
   const [savedSurvey, setSavedSurvey] =
-    usePersistentState<SurveyPreferences | null>(STORAGE_KEYS.survey, null);
-  const [draftFilters, setDraftFilters] =
-    useState<SearchFilters>(initialFilters);
-  const [appliedFilters, setAppliedFilters] =
-    useState<SearchFilters>(initialFilters);
+    usePersistentState<SurveyPreferences | null>(SURVEY_STORAGE_KEY, null);
+  const [headerQuery, setHeaderQuery] = useState("");
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [surveyOpen, setSurveyOpen] = useState(false);
   const [toast, setToast] = useState("");
@@ -563,10 +300,6 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
     window.setTimeout(() => setToast(""), 2600);
   };
 
-  const syncUrl = (filters: SearchFilters) => {
-    window.history.replaceState(null, "", `/${serializeFilters(filters)}`);
-  };
-
   const scrollToResults = () => {
     window.setTimeout(
       () => resultsRef.current?.scrollIntoView({ behavior: "smooth" }),
@@ -574,19 +307,7 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
     );
   };
 
-  const applySearch = (filters: SearchFilters, shouldAnnounce = true) => {
-    setDraftFilters(filters);
-    setAppliedFilters(filters);
-    setMatches([]);
-    syncUrl(filters);
-    scrollToResults();
-    if (shouldAnnounce) announce(t.searchUpdated);
-  };
-
-  const filtered = useMemo(
-    () => filterListings(listings, appliedFilters),
-    [appliedFilters],
-  );
+  const previewListings = useMemo(() => listings.slice(0, 8), []);
 
   const matchById = useMemo(
     () => new Map(matches.slice(0, 3).map((match) => [match.listingId, match])),
@@ -594,15 +315,15 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
   );
 
   const visibleListings = useMemo(() => {
-    if (matches.length === 0) return filtered;
+    if (matches.length === 0) return previewListings;
     const byId = new Map(listings.map((listing) => [listing.id, listing]));
     return matches
       .map((match) => byId.get(match.listingId))
       .filter((listing): listing is Listing => Boolean(listing));
-  }, [filtered, matches]);
-  const resultsAnimationKey = `${serializeFilters(appliedFilters)}:${matches
-    .map((match) => match.listingId)
-    .join(",")}`;
+  }, [matches, previewListings]);
+
+  const resultsAnimationKey =
+    matches.length > 0 ? matches.map((match) => match.listingId).join(",") : "preview";
 
   const toggleFavorite = (listingId: string) => {
     const favorite = favoriteIds.includes(listingId);
@@ -623,14 +344,17 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
     const ranked = rankListings(listings, preferences);
     setSavedSurvey(preferences);
     setMatches(ranked);
-    setDraftFilters(defaultFilters);
-    setAppliedFilters(defaultFilters);
-    syncUrl(defaultFilters);
     closeSurvey();
     scrollToResults();
   };
 
   const comingSoon = () => announce(t.prototypeNotice);
+
+  const goToSearch = (query: string) => {
+    window.location.assign(
+      `/kos${serializeFilters({ ...defaultFilters, query })}`,
+    );
+  };
 
   return (
     <>
@@ -641,28 +365,22 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
         {t.skip}
       </a>
 
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-[68px] max-w-7xl items-center justify-between px-4 sm:px-8">
-          <a href="#" className="rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200">
-            <BrandMark />
-          </a>
-          <div className="flex items-center gap-2">
-            <LanguageToggle
-              locale={selectedLocale}
-              onChange={changeLocale}
-              label={t.language}
-            />
-            <ThemeToggle locale={locale} theme={theme} onToggle={toggleTheme} />
-            <button
-              className="btn-secondary"
-              onClick={comingSoon}
-              type="button"
-            >
-              {t.login}
-            </button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        locale={locale}
+        selectedLocale={selectedLocale}
+        onChangeLocale={changeLocale}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        loginHref="/masuk"
+        loginLabel={t.login}
+        languageLabel={t.language}
+        searchLabel={t.location}
+        searchPlaceholder={t.locationPlaceholder}
+        searchButtonLabel={t.search}
+        searchValue={headerQuery}
+        onSearchChange={setHeaderQuery}
+        onSearchSubmit={goToSearch}
+      />
 
       <main
         className="locale-content"
@@ -687,48 +405,14 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                 {t.heroBody}
               </p>
 
-              <form
-                className="hero-enter mt-7 max-w-2xl rounded-[1.35rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 shadow-[0_24px_60px_-36px_rgba(30,64,175,0.45)]"
+              <Link
+                className="search-button hero-enter mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 px-8 py-5 text-sm font-black text-white shadow-[0_24px_60px_-36px_rgba(30,64,175,0.45)] transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
                 style={{ "--hero-delay": "200ms" } as CSSProperties}
-                onSubmit={(event: FormEvent<HTMLFormElement>) => {
-                  event.preventDefault();
-                  applySearch({
-                    ...defaultFilters,
-                    query: draftFilters.query,
-                  });
-                }}
+                href="/kos"
               >
-                <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-                  <label className="search-field">
-                    <span>{t.location}</span>
-                    <span className="flex items-center gap-2">
-                      <MapPin size={17} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                      <input
-                        className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-slate-900 dark:text-slate-100 outline-none placeholder:text-slate-400"
-                        placeholder={t.locationPlaceholder}
-                        value={draftFilters.query}
-                        onChange={(event) =>
-                          setDraftFilters((current) => ({
-                            ...current,
-                            query: event.target.value,
-                          }))
-                        }
-                      />
-                    </span>
-                  </label>
-                  <button
-                    className="search-button inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-6 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
-                    type="submit"
-                  >
-                    <Search
-                      className="search-icon"
-                      size={18}
-                      aria-hidden="true"
-                    />
-                    <span>{t.search}</span>
-                  </button>
-                </div>
-              </form>
+                <Search className="search-icon" size={18} aria-hidden="true" />
+                <span>{t.heroSearchCta}</span>
+              </Link>
             </div>
 
             <div className="relative mx-auto min-h-[280px] w-full max-w-[500px] sm:min-h-[340px]" aria-hidden="true">
@@ -755,32 +439,16 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{t.popularBody}</p>
             </div>
             <div className="flex flex-wrap gap-2" aria-label={t.popular}>
-              {["", ...cities].map((city) => {
-                const isActive =
-                  appliedFilters.query.trim().toLocaleLowerCase("id-ID") ===
-                  city.toLocaleLowerCase("id-ID");
-                return (
-                  <button
-                    className={`filter-chip inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
-                      isActive
-                        ? "border-blue-600 bg-blue-600 text-white"
-                        : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/35 hover:text-blue-700 dark:hover:text-blue-300"
-                    }`}
-                    key={city || "all"}
-                    onClick={() =>
-                      applySearch({
-                        ...defaultFilters,
-                        query: city,
-                      })
-                    }
-                    type="button"
-                    aria-pressed={isActive}
-                  >
-                    {city ? <MapPin size={14} aria-hidden="true" /> : null}
-                    {city || t.allLocations}
-                  </button>
-                );
-              })}
+              {["", ...cities].map((city) => (
+                <Link
+                  className="filter-chip inline-flex items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm font-bold text-slate-700 dark:text-slate-300 transition hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/35 hover:text-blue-700 dark:hover:text-blue-300"
+                  href={city ? `/kos?q=${encodeURIComponent(city)}` : "/kos"}
+                  key={city || "all"}
+                >
+                  {city ? <MapPin size={14} aria-hidden="true" /> : null}
+                  {city || t.allLocations}
+                </Link>
+              ))}
             </div>
           </Reveal>
         </section>
@@ -800,75 +468,42 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
                 <h2 className="section-title mt-4">{t.featured}</h2>
                 <p className="mt-3 max-w-xl text-slate-600 dark:text-slate-300">{t.featuredBody}</p>
               </div>
-              <div className="flex flex-wrap gap-2" aria-label={t.roomType}>
-                {(["all", "putra", "putri", "campur"] as const).map((type) => (
-                  <button
-                    className={`filter-chip rounded-full px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
-                      appliedFilters.type === type && matches.length === 0
-                        ? "bg-blue-600 text-white"
-                        : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-300"
-                    }`}
-                    key={type}
-                    onClick={() =>
-                      applySearch({
-                        ...appliedFilters,
-                        type,
-                      })
-                    }
-                    type="button"
-                    aria-pressed={appliedFilters.type === type && matches.length === 0}
-                  >
-                    {typeLabels[locale][type]}
-                  </button>
+            </Reveal>
+
+            {matches.length > 0 ? (
+              <p
+                className="result-count-enter mt-8 text-sm font-bold text-slate-500 dark:text-slate-400"
+                key={`count:${resultsAnimationKey}`}
+                aria-live="polite"
+              >
+                {visibleListings.length} {t.results}
+              </p>
+            ) : null}
+
+            <Reveal className="mt-8">
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {visibleListings.map((listing, index) => (
+                  <ListingCard
+                    animationIndex={index}
+                    detailHref={`/kos/${listing.id}?from=${encodeURIComponent("/")}`}
+                    favorite={favoriteIds.includes(listing.id)}
+                    key={`${resultsAnimationKey}:${listing.id}`}
+                    listing={listing}
+                    locale={locale}
+                    match={matchById.get(listing.id)}
+                    onFavorite={() => toggleFavorite(listing.id)}
+                  />
                 ))}
               </div>
             </Reveal>
 
-            <p
-              className="result-count-enter mt-8 text-sm font-bold text-slate-500 dark:text-slate-400"
-              key={`count:${resultsAnimationKey}`}
-              aria-live="polite"
-            >
-              {visibleListings.length} {t.results}
-            </p>
-
-            {visibleListings.length > 0 ? (
-              <Reveal className="mt-5">
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {visibleListings.map((listing, index) => (
-                    <ListingCard
-                      animationIndex={index}
-                      detailHref={`/kos/${listing.id}?from=${encodeURIComponent(
-                        `/${serializeFilters(appliedFilters)}`,
-                      )}`}
-                      favorite={favoriteIds.includes(listing.id)}
-                      key={`${resultsAnimationKey}:${listing.id}`}
-                      listing={listing}
-                      locale={locale}
-                      match={matchById.get(listing.id)}
-                      onFavorite={() => toggleFavorite(listing.id)}
-                    />
-                  ))}
-                </div>
-              </Reveal>
-            ) : (
-              <div className="mt-6 rounded-[2rem] border border-dashed border-blue-200 bg-blue-50 dark:bg-blue-950/35 px-6 py-16 text-center">
-                <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-sm">
-                  <Search size={24} aria-hidden="true" />
-                </span>
-                <h3 className="mt-5 text-xl font-black text-slate-950 dark:text-slate-50">{t.emptyTitle}</h3>
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  {t.emptyBody}
-                </p>
-                <button
-                  className="btn-primary mt-5"
-                  onClick={() => applySearch(defaultFilters)}
-                  type="button"
-                >
-                  {t.reset}
-                </button>
+            {matches.length === 0 ? (
+              <div className="mt-10 flex justify-center">
+                <Link className="btn-primary" href="/kos">
+                  {t.exploreAllCta}
+                </Link>
               </div>
-            )}
+            ) : null}
           </div>
         </section>
 
@@ -961,8 +596,8 @@ export function HomePage({ initialFilters }: { initialFilters: SearchFilters }) 
             [
               t.footerExplore,
               [
-                [t.footerLinks.search, "#featured"],
-                [t.footerLinks.survey, "#featured"],
+                [t.footerLinks.search, "/kos"],
+                [t.footerLinks.survey, "#preference-survey"],
               ],
             ],
             [
