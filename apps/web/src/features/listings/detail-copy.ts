@@ -30,6 +30,8 @@ export const detailCopy = {
     costsBody: "Semua biaya yang diketahui ditampilkan sebelum kamu mengajukan sewa.",
     included: "Termasuk",
     noCharge: "Tanpa biaya",
+    explainCost: "Lihat penjelasan biaya",
+    costDialogTitle: "Penjelasan biaya",
     facilities: "Fasilitas",
     facilityGroups: {
       room: "Di dalam kamar",
@@ -138,6 +140,8 @@ export const detailCopy = {
     costsBody: "Every known cost is shown before you submit a rental request.",
     included: "Included",
     noCharge: "No charge",
+    explainCost: "See how this charge works",
+    costDialogTitle: "Cost explanation",
     facilities: "Facilities",
     facilityGroups: {
       room: "Inside the room",

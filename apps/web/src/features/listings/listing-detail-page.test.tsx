@@ -140,4 +140,40 @@ describe("kos detail page", () => {
       screen.getByRole("button", { name: "Request to rent" }),
     ).toBeVisible();
   });
+  it("explains a cost and states that payment happens outside Papikos", async () => {
+    renderPage();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Listrik — Lihat penjelasan biaya$/ }),
+    );
+
+    const dialog = await screen.findByRole("dialog", {
+      name: "Penjelasan biaya",
+    });
+    expect(
+      within(dialog).getByText(/dihitung terpisah mengikuti meteran/),
+    ).toBeInTheDocument();
+    // AGENTS.md rules out payment processing, so the dialog must say so.
+    expect(
+      within(dialog).getByText(/tidak memproses pembayaran/),
+    ).toBeInTheDocument();
+  });
+
+  it("closes the cost explanation again", async () => {
+    renderPage();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /^Deposit — Lihat penjelasan biaya$/ }),
+    );
+    const dialog = await screen.findByRole("dialog", {
+      name: "Penjelasan biaya",
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Tutup" }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Penjelasan biaya" }),
+      ).not.toBeInTheDocument(),
+    );
+  });
 });

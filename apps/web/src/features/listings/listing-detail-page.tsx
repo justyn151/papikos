@@ -63,6 +63,7 @@ import {
 } from "@/features/shared/storage-keys";
 import { usePersistentState } from "@/features/shared/use-persistent-state";
 
+import { costExplanationFor, costPaymentNotice } from "./cost-copy";
 import { detailCopy } from "./detail-copy";
 import type {
   BookingRequest,
@@ -236,6 +237,7 @@ export function ListingDetailPage({
     STORAGE_KEYS.reports,
     [],
   );
+  const [explainedCostId, setExplainedCostId] = useState<string | null>(null);
   const [selectedGallery, setSelectedGallery] = useState(0);
   const initialRoom =
     listing.rooms.find((room) => room.availableRooms > 0) ?? listing.rooms[0];
@@ -713,7 +715,21 @@ export function ListingDetailPage({
                       key={cost.id}
                     >
                       <div>
-                        <dt className="font-bold text-slate-800 dark:text-slate-200">{cost.label[locale]}</dt>
+                        <dt className="font-bold text-slate-800 dark:text-slate-200">
+                          <button
+                            aria-label={`${cost.label[locale]} — ${t.explainCost}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg text-left underline decoration-dotted underline-offset-4 transition hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100 dark:hover:text-blue-300 dark:focus:ring-blue-950"
+                            onClick={() => setExplainedCostId(cost.id)}
+                            type="button"
+                          >
+                            {cost.label[locale]}
+                            <CircleHelp
+                              size={14}
+                              className="shrink-0 text-slate-400"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </dt>
                         {cost.note ? (
                           <dd className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             {cost.note[locale]}
@@ -736,6 +752,9 @@ export function ListingDetailPage({
                     </div>
                   ))}
                 </dl>
+                <p className="border-t border-slate-100 bg-slate-50 px-5 py-3 text-xs leading-5 font-semibold text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300">
+                  {costPaymentNotice[locale]}
+                </p>
               </div>
             </Section>
 
@@ -1245,6 +1264,73 @@ export function ListingDetailPage({
             </>
           )}
         </Dialog>
+      ) : null}
+
+      {explainedCostId ? (
+        (() => {
+          const cost = listing.costs.find((item) => item.id === explainedCostId);
+          const explanation = costExplanationFor(explainedCostId, locale);
+          return (
+            <Dialog
+              label={t.costDialogTitle}
+              onClose={() => setExplainedCostId(null)}
+            >
+              <div className="flex items-start justify-between gap-5 border-b border-slate-100 p-6 dark:border-slate-800">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-700 dark:text-blue-300">
+                    {t.costDialogTitle}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-black text-slate-950 dark:text-slate-50">
+                    {explanation.title}
+                  </h2>
+                  {cost ? (
+                    <p className="mt-1 text-sm font-bold text-slate-500 dark:text-slate-400">
+                      {cost.included
+                        ? cost.id === "deposit"
+                          ? t.noCharge
+                          : t.included
+                        : cost.amount
+                          ? `${formatPrice(cost.amount, locale)} / ${t.month}`
+                          : cost.note?.[locale]}
+                    </p>
+                  ) : null}
+                </div>
+                <button
+                  aria-label={t.close}
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800"
+                  onClick={() => setExplainedCostId(null)}
+                  type="button"
+                >
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
+
+              <div className="p-6">
+                <p className="text-sm leading-6 text-slate-700 dark:text-slate-200">
+                  {explanation.body}
+                </p>
+                <ul className="mt-4 space-y-2">
+                  {explanation.points.map((point) => (
+                    <li
+                      className="flex items-start gap-2 text-sm leading-6 text-slate-600 dark:text-slate-300"
+                      key={point}
+                    >
+                      <Check
+                        size={15}
+                        className="mt-1 shrink-0 text-emerald-600 dark:text-emerald-300"
+                        aria-hidden="true"
+                      />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-5 rounded-xl bg-blue-50 p-4 text-xs leading-5 font-semibold text-blue-900 dark:bg-blue-950/35 dark:text-blue-100">
+                  {costPaymentNotice[locale]}
+                </p>
+              </div>
+            </Dialog>
+          );
+        })()
       ) : null}
 
       {reportOpen ? (
