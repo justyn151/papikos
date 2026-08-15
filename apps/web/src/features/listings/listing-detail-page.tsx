@@ -223,9 +223,15 @@ export function ListingDetailPage({
     STORAGE_KEYS.bookings,
     [],
   );
-  const [, setSubmittedQuestions] = usePersistentState<
+  const [submittedQuestions, setSubmittedQuestions] = usePersistentState<
     SubmittedQuestion[]
   >(STORAGE_KEYS.questions, []);
+  // Pending questions stay private between renter and owner; once the owner
+  // answers, the exchange becomes useful to every future renter.
+  const answeredQuestions = submittedQuestions.filter(
+    (item) =>
+      item.listingId === listing.id && item.status === "answered" && item.answer,
+  );
   const [reports, setReports] = usePersistentState<ListingReport[]>(
     STORAGE_KEYS.reports,
     [],
@@ -934,6 +940,24 @@ export function ListingDetailPage({
                         </p>
                       </div>
                     ) : null}
+                  </article>
+                ))}
+                {answeredQuestions.map((item) => (
+                  <article
+                    className="rounded-[1.25rem] border border-slate-200 dark:border-slate-700 p-5"
+                    key={item.id}
+                  >
+                    <p className="font-black text-slate-950 dark:text-slate-50">
+                      {item.question}
+                    </p>
+                    <div className="mt-4 rounded-xl bg-blue-50 dark:bg-blue-950/35 p-4">
+                      <p className="text-xs font-black uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                        {t.answered}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
+                        {item.answer}
+                      </p>
+                    </div>
                   </article>
                 ))}
               </div>
