@@ -22,35 +22,7 @@ import type {
   MatchResult,
 } from "@/features/home/types";
 
-function PropertyPlaceholder({ listing }: { listing: Listing }) {
-  return (
-    <div
-      className={`relative h-48 overflow-hidden bg-gradient-to-br ${listing.tone}`}
-      aria-hidden="true"
-    >
-      <div className="absolute -right-8 -top-10 size-36 rounded-full bg-white/10" />
-      <div className="absolute -bottom-16 -left-10 size-44 rounded-full bg-cyan-100/15" />
-      <div className="absolute bottom-0 left-8 right-8 h-32 rounded-t-[2rem] border border-white/25 bg-white/15 shadow-2xl backdrop-blur-sm">
-        <div className="absolute left-1/2 top-[-25px] size-16 -translate-x-1/2 rotate-45 rounded-xl bg-white/20" />
-        <div className="absolute inset-x-5 top-7 grid grid-cols-3 gap-3">
-          {[0, 1, 2, 3, 4, 5].map((window) => (
-            <span
-              className={`h-7 rounded-md ${
-                window === 1 || window === 5
-                  ? listing.accent
-                  : "bg-white/35"
-              }`}
-              key={window}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="absolute left-4 top-4 rounded-full border border-white/25 bg-slate-950/25 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md">
-        {listing.city}
-      </div>
-    </div>
-  );
-}
+import { ListingArtwork } from "./listing-artwork";
 
 function reasonText(
   reason: MatchReason,
@@ -93,7 +65,7 @@ export function ListingCard({
       }
     >
       <div className="relative shrink-0">
-        <PropertyPlaceholder listing={listing} />
+        <ListingArtwork listing={listing} />
         <button
           className="favorite-button absolute right-4 top-4 grid size-10 place-items-center rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 shadow-lg transition hover:scale-105 hover:text-rose-500 focus:outline-none focus:ring-4 focus:ring-blue-200"
           onClick={onFavorite}

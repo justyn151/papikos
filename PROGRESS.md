@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 15 August 2026
+Last updated: 16 August 2026
 
 ## Current Prototype
 
@@ -23,6 +23,15 @@ Completed owner and administrator capabilities:
 - An administrator console with a sectioned marketplace overview, verification, reports, publication and suspension controls, and an audit trail.
 
 ## Completed Milestones
+
+### 16 August 2026 — Console Kos Cards
+
+- Replaced the owner and administrator kos rows with the card renters already
+  see on the homepage and in search: cover artwork, room type, verification,
+  location, and price, with the console's own controls in the footer.
+- Extracted the card artwork into one shared component, so the same kos cannot
+  look like two different places depending on which surface renders it. The
+  row thumbnail added the day before went with the rows it anchored.
 
 ### 15 August 2026 — Console Depth, Media, and Taxonomy
 
