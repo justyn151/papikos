@@ -490,7 +490,7 @@ export function HomePage() {
                 {visibleListings.map((listing, index) => (
                   <ListingCard
                     animationIndex={index}
-                    detailHref={`/kos/${listing.id}?from=${encodeURIComponent("/")}`}
+                    detailHref={`/kos/${listing.id}`}
                     favorite={favoriteIds.includes(listing.id)}
                     key={`${resultsAnimationKey}:${listing.id}`}
                     listing={listing}

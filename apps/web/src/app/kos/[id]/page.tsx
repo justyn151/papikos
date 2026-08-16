@@ -10,14 +10,7 @@ import { ListingDetailPage } from "@/features/listings/listing-detail-page";
 
 type DetailRouteProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ from?: string | string[] }>;
 };
-
-function safeReturnPath(value: string | string[] | undefined) {
-  const raw = Array.isArray(value) ? value[0] : value;
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
-  return raw;
-}
 
 export function generateStaticParams() {
   return listingDetails.map((listing) => ({ id: listing.id }));
@@ -38,19 +31,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function DetailRoute({
-  params,
-  searchParams,
-}: DetailRouteProps) {
-  const [{ id }, query] = await Promise.all([params, searchParams]);
+export default async function DetailRoute({ params }: DetailRouteProps) {
+  const { id } = await params;
   const listing = getListingDetail(id);
   if (!listing) notFound();
 
   return (
-    <ListingDetailPage
-      listing={listing}
-      related={getRelatedListings(listing)}
-      returnTo={safeReturnPath(query.from)}
-    />
+    <ListingDetailPage listing={listing} related={getRelatedListings(listing)} />
   );
 }

@@ -97,7 +97,7 @@ test("clears all filters via the filter panel's clear control", async ({
   await expect(page.getByText("Nara House Kemang")).toBeVisible();
 });
 
-test("opens a kos detail page from search results and preserves the return path", async ({
+test("opens a kos detail page from search results and browser back returns to them", async ({
   page,
 }) => {
   await page.goto("/kos?q=Jakarta");
@@ -109,7 +109,14 @@ test("opens a kos detail page from search results and preserves the return path"
     page.getByRole("heading", { name: "Papikos Senja Setiabudi" }),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Kembali ke hasil" }).click();
+  // The page carries no back link of its own: it is reached from search, the
+  // homepage, favorites, and both consoles, and only browser history knows
+  // which of those the renter actually came from.
+  await expect(
+    page.getByRole("link", { name: "Kembali ke hasil" }),
+  ).toHaveCount(0);
+
+  await page.goBack();
   await expect(page).toHaveURL(/\/kos\?q=Jakarta/);
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
 });

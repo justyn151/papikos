@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   BadgeCheck,
   Bath,
   BedDouble,
@@ -222,11 +221,9 @@ function matchReasonText(
 export function ListingDetailPage({
   listing: seedListing,
   related,
-  returnTo,
 }: {
   listing: ListingDetail;
   related: ListingDetail[];
-  returnTo: string;
 }) {
   // The route is a server component, so owner edits (which live in browser
   // storage) are merged here after hydration rather than on the server.
@@ -504,17 +501,7 @@ export function ListingDetailPage({
         data-locale-transition={transitionState}
         id="main-content"
       >
-        <div className="mx-auto max-w-7xl px-5 pb-5 pt-6 sm:px-8 sm:pt-8">
-          <Link
-            className="inline-flex items-center gap-2 rounded-lg text-sm font-bold text-slate-600 dark:text-slate-300 transition hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-100"
-            href={returnTo}
-          >
-            <ArrowLeft size={17} aria-hidden="true" />
-            {t.back}
-          </Link>
-        </div>
-
-        <section className="mx-auto max-w-7xl px-5 sm:px-8">
+        <section className="mx-auto max-w-7xl px-5 pt-6 sm:px-8 sm:pt-8">
           <div className="grid gap-3 lg:grid-cols-[1.65fr_.85fr]">
             <div className="min-h-[320px] overflow-hidden rounded-[1.75rem] sm:min-h-[460px]">
               <PropertyArtwork
@@ -1141,7 +1128,7 @@ export function ListingDetailPage({
                       </p>
                       <Link
                         className="inline-flex items-center gap-1 text-sm font-black text-blue-700 dark:text-blue-300"
-                        href={`/kos/${item.id}?from=${encodeURIComponent(returnTo)}`}
+                        href={`/kos/${item.id}`}
                       >
                         {t.viewDetail}
                         <ChevronRight size={15} />

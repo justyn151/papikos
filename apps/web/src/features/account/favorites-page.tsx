@@ -59,7 +59,7 @@ export function FavoritesPage() {
                 {saved.map((listing, index) => (
                   <ListingCard
                     animationIndex={index}
-                    detailHref={`/kos/${listing.id}?from=${encodeURIComponent("/favorit")}`}
+                    detailHref={`/kos/${listing.id}`}
                     favorite
                     key={listing.id}
                     listing={listing}

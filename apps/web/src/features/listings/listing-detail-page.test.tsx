@@ -19,7 +19,6 @@ describe("kos detail page", () => {
       <ListingDetailPage
         listing={listing}
         related={getRelatedListings(listing)}
-        returnTo="/?q=Jakarta"
       />,
     );
   }
@@ -39,10 +38,12 @@ describe("kos detail page", () => {
     ).not.toBeInTheDocument();
     expect(screen.getAllByText("Kamar tersedia").length).toBeGreaterThan(0);
     expect(screen.getAllByText("1 kamar tersedia").length).toBeGreaterThan(0);
-    expect(screen.getByRole("link", { name: "Kembali ke hasil" })).toHaveAttribute(
-      "href",
-      "/?q=Jakarta",
-    );
+    // There is no in-page back link: the page is reached from the homepage,
+    // search, favorites, and both consoles, and browser back is the only
+    // control that returns to the right one of those.
+    expect(
+      screen.queryByRole("link", { name: /Kembali ke hasil/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shares favorite state with the homepage storage key", async () => {

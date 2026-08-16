@@ -181,9 +181,7 @@ export function SearchPage({
                     {results.map((listing, index) => (
                       <ListingCard
                         animationIndex={index}
-                        detailHref={`/kos/${listing.id}?from=${encodeURIComponent(
-                          `/kos${serializeFilters(filters)}`,
-                        )}`}
+                        detailHref={`/kos/${listing.id}`}
                         favorite={favoriteIds.includes(listing.id)}
                         key={listing.id}
                         listing={listing}
