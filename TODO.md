@@ -1,6 +1,6 @@
 # Project TODO
 
-Last updated: 27 July 2026
+Last updated: 15 August 2026
 
 This file tracks unfinished product work. Move completed items to [PROGRESS.md](PROGRESS.md) instead of leaving checked tasks here.
 
@@ -18,8 +18,9 @@ This file tracks unfinished product work. Move completed items to [PROGRESS.md](
 - [ ] Synchronize favorites across authenticated devices.
 - [ ] Persist booking requests with pending, approved, rejected, and cancelled status history.
 - [ ] Connect structured Q&A submissions to owner responses without introducing real-time chat.
-- [ ] Build owner property, room, pricing, facility, rule, photo, and availability management.
-- [ ] Build administrator verification, reporting, moderation, audit-history, and basic analytics views.
+- [ ] Move owner property, room, pricing, facility, rule, photo, and availability management onto the API (the browser-local editor is a prototype stand-in).
+- [ ] Move administrator verification, reporting, moderation, audit history, and analytics onto the API with server-enforced authorization.
+- [ ] Derive owner earnings and the platform commission on the server from approved bookings, keeping the reporting-not-settlement boundary in `AGENTS.md`.
 
 ## Cross-Platform Clients
 
@@ -30,7 +31,7 @@ This file tracks unfinished product work. Move completed items to [PROGRESS.md](
 
 ## Product Quality
 
-- [ ] Add a production media upload, moderation, and responsive-image pipeline.
+- [ ] Add a production media upload, moderation, and responsive-image pipeline, replacing the browser-local downscaled data URLs (and revisit video, which cannot fit in browser storage).
 - [ ] Integrate a privacy-safe map provider with approximate pre-booking locations.
 - [ ] Add accessibility audits, performance budgets, error monitoring, and API observability.
 - [ ] Add integration coverage for authorization, validation, and meaningful API failure paths.
