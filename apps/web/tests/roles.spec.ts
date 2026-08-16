@@ -187,6 +187,41 @@ test("resetting an edit restores the seeded listing", async ({ page }) => {
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
 });
 
+test("an approved request shows up as owner earnings net of commission", async ({
+  page,
+}) => {
+  await page.goto("/pemilik");
+  await waitForReady(page);
+  await expect(page.getByText("dari 0 permintaan disetujui")).toBeVisible();
+
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  await openRequestDialog(page);
+  await page.getByRole("button", { name: "Kirim permintaan" }).click();
+  await page.getByRole("button", { name: "Tutup" }).click();
+
+  await page.goto("/pemilik/permintaan");
+  await waitForReady(page);
+  await page.getByRole("button", { name: "Setujui" }).click();
+  await expect(page.getByText("Sudah diputuskan")).toBeVisible();
+
+  await page.goto("/pemilik");
+  await waitForReady(page);
+  await expect(page.getByText("dari 1 permintaan disetujui")).toBeVisible();
+
+  // Gross, the platform's cut, and what actually reaches the owner are all
+  // shown; the commission is what makes the last two differ.
+  const earnings = page
+    .locator("section")
+    .filter({ hasText: "Pendapatan bulan ini" })
+    .first();
+  await expect(earnings.getByText("Pendapatan kotor")).toBeVisible();
+  await expect(earnings.getByText("Komisi Papikos")).toBeVisible();
+  await expect(earnings.getByText("Diterima pemilik")).toBeVisible();
+  await expect(earnings.getByText(/Papikos tidak menerima/)).toBeVisible();
+  await expect(earnings.getByText("Rp 0")).toHaveCount(0);
+});
+
 test("an uploaded photo becomes the kos cover and survives a reload", async ({
   page,
 }) => {

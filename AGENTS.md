@@ -23,7 +23,8 @@ The first release is a kos rental marketplace for renters, property owners, and 
 - **Search and discovery:** Renters can browse listing details and search or filter by location, map area, budget, room type, amenities, and availability. Search state should be shareable across supported clients where platform conventions allow.
 - **Favorites:** Renters can save and remove listings and view their saved set across devices.
 - **Structured Q&A:** Renters can submit listing-related questions, and owners can answer them asynchronously inside the application. Keep questions attached to the relevant listing and preserve their status. This is not an unrestricted or real-time chat channel.
-- **Booking requests:** Renters can request an available room. Owners can approve or reject a pending request, and permitted participants can cancel it. Preserve the status history (`pending`, `approved`, `rejected`, or `cancelled`) without charging the renter or creating financial records.
+- **Booking requests:** Renters can request an available room. Owners can approve or reject a pending request, and permitted participants can cancel it. Preserve the status history (`pending`, `approved`, `rejected`, or `cancelled`) without charging the renter inside the application.
+- **Owner earnings reporting:** Owners can see what an approved booking is worth to them: gross rent, the platform commission deducted, and the resulting net. These figures are reported from approved booking requests and published prices. Papikos still collects no money and stores no payment method, so this is reporting, not settlement — the renter always arranges payment directly with the owner.
 - **Preference survey and matching:** Ask renters about budget, preferred location, room type, amenities, and house rules. Rank eligible listings with transparent, rule-based weighted scoring and show the main matching reasons. Do not use machine learning or behavioral profiling.
 - **Administration and operations:** Administrators can verify users and listings, review moderation queues and reports, publish or suspend listings, inspect audit history, and view basic marketplace analytics. Record privileged changes so the responsible administrator and timestamp are traceable.
 
@@ -33,7 +34,7 @@ Phone, email, or WhatsApp contact links may be shown when product requirements a
 
 Do not add the following without an approved product-scope change:
 
-- Payment processing, deposits, refunds, invoices, stored payment methods, or financial ledgers.
+- Payment processing, deposits, refunds, invoices, or stored payment methods. Reporting owner earnings and the platform commission is in scope (see above); collecting, holding, or moving money is not, and no payment instrument may be stored.
 - Real-time chat, direct messaging, presence indicators, or message delivery/read receipts.
 - Ratings and reviews.
 - Lease generation, recurring rent collection, tenant management, or property-maintenance workflows.

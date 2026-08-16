@@ -17,6 +17,26 @@ export const ownerCopy = {
     manageListings: "Kelola kos",
     allClear: "Tidak ada yang perlu ditindak lanjuti.",
 
+    sectionEarnings: "Pendapatan bulan ini",
+    sectionOccupancy: "Hunian",
+    sectionDemand: "Permintaan bulan ini",
+    sectionTasks: "Perlu ditindak lanjuti",
+    earningsGross: "Pendapatan kotor",
+    earningsCommission: "Komisi Papikos",
+    earningsNet: "Diterima pemilik",
+    earningsFrom: "dari {count} permintaan disetujui",
+    earningsNote:
+      "Dihitung dari permintaan yang kamu setujui dan harga yang kamu pasang. Papikos tidak menerima atau menyimpan uang; pembayaran tetap langsung dengan penyewa.",
+    occupancyRate: "Tingkat hunian",
+    occupancyRooms: "kamar terisi",
+    occupancyFree: "Kamar kosong",
+    demandTotal: "Total permintaan",
+    demandApproved: "Disetujui",
+    demandRejected: "Ditolak",
+    approvalRate: "Tingkat persetujuan",
+    noDecisions: "Belum ada keputusan",
+    fullyBookedAlert: "kos sudah penuh",
+
     listingsTitle: "Kos saya",
     listingsBody:
       "Atur kos mana yang tayang untuk pencari. Penyuntingan detail hadir bersama API.",
@@ -122,6 +142,26 @@ export const ownerCopy = {
     answerQuestions: "Answer questions",
     manageListings: "Manage kos",
     allClear: "Nothing needs your attention.",
+
+    sectionEarnings: "Earnings this month",
+    sectionOccupancy: "Occupancy",
+    sectionDemand: "Requests this month",
+    sectionTasks: "Needs attention",
+    earningsGross: "Gross earnings",
+    earningsCommission: "Papikos commission",
+    earningsNet: "Owner receives",
+    earningsFrom: "from {count} approved requests",
+    earningsNote:
+      "Calculated from the requests you approved and the prices you set. Papikos never receives or holds money; payment stays directly between you and the renter.",
+    occupancyRate: "Occupancy rate",
+    occupancyRooms: "rooms occupied",
+    occupancyFree: "Rooms free",
+    demandTotal: "Total requests",
+    demandApproved: "Approved",
+    demandRejected: "Rejected",
+    approvalRate: "Approval rate",
+    noDecisions: "Nothing decided yet",
+    fullyBookedAlert: "kos fully booked",
 
     listingsTitle: "My kos",
     listingsBody:
