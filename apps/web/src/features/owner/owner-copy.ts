@@ -39,7 +39,7 @@ export const ownerCopy = {
 
     listingsTitle: "Kos saya",
     listingsBody:
-      "Atur kos mana yang tayang untuk pencari. Penyuntingan detail hadir bersama API.",
+      "Atur kos mana yang tayang untuk pencari, lalu ubah detailnya kapan saja.",
     published: "Tayang",
     unpublished: "Tidak tayang",
     suspended: "Ditangguhkan admin",
@@ -165,7 +165,7 @@ export const ownerCopy = {
 
     listingsTitle: "My kos",
     listingsBody:
-      "Choose which kos renters can see. Detail editing arrives with the API.",
+      "Choose which kos renters can see, and edit their details any time.",
     published: "Live",
     unpublished: "Hidden",
     suspended: "Suspended by admin",
