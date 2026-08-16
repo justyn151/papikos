@@ -186,6 +186,18 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
       }));
   }
 
+  if (Array.isArray(raw.customRules)) {
+    override.customRules = raw.customRules
+      .map((item) => asRecord(item))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .map((item) => ({
+        id: asString(item.id),
+        label: asString(item.label).trim(),
+        allowed: item.allowed === true,
+      }))
+      .filter((rule) => rule.id && rule.label);
+  }
+
   if (Array.isArray(raw.rooms)) {
     override.rooms = raw.rooms
       .map((item) => asRecord(item))

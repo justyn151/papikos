@@ -186,3 +186,25 @@ test("resetting an edit restores the seeded listing", async ({ page }) => {
   await waitForReady(page);
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
 });
+
+test("a custom house rule reaches renters alongside the standard ones", async ({
+  page,
+}) => {
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+
+  await page.getByLabel("Peraturan tambahan").fill("Jam tamu maksimal 21.00");
+  await page.getByRole("button", { name: "Tambah peraturan" }).click();
+  await page.getByRole("button", { name: "Simpan perubahan" }).click();
+  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  const rules = page
+    .locator("section")
+    .filter({ hasText: "Peraturan kos" })
+    .first();
+  await expect(rules.getByText("Jam tamu maksimal 21.00")).toBeVisible();
+  // The standard set is not replaced by the custom one.
+  await expect(rules.getByText("Tamu wajib melapor")).toBeVisible();
+});

@@ -18,7 +18,37 @@ const text = (id: string, en: string): LocalizedText => ({ id, en });
 
 export const cities = ["Jakarta", "Bandung", "Yogyakarta", "Surabaya"];
 
+/** Ordered by facility category, so an ungrouped render still reads sensibly. */
 export const amenities: Amenity[] = [
+  "ac",
+  "privateBathroom",
+  "waterHeater",
+  "wardrobe",
+  "desk",
+  "tv",
+  "balcony",
+  "kitchen",
+  "livingRoom",
+  "dryingArea",
+  "prayerRoom",
+  "fridge",
+  "wifi",
+  "laundry",
+  "cleaning",
+  "dispenser",
+  "cctv",
+  "securityGuard",
+  "access24",
+  "keycard",
+  "motorParking",
+  "carParking",
+];
+
+/**
+ * The handful the homepage survey asks about. The survey is meant to be short,
+ * so it stays curated while search and the owner editor offer the full list.
+ */
+export const popularAmenities: Amenity[] = [
   "wifi",
   "ac",
   "privateBathroom",
@@ -36,7 +66,20 @@ export const listings: Listing[] = [
     type: "campur",
     price: 2450000,
     promoPrice: null,
-    amenities: ["wifi", "ac", "privateBathroom", "laundry"],
+    amenities: [
+      "wifi",
+      "ac",
+      "privateBathroom",
+      "laundry",
+      "waterHeater",
+      "wardrobe",
+      "desk",
+      "tv",
+      "cleaning",
+      "dispenser",
+      "cctv",
+      "access24",
+    ],
     availableRooms: 2,
     verified: true,
     tone: "from-blue-700 via-blue-600 to-cyan-500",
@@ -50,7 +93,19 @@ export const listings: Listing[] = [
     type: "putri",
     price: 1650000,
     promoPrice: null,
-    amenities: ["wifi", "privateBathroom", "motorParking", "kitchen"],
+    amenities: [
+      "wifi",
+      "privateBathroom",
+      "motorParking",
+      "kitchen",
+      "wardrobe",
+      "desk",
+      "dryingArea",
+      "prayerRoom",
+      "cctv",
+      "securityGuard",
+      "keycard",
+    ],
     availableRooms: 3,
     verified: true,
     tone: "from-indigo-700 via-blue-600 to-sky-400",
@@ -64,7 +119,19 @@ export const listings: Listing[] = [
     type: "putri",
     price: 1350000,
     promoPrice: 1150000,
-    amenities: ["wifi", "ac", "privateBathroom", "motorParking"],
+    amenities: [
+      "wifi",
+      "ac",
+      "privateBathroom",
+      "motorParking",
+      "waterHeater",
+      "wardrobe",
+      "desk",
+      "dryingArea",
+      "dispenser",
+      "cctv",
+      "access24",
+    ],
     availableRooms: 1,
     verified: true,
     tone: "from-sky-700 via-cyan-600 to-teal-400",
@@ -78,7 +145,17 @@ export const listings: Listing[] = [
     type: "putra",
     price: 1200000,
     promoPrice: null,
-    amenities: ["wifi", "motorParking", "kitchen"],
+    amenities: [
+      "wifi",
+      "motorParking",
+      "kitchen",
+      "laundry",
+      "livingRoom",
+      "dryingArea",
+      "fridge",
+      "cleaning",
+      "cctv",
+    ],
     availableRooms: 4,
     verified: false,
     tone: "from-slate-700 via-blue-700 to-blue-400",
@@ -92,7 +169,27 @@ export const listings: Listing[] = [
     type: "campur",
     price: 2850000,
     promoPrice: 2450000,
-    amenities: ["wifi", "ac", "privateBathroom", "motorParking", "kitchen"],
+    amenities: [
+      "wifi",
+      "ac",
+      "privateBathroom",
+      "motorParking",
+      "kitchen",
+      "waterHeater",
+      "wardrobe",
+      "desk",
+      "tv",
+      "balcony",
+      "livingRoom",
+      "fridge",
+      "cleaning",
+      "dispenser",
+      "cctv",
+      "securityGuard",
+      "access24",
+      "keycard",
+      "carParking",
+    ],
     availableRooms: 2,
     verified: true,
     tone: "from-blue-950 via-indigo-800 to-blue-500",
@@ -106,7 +203,19 @@ export const listings: Listing[] = [
     type: "putra",
     price: 1850000,
     promoPrice: null,
-    amenities: ["wifi", "ac", "motorParking", "laundry"],
+    amenities: [
+      "wifi",
+      "ac",
+      "motorParking",
+      "laundry",
+      "kitchen",
+      "wardrobe",
+      "desk",
+      "dryingArea",
+      "cleaning",
+      "cctv",
+      "carParking",
+    ],
     availableRooms: 5,
     verified: true,
     tone: "from-cyan-800 via-sky-600 to-blue-400",
@@ -120,7 +229,18 @@ export const listings: Listing[] = [
     type: "campur",
     price: 950000,
     promoPrice: null,
-    amenities: ["wifi", "motorParking", "kitchen", "laundry"],
+    amenities: [
+      "wifi",
+      "motorParking",
+      "kitchen",
+      "laundry",
+      "wardrobe",
+      "livingRoom",
+      "prayerRoom",
+      "dryingArea",
+      "cleaning",
+      "dispenser",
+    ],
     availableRooms: 3,
     verified: false,
     tone: "from-blue-800 via-cyan-700 to-emerald-400",
@@ -134,7 +254,21 @@ export const listings: Listing[] = [
     type: "putri",
     price: 1550000,
     promoPrice: null,
-    amenities: ["wifi", "ac", "privateBathroom", "kitchen", "laundry"],
+    amenities: [
+      "wifi",
+      "ac",
+      "privateBathroom",
+      "kitchen",
+      "laundry",
+      "waterHeater",
+      "wardrobe",
+      "desk",
+      "tv",
+      "fridge",
+      "cleaning",
+      "cctv",
+      "access24",
+    ],
     availableRooms: 2,
     verified: true,
     tone: "from-indigo-900 via-blue-700 to-cyan-400",
@@ -148,7 +282,22 @@ export const listings: Listing[] = [
     type: "putri",
     price: 1750000,
     promoPrice: null,
-    amenities: ["wifi", "ac", "privateBathroom", "laundry"],
+    amenities: [
+      "wifi",
+      "ac",
+      "privateBathroom",
+      "laundry",
+      "waterHeater",
+      "wardrobe",
+      "desk",
+      "balcony",
+      "cleaning",
+      "cctv",
+      "securityGuard",
+      "access24",
+      "keycard",
+      "carParking",
+    ],
     availableRooms: 0,
     verified: true,
     tone: "from-blue-800 via-indigo-600 to-sky-400",
@@ -202,12 +351,12 @@ const areaLandmarks: Record<string, [string, string, string, string]> = {
   Surabaya: ["Halte Suroboyo Bus", "Transmart", "RS Premier", "ITS"],
 };
 
-const amenityFacility: Record<Amenity, FacilityItem> = {
-  wifi: {
-    id: "wifi",
-    label: text("Wi-Fi seluruh area", "Property-wide Wi-Fi"),
-    category: "service",
-  },
+/**
+ * Every amenity carries its facility category, which is what lets both the
+ * search panel and the owner editor group a list this long into something
+ * scannable, and what the detail page's facility sections read from.
+ */
+export const amenityFacility: Record<Amenity, FacilityItem> = {
   ac: {
     id: "ac",
     label: text("AC di dalam kamar", "In-room air conditioning"),
@@ -218,22 +367,123 @@ const amenityFacility: Record<Amenity, FacilityItem> = {
     label: text("Kamar mandi dalam", "Private bathroom"),
     category: "room",
   },
-  motorParking: {
-    id: "motor-parking",
-    label: text("Parkir motor", "Motorbike parking"),
-    category: "parking",
+  waterHeater: {
+    id: "water-heater",
+    label: text("Pemanas air", "Water heater"),
+    category: "room",
+  },
+  wardrobe: {
+    id: "wardrobe",
+    label: text("Lemari pakaian", "Wardrobe"),
+    category: "room",
+  },
+  desk: {
+    id: "desk",
+    label: text("Meja belajar", "Study desk"),
+    category: "room",
+  },
+  tv: {
+    id: "tv",
+    label: text("TV di dalam kamar", "In-room TV"),
+    category: "room",
+  },
+  balcony: {
+    id: "balcony",
+    label: text("Balkon kamar", "Room balcony"),
+    category: "room",
   },
   kitchen: {
     id: "kitchen",
     label: text("Dapur bersama", "Shared kitchen"),
     category: "shared",
   },
+  livingRoom: {
+    id: "living-room",
+    label: text("Ruang tamu bersama", "Shared living room"),
+    category: "shared",
+  },
+  dryingArea: {
+    id: "drying-area",
+    label: text("Area jemur", "Drying area"),
+    category: "shared",
+  },
+  prayerRoom: {
+    id: "prayer-room",
+    label: text("Musala", "Prayer room"),
+    category: "shared",
+  },
+  fridge: {
+    id: "fridge",
+    label: text("Kulkas bersama", "Shared fridge"),
+    category: "shared",
+  },
+  wifi: {
+    id: "wifi",
+    label: text("Wi-Fi seluruh area", "Property-wide Wi-Fi"),
+    category: "service",
+  },
   laundry: {
     id: "laundry",
     label: text("Area laundry", "Laundry area"),
     category: "service",
   },
+  cleaning: {
+    id: "cleaning",
+    label: text("Kebersihan area bersama", "Shared-area cleaning"),
+    category: "service",
+  },
+  dispenser: {
+    id: "dispenser",
+    label: text("Dispenser air minum", "Drinking-water dispenser"),
+    category: "service",
+  },
+  cctv: {
+    id: "cctv",
+    label: text("CCTV area masuk", "Entrance CCTV"),
+    category: "security",
+  },
+  securityGuard: {
+    id: "security-guard",
+    label: text("Penjaga kos", "On-site caretaker"),
+    category: "security",
+  },
+  access24: {
+    id: "access-24",
+    label: text("Akses 24 jam", "24-hour access"),
+    category: "security",
+  },
+  keycard: {
+    id: "keycard",
+    label: text("Akses kartu", "Keycard entry"),
+    category: "security",
+  },
+  motorParking: {
+    id: "motor-parking",
+    label: text("Parkir motor", "Motorbike parking"),
+    category: "parking",
+  },
+  carParking: {
+    id: "car-parking",
+    label: text("Parkir mobil", "Car parking"),
+    category: "parking",
+  },
 };
+
+export const facilityCategories: FacilityItem["category"][] = [
+  "room",
+  "shared",
+  "service",
+  "security",
+  "parking",
+];
+
+/** The full amenity list split by category, in `facilityCategories` order. */
+export const amenitiesByCategory = facilityCategories.map((category) => ({
+  category,
+  items: amenities.filter(
+    (amenity) => amenityFacility[amenity].category === category,
+  ),
+}));
 
 function createGallery(listing: Listing, index: number): GalleryItem[] {
   return [
@@ -437,19 +687,9 @@ export const listingDetails: ListingDetail[] = listings.map((listing, index) => 
   gallery: createGallery(listing, index),
   rooms: createRooms(listing, index),
   costs: createCosts(listing, index),
-  facilities: [
-    ...listing.amenities.map((amenity) => amenityFacility[amenity]),
-    {
-      id: "cctv",
-      label: text("CCTV area masuk", "Entrance CCTV"),
-      category: "security" as const,
-    },
-    {
-      id: "cleaning",
-      label: text("Kebersihan area bersama", "Shared-area cleaning"),
-      category: "service" as const,
-    },
-  ],
+  // CCTV and cleaning used to be bolted on here for every kos; they are real
+  // amenities now, so a listing only advertises what its owner actually offers.
+  facilities: listing.amenities.map((amenity) => amenityFacility[amenity]),
   rules: createRules(listing),
   landmarks: createLandmarks(listing, index),
   questions: createQuestions(listing),

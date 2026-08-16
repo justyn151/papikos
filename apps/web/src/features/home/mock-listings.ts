@@ -1,6 +1,9 @@
 export {
   amenities,
+  amenitiesByCategory,
+  amenityFacility,
   cities,
+  popularAmenities,
   getListingDetail,
   getRelatedListings,
   listingDetails,

@@ -84,3 +84,45 @@ describe("listing override merge", () => {
     expect(merged.rules[0].allowed).toBe(!rule.allowed);
   });
 });
+
+describe("custom house rules", () => {
+  it("adds the owner's rules without dropping the standard ones", () => {
+    const merged = resolveListingDetail(
+      seedDetail,
+      override({
+        customRules: [
+          { id: "rule-1", label: "Jam tamu maksimal 21.00", allowed: false },
+        ],
+      }),
+    );
+
+    expect(merged.rules.slice(0, seedDetail.rules.length)).toEqual(
+      seedDetail.rules,
+    );
+    expect(merged.rules.at(-1)).toEqual({
+      id: "rule-1",
+      label: { id: "Jam tamu maksimal 21.00", en: "Jam tamu maksimal 21.00" },
+      allowed: false,
+    });
+  });
+
+  it("still applies standard-rule edits alongside custom ones", () => {
+    const rule = seedDetail.rules[0];
+    const merged = resolveListingDetail(
+      seedDetail,
+      override({
+        rules: [{ id: rule.id, allowed: !rule.allowed }],
+        customRules: [{ id: "rule-1", label: "Dilarang merokok", allowed: false }],
+      }),
+    );
+
+    expect(merged.rules[0].allowed).toBe(!rule.allowed);
+    expect(merged.rules).toHaveLength(seedDetail.rules.length + 1);
+  });
+
+  it("leaves the rules alone when there are no custom ones", () => {
+    expect(
+      resolveListingDetail(seedDetail, override({ customRules: [] })).rules,
+    ).toEqual(seedDetail.rules);
+  });
+});

@@ -6,13 +6,39 @@ export type ListingType = "putra" | "putri" | "campur";
 
 export type ListingTypeFilter = ListingType | "all";
 
+/**
+ * Every amenity is filterable, which is why the set is closed: a free-text
+ * amenity typed by one owner would never match another owner's wording and
+ * would silently break the facet counts in search.
+ */
 export type Amenity =
-  | "wifi"
+  // In the room
   | "ac"
   | "privateBathroom"
-  | "motorParking"
+  | "waterHeater"
+  | "wardrobe"
+  | "desk"
+  | "tv"
+  | "balcony"
+  // Shared areas
   | "kitchen"
-  | "laundry";
+  | "livingRoom"
+  | "dryingArea"
+  | "prayerRoom"
+  | "fridge"
+  // Services
+  | "wifi"
+  | "laundry"
+  | "cleaning"
+  | "dispenser"
+  // Security
+  | "cctv"
+  | "securityGuard"
+  | "access24"
+  | "keycard"
+  // Parking
+  | "motorParking"
+  | "carParking";
 
 export interface Listing {
   id: string;
@@ -189,6 +215,12 @@ export interface ListingOverride {
   district?: string;
   amenities?: Amenity[];
   rules?: { id: string; allowed: boolean }[];
+  /**
+   * Rules the owner wrote themselves, added to the standard set rather than
+   * replacing it. Free text is safe here because rules are only ever
+   * displayed — unlike amenities, nothing filters on them.
+   */
+  customRules?: { id: string; label: string; allowed: boolean }[];
   rooms?: { id: string; price: number; availableRooms: number }[];
   costs?: { id: string; amount: number | null; included: boolean }[];
   updatedAt: string;

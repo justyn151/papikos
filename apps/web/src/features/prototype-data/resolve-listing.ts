@@ -62,12 +62,27 @@ export function resolveListingDetail(
       })
     : base.costs;
 
-  const rules = override.rules
+  const seededRules = override.rules
     ? base.rules.map((rule) => {
         const edit = override.rules?.find((item) => item.id === rule.id);
         return edit ? { ...rule, allowed: edit.allowed } : rule;
       })
     : base.rules;
+
+  // Custom rules are additive: the standard set stays in place so a renter
+  // always sees the same baseline questions answered on every listing.
+  const rules =
+    override.customRules && override.customRules.length > 0
+      ? [
+          ...seededRules,
+          ...override.customRules.map((rule) => ({
+            id: rule.id,
+            // Owners write one sentence, not a translation pair.
+            label: { id: rule.label, en: rule.label },
+            allowed: rule.allowed,
+          })),
+        ]
+      : seededRules;
 
   return {
     ...base,

@@ -29,7 +29,7 @@ import {
   rankListings,
   serializeFilters,
 } from "./home-utils";
-import { amenities, cities, listings } from "./mock-listings";
+import { cities, listings, popularAmenities } from "./mock-listings";
 import { ListingCard } from "@/features/listings/listing-card";
 import { BrandMark } from "@/features/navigation/brand-mark";
 import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
@@ -237,7 +237,7 @@ function SurveyModal({
               {t.desiredAmenities}
             </legend>
             <div className="mt-3 flex flex-wrap gap-2">
-              {amenities.map((amenity) => {
+              {popularAmenities.map((amenity) => {
                 const selected = preferences.amenities.includes(amenity);
                 return (
                   <button

@@ -3,7 +3,8 @@
 import { amenityLabels, copy, typeLabels } from "@/features/home/copy";
 import { formatPrice } from "@/features/home/home-utils";
 import type { Locale, SearchFilters } from "@/features/home/types";
-import { amenities } from "@/features/listings/mock-listings";
+import { detailCopy } from "@/features/listings/detail-copy";
+import { amenitiesByCategory } from "@/features/listings/mock-listings";
 
 import { searchCopy } from "./search-copy";
 
@@ -27,6 +28,7 @@ export function SearchFiltersPanel({
 }) {
   const t = copy[locale];
   const st = searchCopy[locale];
+  const dt = detailCopy[locale];
   const minValue = filters.minPrice ?? PRICE_MIN;
   const maxValue = filters.maxPrice ?? PRICE_MAX;
 
@@ -200,38 +202,52 @@ export function SearchFiltersPanel({
         <legend className="text-xs font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
           {st.amenitiesHeading}
         </legend>
-        <div className="mt-3 flex flex-wrap gap-2" aria-label={st.amenitiesHeading}>
-          {amenities.map((amenity) => {
-            const selected = filters.amenities.includes(amenity);
-            const nextAmenities = selected
-              ? filters.amenities.filter((item) => item !== amenity)
-              : [...filters.amenities, amenity];
-            const count = countFor({
-              ...filters,
-              amenities: selected ? filters.amenities : nextAmenities,
-            });
-            const disabled = count === 0 && !selected;
-            return (
-              <button
-                className={`filter-chip rounded-full border px-3.5 py-1.5 text-sm font-bold transition ${
-                  selected
-                    ? "border-blue-600 bg-blue-600 text-white"
-                    : disabled
-                      ? "cursor-not-allowed border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-slate-300 dark:text-slate-600"
-                      : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-blue-300"
-                }`}
-                disabled={disabled}
-                key={amenity}
-                onClick={() => onChange({ ...filters, amenities: nextAmenities })}
-                title={disabled ? st.noMatchHint : undefined}
-                type="button"
-                aria-pressed={selected}
-              >
-                {amenityLabels[locale][amenity]}
-                {renderCount(count, selected)}
-              </button>
-            );
-          })}
+        {/* Grouped by facility category: a flat list this long stops being
+            scannable, and the categories are the same ones the detail page
+            uses, so a renter meets them in the same shape twice. */}
+        <div className="mt-3 grid gap-4" aria-label={st.amenitiesHeading}>
+          {amenitiesByCategory.map((group) => (
+            <div key={group.category}>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                {dt.facilityGroups[group.category]}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {group.items.map((amenity) => {
+                  const selected = filters.amenities.includes(amenity);
+                  const nextAmenities = selected
+                    ? filters.amenities.filter((item) => item !== amenity)
+                    : [...filters.amenities, amenity];
+                  const count = countFor({
+                    ...filters,
+                    amenities: selected ? filters.amenities : nextAmenities,
+                  });
+                  const disabled = count === 0 && !selected;
+                  return (
+                    <button
+                      className={`filter-chip rounded-full border px-3.5 py-1.5 text-sm font-bold transition ${
+                        selected
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : disabled
+                            ? "cursor-not-allowed border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-slate-300 dark:text-slate-600"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-blue-300"
+                      }`}
+                      disabled={disabled}
+                      key={amenity}
+                      onClick={() =>
+                        onChange({ ...filters, amenities: nextAmenities })
+                      }
+                      title={disabled ? st.noMatchHint : undefined}
+                      type="button"
+                      aria-pressed={selected}
+                    >
+                      {amenityLabels[locale][amenity]}
+                      {renderCount(count, selected)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </fieldset>
     </aside>
