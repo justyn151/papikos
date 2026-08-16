@@ -14,6 +14,23 @@ import { isListingVisible } from "@/features/prototype-data/transitions";
 import { adminCopy } from "./admin-copy";
 import { adminNavItems } from "./admin-nav";
 
+function Section({
+  children,
+  title,
+}: {
+  children: React.ReactNode;
+  title: string;
+}) {
+  return (
+    <section className="mt-8">
+      <h2 className="text-xs font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+        {title}
+      </h2>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
+}
+
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-[1.25rem] border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
@@ -69,25 +86,35 @@ export function AdminOverviewPage() {
               {t.overviewBody}
             </p>
 
+            <Section title={t.sectionCatalog}>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat label={t.statListings} value={listings.length} />
+                <Stat label={t.statLive} value={live} />
+                <Stat label={t.statVerified} value={verified} />
+                <Stat
+                  label={t.statAveragePrice}
+                  value={formatPrice(averagePrice, locale)}
+                />
+              </div>
+            </Section>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Stat label={t.statListings} value={listings.length} />
-              <Stat label={t.statLive} value={live} />
-              <Stat label={t.statVerified} value={verified} />
-              <Stat label={t.statRequests} value={bookings.length} />
-              <Stat label={t.statPendingRequests} value={pendingRequests} />
-              <Stat label={t.statOpenReports} value={openReports} />
-              <Stat
-                label={t.statAveragePrice}
-                value={formatPrice(averagePrice, locale)}
-              />
-            </div>
+            <Section title={t.sectionRequests}>
+              {/* Same column width as the catalogue row above, so a section
+                  with fewer figures does not blow its cards up to fill it. */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat label={t.statRequests} value={bookings.length} />
+                <Stat label={t.statPendingRequests} value={pendingRequests} />
+              </div>
+            </Section>
 
-            <section className="mt-8 rounded-[1.25rem] border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="text-sm font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                {t.byCity}
-              </h2>
-              <ul className="mt-4 grid gap-3">
+            <Section title={t.sectionModeration}>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat label={t.statOpenReports} value={openReports} />
+              </div>
+            </Section>
+
+            <Section title={t.byCity}>
+              <ul className="grid gap-3 rounded-[1.25rem] border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
                 {cities.map((city) => {
                   const count = listings.filter(
                     (listing) => listing.city === city,
@@ -109,7 +136,7 @@ export function AdminOverviewPage() {
                   );
                 })}
               </ul>
-            </section>
+            </Section>
           </>
         );
       }}

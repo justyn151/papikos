@@ -17,6 +17,9 @@ export const adminCopy = {
     statOpenReports: "Laporan terbuka",
     statAveragePrice: "Rata-rata harga",
     byCity: "Sebaran kota",
+    sectionCatalog: "Katalog kos",
+    sectionRequests: "Permintaan sewa",
+    sectionModeration: "Moderasi",
 
     verificationTitle: "Verifikasi kos",
     verificationBody:
@@ -80,6 +83,9 @@ export const adminCopy = {
     statOpenReports: "Open reports",
     statAveragePrice: "Average price",
     byCity: "City spread",
+    sectionCatalog: "Kos catalogue",
+    sectionRequests: "Rental requests",
+    sectionModeration: "Moderation",
 
     verificationTitle: "Kos verification",
     verificationBody:
