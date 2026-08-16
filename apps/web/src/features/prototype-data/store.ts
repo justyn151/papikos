@@ -146,7 +146,12 @@ export function useAuditLog() {
 }
 
 export function useOverrides() {
-  const [raw, setRaw] = usePersistentState<unknown>(OVERRIDES_STORAGE_KEY, []);
+  // Overrides are the one store that can hold uploaded photos, so this is the
+  // one whose write can realistically exhaust the origin's storage budget.
+  const [raw, setRaw, writeError] = usePersistentState<unknown>(
+    OVERRIDES_STORAGE_KEY,
+    [],
+  );
   const entries = normalizeList<ListingOverride>(raw, normalizeOverride);
 
   const overrideFor = useCallback(
@@ -180,5 +185,5 @@ export function useOverrides() {
     [setRaw],
   );
 
-  return { entries, overrideFor, replace, clear };
+  return { entries, overrideFor, replace, clear, writeError };
 }

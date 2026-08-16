@@ -126,3 +126,30 @@ describe("custom house rules", () => {
     ).toEqual(seedDetail.rules);
   });
 });
+
+describe("uploaded photos", () => {
+  const photos = [
+    { id: "photo-1", dataUrl: "data:image/jpeg;base64,AAAA" },
+    { id: "photo-2", dataUrl: "data:image/jpeg;base64,BBBB" },
+  ];
+
+  it("puts the cover first and keeps the generated artwork behind it", () => {
+    const merged = resolveListingDetail(seedDetail, override({ photos }));
+
+    expect(merged.gallery[0]).toMatchObject({
+      id: "photo-1",
+      dataUrl: photos[0].dataUrl,
+    });
+    expect(merged.gallery[1].dataUrl).toBe(photos[1].dataUrl);
+    // The seeded artwork still covers every category a renter expects.
+    expect(merged.gallery.slice(2)).toEqual(seedDetail.gallery);
+  });
+
+  it("keeps the seeded gallery when the owner uploaded nothing", () => {
+    expect(resolveListingDetail(seedDetail, override({ photos: [] })).gallery)
+      .toEqual(seedDetail.gallery);
+    expect(resolveListingDetail(seedDetail, override()).gallery).toEqual(
+      seedDetail.gallery,
+    );
+  });
+});

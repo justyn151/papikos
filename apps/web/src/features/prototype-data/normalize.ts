@@ -13,6 +13,7 @@ import type {
   ReportStatus,
   SubmittedQuestion,
 } from "@/features/listings/types";
+import { MAX_PHOTOS } from "@/features/owner/photo-upload";
 
 /**
  * Records written before owner/admin surfaces existed only ever carried a
@@ -173,6 +174,20 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
       (item): item is Amenity =>
         typeof item === "string" && known.has(item),
     );
+  }
+
+  if (Array.isArray(raw.photos)) {
+    override.photos = raw.photos
+      .map((item) => asRecord(item))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .map((item) => ({
+        id: asString(item.id),
+        dataUrl: asString(item.dataUrl),
+      }))
+      // Anything that is not an inline image is unrenderable, and a remote URL
+      // here would be a way to smuggle an off-origin request into the page.
+      .filter((photo) => photo.id && photo.dataUrl.startsWith("data:image/"))
+      .slice(0, MAX_PHOTOS);
   }
 
   if (Array.isArray(raw.rules)) {

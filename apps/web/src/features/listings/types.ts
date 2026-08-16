@@ -73,6 +73,17 @@ export interface GalleryItem {
   category: GalleryCategory;
   label: LocalizedText;
   variant: number;
+  /**
+   * Set only for photos the owner uploaded. When absent the gallery falls back
+   * to the generated artwork, which is what every seeded listing uses.
+   */
+  dataUrl?: string;
+}
+
+/** An owner-uploaded photo, stored inline as a downscaled JPEG data URL. */
+export interface ListingPhoto {
+  id: string;
+  dataUrl: string;
 }
 
 export interface RoomOption {
@@ -214,6 +225,8 @@ export interface ListingOverride {
   type?: ListingType;
   district?: string;
   amenities?: Amenity[];
+  /** Uploaded photos, cover first. An empty array means "no photos". */
+  photos?: ListingPhoto[];
   rules?: { id: string; allowed: boolean }[];
   /**
    * Rules the owner wrote themselves, added to the standard set rather than

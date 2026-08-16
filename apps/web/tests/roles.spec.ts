@@ -187,6 +187,35 @@ test("resetting an edit restores the seeded listing", async ({ page }) => {
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
 });
 
+test("an uploaded photo becomes the kos cover and survives a reload", async ({
+  page,
+}) => {
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+
+  await expect(page.getByText("Belum ada foto")).toBeVisible();
+  await page.getByLabel("Tambah foto").setInputFiles({
+    name: "kamar.png",
+    mimeType: "image/png",
+    // A 1x1 PNG: enough for the browser to decode, downscale, and re-encode.
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+      "base64",
+    ),
+  });
+  await expect(page.getByText("1 dari 4 foto")).toBeVisible();
+  await page.getByRole("button", { name: "Simpan perubahan" }).click();
+  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  await expect(page.getByRole("img", { name: "Foto pemilik 1" })).toBeVisible();
+
+  await page.reload();
+  await waitForReady(page);
+  await expect(page.getByRole("img", { name: "Foto pemilik 1" })).toBeVisible();
+});
+
 test("a custom house rule reaches renters alongside the standard ones", async ({
   page,
 }) => {

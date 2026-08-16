@@ -1,8 +1,16 @@
 "use client";
 
-import { ArrowLeft, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ImagePlus,
+  Plus,
+  RotateCcw,
+  Save,
+  Star,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
-import { type FormEvent, useState } from "react";
+import { type ChangeEvent, type FormEvent, useState } from "react";
 
 import { amenityLabels, typeLabels } from "@/features/home/copy";
 import { detailCopy } from "@/features/listings/detail-copy";
@@ -11,6 +19,7 @@ import type {
   Amenity,
   ListingDetail,
   ListingOverride,
+  ListingPhoto,
   ListingType,
 } from "@/features/listings/types";
 import { ConsoleShell } from "@/features/navigation/console-shell";
@@ -20,6 +29,15 @@ import { createId } from "@/features/shared/create-id";
 
 import { ownerCopy } from "./owner-copy";
 import { ownerNavItems } from "./owner-nav";
+import {
+  MAX_PHOTOS,
+  PhotoUploadError,
+  acceptPhotos,
+  promoteCover,
+  readPhotoFile,
+  removePhoto,
+  totalBytes,
+} from "./photo-upload";
 
 const field =
   "h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-blue-950";
@@ -36,10 +54,17 @@ interface Draft {
   price: string;
   promoPrice: string;
   amenities: Amenity[];
+  photos: ListingPhoto[];
   rooms: { id: string; price: string; availableRooms: string }[];
   rules: { id: string; allowed: boolean }[];
   customRules: { id: string; label: string; allowed: boolean }[];
   costs: { id: string; amount: string; included: boolean }[];
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function toDraft(
@@ -52,6 +77,7 @@ function toDraft(
   const seededRuleIds = new Set(seed.rules.map((rule) => rule.id));
 
   return {
+    photos: override?.photos ?? [],
     customRules: (override?.customRules ?? []).map((rule) => ({ ...rule })),
     name: listing.name,
     district: listing.district,
@@ -77,7 +103,7 @@ function toDraft(
 }
 
 export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
-  const { overrideFor, replace, clear } = useOverrides();
+  const { overrideFor, replace, clear, writeError } = useOverrides();
   const { append } = useAuditLog();
   const override = overrideFor(seed.id);
   const listing = resolveListingDetail(seed, override);
@@ -87,6 +113,8 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
   );
   const [toast, setToast] = useState("");
   const [error, setError] = useState("");
+  const [photoError, setPhotoError] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [newRule, setNewRule] = useState("");
   const [ruleError, setRuleError] = useState("");
 
@@ -129,6 +157,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
             price,
             promoPrice: promo,
             amenities: draft.amenities,
+            photos: draft.photos,
             rooms: draft.rooms.map((room) => ({
               id: room.id,
               price: Number(room.price),
@@ -159,6 +188,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           clear(seed.id);
           setDraft(toDraft(seed, seed, undefined));
           setError("");
+          setPhotoError("");
           setRuleError("");
           setNewRule("");
           announce(t.resetDone);
@@ -179,6 +209,42 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
               { id: createId("rule"), label, allowed: false },
             ],
           }));
+        };
+
+        const addPhotos = async (event: ChangeEvent<HTMLInputElement>) => {
+          const picked = Array.from(event.target.files ?? []);
+          // The same file can be picked twice in a row, and the input would
+          // not fire a second change event without this.
+          event.target.value = "";
+          if (picked.length === 0) return;
+
+          setPhotoError("");
+          setUploading(true);
+          const read: ListingPhoto[] = [];
+          let failure = "";
+
+          for (const file of picked) {
+            try {
+              read.push(await readPhotoFile(file));
+            } catch (uploadError) {
+              const reason =
+                uploadError instanceof PhotoUploadError
+                  ? uploadError.reason
+                  : "read";
+              failure = reason === "type" ? t.photoErrorType : t.photoErrorRead;
+            }
+          }
+
+          // Photo controls are disabled while uploading, so the set captured at
+          // call time is still the current one.
+          const result = acceptPhotos(draft.photos, read);
+          if (result.rejected > 0) {
+            failure = t.photoErrorCap.replace("{max}", String(MAX_PHOTOS));
+          }
+
+          setDraft((d) => ({ ...d, photos: result.photos }));
+          setPhotoError(failure);
+          setUploading(false);
         };
 
         return (
@@ -299,6 +365,115 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     {error}
                   </p>
                 ) : null}
+              </section>
+
+              <section className={card}>
+                <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
+                  {t.photosSection}
+                </h2>
+                <p className="mt-1.5 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {t.photosBody.replace("{max}", String(MAX_PHOTOS))}
+                </p>
+
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <label
+                    className={`btn-secondary gap-2 ${
+                      draft.photos.length >= MAX_PHOTOS || uploading
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }`}
+                  >
+                    <ImagePlus size={16} aria-hidden="true" />
+                    {t.photosAdd}
+                    <input
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={draft.photos.length >= MAX_PHOTOS || uploading}
+                      multiple
+                      onChange={addPhotos}
+                      type="file"
+                    />
+                  </label>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                    {uploading
+                      ? t.photosUploading
+                      : t.photosCount
+                          .replace("{count}", String(draft.photos.length))
+                          .replace("{max}", String(MAX_PHOTOS))
+                          .replace("{size}", formatBytes(totalBytes(draft.photos)))}
+                  </p>
+                </div>
+
+                {photoError ? (
+                  <p className="mt-3 text-xs font-bold text-rose-600 dark:text-rose-400">
+                    {photoError}
+                  </p>
+                ) : null}
+                {writeError === "quota" ? (
+                  <p className="mt-3 text-xs font-bold text-rose-600 dark:text-rose-400">
+                    {t.photoErrorQuota}
+                  </p>
+                ) : null}
+
+                {draft.photos.length === 0 ? (
+                  <p className="mt-4 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
+                    {t.photosEmpty}
+                  </p>
+                ) : (
+                  <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    {draft.photos.map((photo, index) => (
+                      <li
+                        className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700"
+                        key={photo.id}
+                      >
+                        <div className="relative">
+                          {/* Stored data URL: no network request for next/image to optimise. */}
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            alt=""
+                            className="h-28 w-full object-cover"
+                            src={photo.dataUrl}
+                          />
+                          {index === 0 ? (
+                            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-blue-600 px-2 py-1 text-[0.65rem] font-black uppercase tracking-[0.06em] text-white">
+                              <Star size={11} aria-hidden="true" />
+                              {t.photoCover}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 p-2">
+                          <button
+                            className="rounded-lg px-2 py-1 text-xs font-bold text-blue-700 transition hover:bg-blue-50 disabled:opacity-40 dark:text-blue-300 dark:hover:bg-blue-950/40"
+                            disabled={index === 0 || uploading}
+                            onClick={() =>
+                              setDraft((d) => ({
+                                ...d,
+                                photos: promoteCover(d.photos, photo.id),
+                              }))
+                            }
+                            type="button"
+                          >
+                            {t.photoMakeCover}
+                          </button>
+                          <button
+                            aria-label={t.photoRemove}
+                            className="grid size-8 place-items-center rounded-lg text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-rose-950/40"
+                            disabled={uploading}
+                            onClick={() =>
+                              setDraft((d) => ({
+                                ...d,
+                                photos: removePhoto(d.photos, photo.id),
+                              }))
+                            }
+                            type="button"
+                          >
+                            <Trash2 size={15} aria-hidden="true" />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
 
               <section className={card}>

@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { MAX_PHOTOS } from "@/features/owner/photo-upload";
+
 import {
   normalizeBooking,
   normalizeList,
   normalizeModeration,
+  normalizeOverride,
   normalizeQuestion,
   normalizeReport,
 } from "./normalize";
@@ -84,5 +87,42 @@ describe("defensive parsing", () => {
   it("returns an empty list when storage holds something that is not an array", () => {
     expect(normalizeList({ nope: true }, normalizeBooking)).toEqual([]);
     expect(normalizeList(undefined, normalizeBooking)).toEqual([]);
+  });
+});
+
+describe("stored photos", () => {
+  it("keeps inline images and drops anything else", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      photos: [
+        { id: "ok", dataUrl: "data:image/jpeg;base64,AAAA" },
+        // A remote URL here would turn a stored record into an off-origin
+        // request the page never intended to make.
+        { id: "remote", dataUrl: "https://example.com/photo.jpg" },
+        { id: "", dataUrl: "data:image/png;base64,AAAA" },
+        { dataUrl: "data:text/html;base64,AAAA" },
+        "garbage",
+      ],
+    });
+
+    expect(override?.photos).toEqual([
+      { id: "ok", dataUrl: "data:image/jpeg;base64,AAAA" },
+    ]);
+  });
+
+  it("enforces the photo cap on read, not only on upload", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      photos: Array.from({ length: MAX_PHOTOS + 3 }, (_, index) => ({
+        id: `photo-${index}`,
+        dataUrl: "data:image/jpeg;base64,AAAA",
+      })),
+    });
+
+    expect(override?.photos).toHaveLength(MAX_PHOTOS);
+  });
+
+  it("leaves photos absent when the record has none", () => {
+    expect(normalizeOverride({ listingId: "x" })?.photos).toBeUndefined();
   });
 });

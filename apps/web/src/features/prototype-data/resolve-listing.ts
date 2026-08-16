@@ -84,8 +84,29 @@ export function resolveListingDetail(
         ]
       : seededRules;
 
+  // Uploaded photos lead the gallery — the first one is the cover — and the
+  // generated artwork stays behind them so a listing with one photo still has
+  // something to show for every room and the neighbourhood.
+  const gallery =
+    override.photos && override.photos.length > 0
+      ? [
+          ...override.photos.map((photo, index) => ({
+            id: photo.id,
+            category: "room" as const,
+            label: {
+              id: `Foto pemilik ${index + 1}`,
+              en: `Owner photo ${index + 1}`,
+            },
+            variant: index,
+            dataUrl: photo.dataUrl,
+          })),
+          ...base.gallery,
+        ]
+      : base.gallery;
+
   return {
     ...base,
+    gallery,
     ...(override.description !== undefined
       ? { description: { id: override.description, en: override.description } }
       : {}),

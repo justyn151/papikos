@@ -127,6 +127,19 @@ function PropertyArtwork({
   const Icon = galleryIcons[item.category];
   const shift = (item.variant % 4) * 8;
 
+  if (item.dataUrl) {
+    return (
+      // A stored data URL has no intrinsic size and never hits the network, so
+      // next/image would only add a loader around it.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        alt={item.label[locale]}
+        className="property-artwork h-full min-h-36 w-full object-cover"
+        src={item.dataUrl}
+      />
+    );
+  }
+
   return (
     <div
       className={`property-artwork relative h-full min-h-36 overflow-hidden bg-gradient-to-br ${listing.tone}`}
