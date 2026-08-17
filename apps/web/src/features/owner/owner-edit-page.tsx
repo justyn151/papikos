@@ -587,10 +587,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
               })}
             </nav>
 
-            {/* A column, not a grid: a sticky child of a grid sticks within its own
-                row, which is exactly its own height, so the save bar would
-                never move. */}
-            <form className="mt-5 flex flex-col gap-5" onSubmit={save}>
+            <form className="mt-5 grid gap-5" onSubmit={save}>
             {section === "basics" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
@@ -1305,10 +1302,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
               </section>
             ) : null}
 
-              {/* Saving stays reachable from every section: with the form
-                  split up, a button at the end of one tab would be a button
-                  the other five do not have. */}
-              <div className="sticky bottom-20 z-30 -mx-1 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_-8px_30px_-24px_rgba(15,23,42,0.5)] backdrop-blur lg:bottom-4 dark:border-slate-700 dark:bg-slate-900/95">
+              <div className="flex flex-wrap items-center gap-3">
                 <button className="btn-primary gap-2" type="submit">
                   <Save size={16} aria-hidden="true" />
                   {t.save}

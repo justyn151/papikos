@@ -31,10 +31,8 @@ Completed owner and administrator capabilities:
   eight cards stacked down one page an owner had to scroll past to change a
   price. The tabs carry counts, so an empty photo section is visible without
   opening it.
-- Saving stays reachable from every section, in a bar that sticks to the
-  bottom of the form, and a validation failure takes the owner to the section
-  holding the field that blocked it rather than reporting it where they cannot
-  see it.
+- A validation failure takes the owner to the section holding the field that
+  blocked it, rather than reporting it where they cannot see it.
 - Fixed a horizontal overflow the section tabs exposed on mobile: the console's
   content column could not shrink below its widest child, so a scrolling strip
   stretched the whole page past the viewport.
