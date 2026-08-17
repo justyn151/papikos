@@ -35,16 +35,51 @@ export function GalleryArtwork({
   listing,
   locale,
   compact = false,
+  fit = "cover",
 }: {
   item: GalleryItem;
   listing: ListingDetail;
   locale: Locale;
   compact?: boolean;
+  /**
+   * How an uploaded photo meets a frame it does not match. "cover" crops to
+   * fill, "frame" fits the whole photo over a blurred copy of itself, and
+   * "contain" fits it on a plain dark surface. The generated artwork fills any
+   * frame, so this only decides what happens to real photos.
+   */
+  fit?: "cover" | "frame" | "contain";
 }) {
   const Icon = galleryIcons[item.category];
   const shift = (item.variant % 4) * 8;
 
   if (item.dataUrl) {
+    // Owners upload whatever their phone took: 4:3, portrait, the occasional
+    // square. The frame stays 16:9 either way so the page does not resize as
+    // the carousel steps, and the photo is fitted inside it rather than
+    // cropped — with a blurred copy of itself filling what is left, which
+    // reads as intentional where letterbox bars read as broken.
+    if (fit !== "cover") {
+      return (
+        <div className="relative h-full w-full overflow-hidden bg-slate-950">
+          {fit === "frame" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl"
+              src={item.dataUrl}
+            />
+          ) : null}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt={item.label[locale]}
+            className="property-artwork relative h-full w-full object-contain"
+            src={item.dataUrl}
+          />
+        </div>
+      );
+    }
+
     return (
       // A stored data URL has no intrinsic size and never hits the network, so
       // next/image would only add a loader around it.
@@ -151,7 +186,12 @@ export function ListingGallery({
           type="button"
         >
           <div className="aspect-[16/10] sm:aspect-[16/9]">
-            <GalleryArtwork item={item} listing={listing} locale={locale} />
+            <GalleryArtwork
+              fit="frame"
+              item={item}
+              listing={listing}
+              locale={locale}
+            />
           </div>
         </button>
 
@@ -240,8 +280,18 @@ function GalleryLightbox({
   return (
     <Dialog label={t.galleryDialog} onClose={onClose} size="wide">
       <div className="relative">
-        <div className="aspect-[16/10] w-full overflow-hidden sm:aspect-[16/9]">
-          <GalleryArtwork item={item} listing={listing} locale={locale} />
+        {/* Nothing is cropped here: this is where a renter looks at the photo
+            itself, so a portrait shot keeps its top and bottom. The frame is a
+            fixed slice of the viewport rather than 16:9, so a tall photo gets
+            the height it needs and stepping between shapes does not resize the
+            dialog. */}
+        <div className="h-[58vh] w-full overflow-hidden sm:h-[72vh]">
+          <GalleryArtwork
+            fit="contain"
+            item={item}
+            listing={listing}
+            locale={locale}
+          />
         </div>
 
         <button

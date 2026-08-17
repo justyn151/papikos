@@ -17,16 +17,25 @@ import { createId } from "@/features/shared/create-id";
  */
 
 export const MAX_PHOTOS = 20;
-export const MAX_PHOTO_EDGE = 720;
-export const PHOTO_QUALITY = 0.6;
+/**
+ * Wide enough to fill the lightbox, which runs up to 1400px, without asking
+ * the browser to upscale. The previous 720px was sized for the old thumbnail
+ * strip and looked soft the moment a photo was opened full size.
+ */
+export const MAX_PHOTO_EDGE = 1600;
+export const PHOTO_QUALITY = 0.82;
 
 /**
- * Roughly 1.5MB of photos per listing. At the edge and quality above a photo
- * lands around 40–60KB, so twenty of them fit with room to spare, and a
- * listing of unusually detailed photos runs out of budget before it can starve
- * the rest of the store.
+ * 3MB of photos per listing. At the edge and quality above a photo lands
+ * around 200–400KB, so the budget is what a listing runs out of first rather
+ * than the count — roughly eight to twelve good photos, not twenty soft ones.
+ *
+ * That is most of the origin's ~5MB, and deliberately so: one kos can have a
+ * full gallery. A second one filling up too will hit the browser's own limit,
+ * where the save is refused with the storage-full message rather than losing
+ * data. Real object storage arrives with the API (see TODO.md).
  */
-export const MAX_PHOTO_BYTES = 1_500_000;
+export const MAX_PHOTO_BYTES = 3 * 1024 * 1024;
 
 export type PhotoErrorReason = "type" | "cap" | "budget" | "read" | "quota";
 

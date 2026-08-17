@@ -26,6 +26,16 @@ Completed owner and administrator capabilities:
 
 ### 17 August 2026 — One Photo at a Time
 
+- Raised photo quality: the long edge went from 720px to 1600px and quality
+  from 0.6 to 0.82, so a photo holds up when it is opened full size, and the
+  per-listing budget went from 1.5MB to 3MB to pay for it. The budget is what a
+  listing runs out of now, at roughly a dozen photos rather than twenty.
+- Photos that are not 16:9 keep everything they were shot with: the carousel
+  frame stays 16:9 so the page does not resize as it steps, and the photo is
+  fitted inside it over a blurred copy of itself. The dialog crops nothing
+  either, on a frame sized as a slice of the viewport so a portrait shot gets
+  the height it needs.
+
 - Replaced the detail page's photo-plus-thumbnail-strip with a single centred
   carousel: arrows on the photo, dots beneath it, and a counter. The strip
   spent a third of the width on images too small to read and left the main one

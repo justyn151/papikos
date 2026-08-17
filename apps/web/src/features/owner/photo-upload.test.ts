@@ -113,9 +113,14 @@ describe("the photo byte budget", () => {
     expect(result.rejectedBudget).toBe(1);
   });
 
-  it("counts a normal photo as a small slice of the budget", () => {
-    // The downscale settings put a photo near 50KB, so twenty of them fit.
-    expect(MAX_PHOTOS * 60_000).toBeLessThan(MAX_PHOTO_BYTES);
+  it("is the limit a listing actually reaches, not the count", () => {
+    // At 1600px and quality 0.82 a photo lands near 300KB, so a listing runs
+    // out of budget around a dozen photos rather than at the count cap. The
+    // count is there to keep a gallery a gallery; the bytes protect the store.
+    const typicalPhotoBytes = 300_000;
+
+    expect(MAX_PHOTO_BYTES / typicalPhotoBytes).toBeLessThan(MAX_PHOTOS);
+    expect(MAX_PHOTO_BYTES / typicalPhotoBytes).toBeGreaterThan(5);
   });
 });
 
