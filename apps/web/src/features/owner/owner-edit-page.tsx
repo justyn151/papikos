@@ -102,6 +102,19 @@ interface Draft {
   removedCosts: string[];
 }
 
+/**
+ * The editor is a form with eight groups of fields, which as one page was a
+ * wall an owner had to read past to change a price. They are the same groups,
+ * shown one at a time.
+ */
+type SectionId =
+  | "basics"
+  | "rooms"
+  | "photos"
+  | "facilities"
+  | "costs"
+  | "availability";
+
 function ownText(value: string): LocalizedText {
   return { id: value, en: value };
 }
@@ -203,7 +216,12 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
   }
 
   const [toast, setToast] = useState("");
-  const [error, setError] = useState("");
+  const [section, setSection] = useState<SectionId>("basics");
+  // The error carries the section it belongs to, so saving from one tab can
+  // take the owner to the field that actually blocked it.
+  const [error, setError] = useState<{ section: SectionId; message: string } | null>(
+    null,
+  );
   const [photoError, setPhotoError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [newRule, setNewRule] = useState("");
@@ -242,24 +260,45 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
       {(locale) => {
         const t = ownerCopy[locale];
         const price = cheapestRoomPrice(draft.rooms);
+        // Counts on the tabs so an owner can see what a section holds without
+        // opening it — an empty photo tab is worth noticing from here.
+        const sections: { id: SectionId; label: string; count?: number }[] = [
+          { id: "basics", label: t.tabBasics },
+          { id: "rooms", label: t.tabRooms, count: draft.rooms.length },
+          { id: "photos", label: t.tabPhotos, count: draft.photos.length },
+          {
+            id: "facilities",
+            label: t.tabFacilities,
+            count: draft.amenities.length,
+          },
+          { id: "costs", label: t.tabCosts, count: draft.costs.length },
+          { id: "availability", label: t.tabAvailability },
+        ];
         const percent = draft.discountPercent === "" ? null : Number(draft.discountPercent);
 
         const save = (event: FormEvent<HTMLFormElement>) => {
           event.preventDefault();
 
-          if (!draft.name.trim()) return setError(t.nameRequired);
-          if (!draft.city.trim()) return setError(t.cityRequired);
-          if (!draft.district.trim()) return setError(t.districtRequired);
-          if (draft.rooms.length === 0) return setError(t.roomsMinimum);
+          const fail = (id: SectionId, message: string) => {
+            // Showing "the name cannot be empty" while the owner is looking at
+            // the photo tab would be a dead end, so the editor goes there.
+            setSection(id);
+            setError({ section: id, message });
+          };
+
+          if (!draft.name.trim()) return fail("basics", t.nameRequired);
+          if (!draft.city.trim()) return fail("basics", t.cityRequired);
+          if (!draft.district.trim()) return fail("basics", t.districtRequired);
+          if (draft.rooms.length === 0) return fail("rooms", t.roomsMinimum);
           if (draft.rooms.some((room) => !(Number(room.price) > 0))) {
-            return setError(t.roomPriceInvalid);
+            return fail("rooms", t.roomPriceInvalid);
           }
           // A discount outside this range is either not a discount at all or a
           // typo that would wipe out the rent.
           if (percent !== null && !(percent >= 1 && percent <= 90)) {
-            return setError(t.discountInvalid);
+            return fail("basics", t.discountInvalid);
           }
-          setError("");
+          setError(null);
 
           const next: ListingOverride = {
             listingId: seed.id,
@@ -335,7 +374,8 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
         const reset = () => {
           clear(seed.id);
           setDraft(toDraft(seed, seed, undefined));
-          setError("");
+          setError(null);
+          setSection("basics");
           setPhotoError("");
           setRuleError("");
           setCostError("");
@@ -512,7 +552,46 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
               {t.editBody}
             </p>
 
-            <form className="mt-8 grid gap-5" onSubmit={save}>
+            <nav
+              aria-label={t.editSections}
+              className="mt-6 flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1.5 dark:border-slate-700 dark:bg-slate-900"
+            >
+              {sections.map((item) => {
+                const active = section === item.id;
+                return (
+                  <button
+                    aria-current={active}
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-bold transition ${
+                      active
+                        ? "bg-blue-600 text-white"
+                        : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    }`}
+                    key={item.id}
+                    onClick={() => setSection(item.id)}
+                    type="button"
+                  >
+                    {item.label}
+                    {item.count === undefined ? null : (
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[0.7rem] font-black ${
+                          active
+                            ? "bg-white/25 text-white"
+                            : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                        }`}
+                      >
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* A column, not a grid: a sticky child of a grid sticks within its own
+                row, which is exactly its own height, so the save bar would
+                never move. */}
+            <form className="mt-5 flex flex-col gap-5" onSubmit={save}>
+            {section === "basics" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.basics}
@@ -618,13 +697,10 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   </label>
                 </div>
                 <p className={hint}>{t.cityHint}</p>
-                {error ? (
-                  <p className="mt-3 text-xs font-bold text-rose-600 dark:text-rose-400">
-                    {error}
-                  </p>
-                ) : null}
               </section>
+            ) : null}
 
+            {section === "availability" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.staySection}
@@ -661,7 +737,9 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   </label>
                 </div>
               </section>
+            ) : null}
 
+            {section === "availability" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.locationSection}
@@ -698,7 +776,9 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                 </div>
                 <p className={hint}>{t.privacyHint}</p>
               </section>
+            ) : null}
 
+            {section === "photos" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.photosSection}
@@ -810,7 +890,9 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   </ul>
                 )}
               </section>
+            ) : null}
 
+            {section === "rooms" ? (
               <section className={card}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -950,7 +1032,9 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   ))}
                 </ul>
               </section>
+            ) : null}
 
+            {section === "facilities" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.amenitiesSection}
@@ -994,7 +1078,9 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   ))}
                 </div>
               </section>
+            ) : null}
 
+            {section === "facilities" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.rulesSection}
@@ -1116,7 +1202,9 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   ) : null}
                 </div>
               </section>
+            ) : null}
 
+            {section === "costs" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.costsSection}
@@ -1215,8 +1303,12 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   </p>
                 ) : null}
               </section>
+            ) : null}
 
-              <div className="flex flex-wrap gap-2">
+              {/* Saving stays reachable from every section: with the form
+                  split up, a button at the end of one tab would be a button
+                  the other five do not have. */}
+              <div className="sticky bottom-20 z-30 -mx-1 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-[0_-8px_30px_-24px_rgba(15,23,42,0.5)] backdrop-blur lg:bottom-4 dark:border-slate-700 dark:bg-slate-900/95">
                 <button className="btn-primary gap-2" type="submit">
                   <Save size={16} aria-hidden="true" />
                   {t.save}
@@ -1230,6 +1322,11 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     <RotateCcw size={16} aria-hidden="true" />
                     {t.reset}
                   </button>
+                ) : null}
+                {error ? (
+                  <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
+                    {error.message}
+                  </p>
                 ) : null}
               </div>
             </form>

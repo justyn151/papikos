@@ -92,8 +92,10 @@ export function ConsoleShell({
             </ul>
           </nav>
 
-          {/* Bottom padding keeps the fixed bar off the last row on mobile. */}
-          <div className="pb-24 lg:pb-0">{children(locale)}</div>
+          {/* Bottom padding keeps the fixed bar off the last row on mobile.
+              min-w-0 lets a scrolling child (the editor's section tabs) shrink
+              instead of stretching this grid column past the viewport. */}
+          <div className="min-w-0 pb-24 lg:pb-0">{children(locale)}</div>
 
           <nav
             aria-label={label}

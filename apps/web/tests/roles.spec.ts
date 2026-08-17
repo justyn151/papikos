@@ -2,6 +2,14 @@ import { expect, test } from "@playwright/test";
 
 import { openRequestDialog, waitForReady } from "./helpers";
 
+/** The kos editor shows one section at a time; open the one under test. */
+async function openEditorSection(
+  page: import("@playwright/test").Page,
+  name: string,
+) {
+  await page.getByRole("button", { name: new RegExp(`^${name}`) }).click();
+}
+
 async function switchRole(
   page: import("@playwright/test").Page,
   label: "Renter" | "Owner" | "Admin",
@@ -149,10 +157,11 @@ test("an owner edit reaches renter search, filtering, and the audit trail", asyn
   await waitForReady(page);
 
   await page.getByLabel("Kos name").fill("Kos Senja Updated");
+  await page.getByLabel("Discount (%)").fill("15");
   // The headline price follows the cheapest room, and the discount is a
   // percentage, so both are set through what the owner actually decides.
+  await openEditorSection(page, "Rooms");
   await page.getByLabel("Price", { exact: true }).first().fill("2000000");
-  await page.getByLabel("Discount (%)").fill("15");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Changes saved.")).toBeVisible();
 
@@ -230,6 +239,7 @@ test("an uploaded photo becomes the kos cover and survives a reload", async ({
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
+  await openEditorSection(page, "Photos");
   await expect(page.getByText("No photos yet")).toBeVisible();
   await page.getByLabel("Add photos").setInputFiles({
     name: "kamar.png",
@@ -259,6 +269,7 @@ test("a custom house rule reaches renters alongside the standard ones", async ({
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
+  await openEditorSection(page, "Facilities");
   await page.getByLabel("Additional rules").fill("Jam tamu maksimal 21.00");
   await page.getByRole("button", { name: "Add rule" }).click();
   await page.getByRole("button", { name: "Save changes" }).click();
@@ -281,6 +292,7 @@ test("a room the owner adds is bookable, and the last one cannot be deleted", as
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
+  await openEditorSection(page, "Rooms");
   await page.getByRole("button", { name: "Add room" }).click();
   await page.getByLabel("Room name").last().fill("Upstairs room");
   await page.getByLabel("Price", { exact: true }).last().fill("3000000");
@@ -295,6 +307,7 @@ test("a room the owner adds is bookable, and the last one cannot be deleted", as
 
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
+  await openEditorSection(page, "Rooms");
   for (const name of ["Upstairs room", "Plus room", "Standard room"]) {
     await page.getByRole("button", { name: `Remove room: ${name}` }).click();
   }
@@ -310,6 +323,7 @@ test("a cost the owner adds reaches renters with the reason behind it", async ({
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
+  await openEditorSection(page, "Costs");
   await page.getByLabel("Add cost").fill("Iuran kebersihan");
   await page.getByRole("button", { name: "Add cost" }).click();
   await page

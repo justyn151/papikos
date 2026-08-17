@@ -25,12 +25,19 @@ function save() {
   fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 }
 
+/** The editor shows one section at a time, so a test opens the one it edits. */
+function openSection(name: string) {
+  fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${name}`) }));
+}
+
 describe("owner listing editor", () => {
   it("prefills the form from the listing", async () => {
     render(<OwnerEditPage listing={listing} />);
 
     expect(await screen.findByLabelText("Kos name")).toHaveValue(listing.name);
     expect(screen.getByLabelText("City")).toHaveValue(listing.city);
+
+    openSection("Rooms");
     expect(screen.getAllByLabelText("Room name")[0]).toHaveValue(
       listing.rooms[0].name.en,
     );
@@ -60,6 +67,7 @@ describe("owner listing editor", () => {
   it("prices the kos from its cheapest room instead of a typed number", async () => {
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Rooms");
     const prices = await screen.findAllByLabelText("Price");
     fireEvent.change(prices[0], { target: { value: "1250000" } });
     fireEvent.change(prices[1], { target: { value: "3000000" } });
@@ -135,6 +143,7 @@ describe("owner listing editor", () => {
   it("edits room availability", async () => {
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Rooms");
     const roomInputs = await screen.findAllByLabelText("Rooms free");
     fireEvent.change(roomInputs[0], { target: { value: "0" } });
     save();
@@ -176,6 +185,7 @@ describe("loading an already-edited kos", () => {
     await waitFor(() =>
       expect(screen.getByLabelText("Kos name")).toHaveValue("Kos Tersimpan"),
     );
+    openSection("Rooms");
     expect(screen.getAllByLabelText("Room name")).toHaveLength(1);
     expect(screen.getByLabelText("Room name")).toHaveValue("Kamar Tersimpan");
   });
@@ -185,6 +195,7 @@ describe("adding and removing rooms", () => {
   it("adds a room the owner can fill in", async () => {
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Rooms");
     fireEvent.click(await screen.findByRole("button", { name: "Add room" }));
 
     const names = screen.getAllByLabelText("Room name");
@@ -209,6 +220,7 @@ describe("adding and removing rooms", () => {
   it("removes a room and stops storing it", async () => {
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Rooms");
     fireEvent.click(
       (
         await screen.findAllByRole("button", {
@@ -228,6 +240,7 @@ describe("adding and removing rooms", () => {
   it("keeps the last room, because an empty kos cannot be rented", async () => {
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Rooms");
     for (const room of listing.rooms.slice(1)) {
       fireEvent.click(
         screen.getByRole("button", { name: `Remove room: ${room.name.en}` }),
@@ -267,6 +280,7 @@ describe("adding and removing rooms", () => {
     );
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Rooms");
     fireEvent.click(
       await screen.findByRole("button", {
         name: `Remove room: ${booked.name.en}`,
@@ -290,6 +304,7 @@ describe("cost rows", () => {
   it("adds the owner's own cost row, with the reason behind it", async () => {
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Costs");
     fireEvent.change(await screen.findByLabelText("Add cost"), {
       target: { value: "Iuran kebersihan" },
     });
@@ -317,6 +332,7 @@ describe("cost rows", () => {
     const removed = listing.costs[1];
     render(<OwnerEditPage listing={listing} />);
 
+    openSection("Costs");
     fireEvent.click(
       await screen.findByRole("button", {
         name: `Remove cost: ${removed.label.en}`,
