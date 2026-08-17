@@ -14,6 +14,7 @@ import type {
   SubmittedQuestion,
 } from "@/features/listings/types";
 import { discountedPrice } from "@/features/home/home-utils";
+import { isGalleryCategory } from "@/features/listings/gallery-categories";
 import { MAX_PHOTOS } from "@/features/owner/photo-upload";
 
 /**
@@ -210,6 +211,9 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
       .map((item) => ({
         id: asString(item.id),
         dataUrl: asString(item.dataUrl),
+        // Photos stored before tagging existed were all filed as rooms, which
+        // is what they were captioned as.
+        category: isGalleryCategory(item.category) ? item.category : "room",
       }))
       // Anything that is not an inline image is unrenderable, and a remote URL
       // here would be a way to smuggle an off-origin request into the page.

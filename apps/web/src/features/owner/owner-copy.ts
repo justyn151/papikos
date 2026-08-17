@@ -116,6 +116,7 @@ export const ownerCopy = {
     photoCover: "Sampul",
     photoMakeCover: "Jadikan sampul",
     photoRemove: "Hapus foto",
+    photoTag: "Isi foto",
     photoErrorType: "Hanya berkas gambar yang bisa diunggah.",
     photoErrorCap: "Batas {max} foto tercapai, sisanya tidak diunggah.",
     photoErrorBudget:
@@ -291,6 +292,7 @@ export const ownerCopy = {
     photoCover: "Cover",
     photoMakeCover: "Make cover",
     photoRemove: "Remove photo",
+    photoTag: "What this shows",
     photoErrorType: "Only image files can be uploaded.",
     photoErrorCap: "The {max} photo limit was reached; the rest were skipped.",
     photoErrorBudget:

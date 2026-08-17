@@ -254,13 +254,18 @@ test("an uploaded photo becomes the kos cover and survives a reload", async ({
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Changes saved.")).toBeVisible();
 
+  // The tag the owner picked is the caption a renter reads.
+  await page.getByLabel(/^What this shows/).selectOption("exterior");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
+
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
-  await expect(page.getByRole("img", { name: "Owner photo 1" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Exterior" })).toBeVisible();
 
   await page.reload();
   await waitForReady(page);
-  await expect(page.getByRole("img", { name: "Owner photo 1" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Exterior" })).toBeVisible();
 });
 
 test("a custom house rule reaches renters alongside the standard ones", async ({

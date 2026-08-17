@@ -55,6 +55,16 @@ Completed owner and administrator capabilities:
   content column could not shrink below its widest child, so a scrolling strip
   stretched the whole page past the viewport.
 
+### 17 August 2026 — Photos Say What They Show
+
+- Every uploaded photo carries a tag — bedroom, bathroom, shared area,
+  exterior, neighbourhood — picked in the editor from the gallery's own
+  categories rather than a new list. It becomes the caption and the icon a
+  renter sees, where an upload was previously filed as a bedroom whatever it
+  was, and captioned "Owner photo 3".
+- The caption chip now draws over real photos too, not only the generated
+  artwork, so both look like the same gallery.
+
 ### 17 August 2026 — One Photo at a Time
 
 - Raised photo quality: the long edge went from 720px to 1600px and quality

@@ -192,7 +192,25 @@ describe("stored photos", () => {
     });
 
     expect(override?.photos).toEqual([
-      { id: "ok", dataUrl: "data:image/jpeg;base64,AAAA" },
+      { id: "ok", dataUrl: "data:image/jpeg;base64,AAAA", category: "room" },
+    ]);
+  });
+
+  it("keeps a photo's tag, and files an untagged or unknown one as a room", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      photos: [
+        { id: "a", dataUrl: "data:image/jpeg;base64,AAAA", category: "exterior" },
+        // Records written before tagging existed, and anything hand-edited.
+        { id: "b", dataUrl: "data:image/jpeg;base64,AAAA" },
+        { id: "c", dataUrl: "data:image/jpeg;base64,AAAA", category: "garage" },
+      ],
+    });
+
+    expect(override?.photos?.map((photo) => photo.category)).toEqual([
+      "exterior",
+      "room",
+      "room",
     ]);
   });
 

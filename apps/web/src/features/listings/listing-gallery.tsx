@@ -30,6 +30,21 @@ const galleryIcons: Record<GalleryCategory, typeof BedDouble> = {
   neighborhood: MapPin,
 };
 
+function CategoryChip({
+  Icon,
+  label,
+}: {
+  Icon: typeof BedDouble;
+  label: string;
+}) {
+  return (
+    <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-slate-950/45 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md">
+      <Icon size={14} aria-hidden="true" />
+      {label}
+    </span>
+  );
+}
+
 export function GalleryArtwork({
   item,
   listing,
@@ -76,19 +91,25 @@ export function GalleryArtwork({
             className="property-artwork relative h-full w-full object-contain"
             src={item.dataUrl}
           />
+          {/* The dialog captions the photo under it, so the chip would be the
+              same words twice there. */}
+          {fit === "frame" ? <CategoryChip Icon={Icon} label={item.label[locale]} /> : null}
         </div>
       );
     }
 
     return (
-      // A stored data URL has no intrinsic size and never hits the network, so
-      // next/image would only add a loader around it.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        alt={item.label[locale]}
-        className="property-artwork h-full min-h-36 w-full object-cover"
-        src={item.dataUrl}
-      />
+      <div className="relative h-full w-full overflow-hidden">
+        {/* A stored data URL has no intrinsic size and never hits the network,
+            so next/image would only add a loader around it. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          alt={item.label[locale]}
+          className="property-artwork h-full min-h-36 w-full object-cover"
+          src={item.dataUrl}
+        />
+        {compact ? null : <CategoryChip Icon={Icon} label={item.label[locale]} />}
+      </div>
     );
   }
 
@@ -130,10 +151,7 @@ export function GalleryArtwork({
           <span className="absolute left-[10%] top-[14%] h-[12%] w-[35%] rounded-full bg-white/35" />
         </span>
       )}
-      <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-slate-950/25 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md">
-        <Icon size={14} aria-hidden="true" />
-        {item.label[locale]}
-      </span>
+      <CategoryChip Icon={Icon} label={item.label[locale]} />
     </div>
   );
 }

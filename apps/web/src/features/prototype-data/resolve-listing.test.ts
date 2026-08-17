@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getListingDetail, listings } from "@/features/listings/mock-listings";
 import type {
   ListingOverride,
+  ListingPhoto,
   OverrideRoom,
   RoomOption,
 } from "@/features/listings/types";
@@ -345,9 +346,13 @@ describe("custom house rules", () => {
 });
 
 describe("uploaded photos", () => {
-  const photos = [
-    { id: "photo-1", dataUrl: "data:image/jpeg;base64,AAAA" },
-    { id: "photo-2", dataUrl: "data:image/jpeg;base64,BBBB" },
+  const photos: ListingPhoto[] = [
+    { id: "photo-1", dataUrl: "data:image/jpeg;base64,AAAA", category: "room" },
+    {
+      id: "photo-2",
+      dataUrl: "data:image/jpeg;base64,BBBB",
+      category: "exterior",
+    },
   ];
 
   it("puts the cover first and keeps the generated artwork behind it", () => {

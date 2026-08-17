@@ -84,6 +84,12 @@ export interface GalleryItem {
 export interface ListingPhoto {
   id: string;
   dataUrl: string;
+  /**
+   * What the photo shows, from the gallery's own categories. It decides the
+   * icon and caption a renter sees, so an untagged photo would claim to be a
+   * bedroom whatever it is.
+   */
+  category: GalleryCategory;
 }
 
 export interface RoomOption {

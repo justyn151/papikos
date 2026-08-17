@@ -19,7 +19,11 @@ import {
 } from "./photo-upload";
 
 function photo(id: string, payload = "AAAA"): ListingPhoto {
-  return { id, dataUrl: `data:image/jpeg;base64,${payload}` };
+  return {
+    id,
+    dataUrl: `data:image/jpeg;base64,${payload}`,
+    category: "room",
+  };
 }
 
 /** A photo of a chosen decoded size, for exercising the byte budget. */

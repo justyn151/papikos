@@ -1,3 +1,4 @@
+import { galleryCategoryLabels } from "@/features/listings/gallery-categories";
 import type {
   CostItem,
   Listing,
@@ -154,11 +155,10 @@ export function resolveListingDetail(
       ? [
           ...override.photos.map((photo, index) => ({
             id: photo.id,
-            category: "room" as const,
-            label: {
-              id: `Foto pemilik ${index + 1}`,
-              en: `Owner photo ${index + 1}`,
-            },
+            category: photo.category,
+            // The tag is the caption: "Bedroom" tells a renter what they are
+            // looking at, where "Owner photo 3" told them only that it exists.
+            label: galleryCategoryLabels[photo.category],
             variant: index,
             dataUrl: photo.dataUrl,
           })),

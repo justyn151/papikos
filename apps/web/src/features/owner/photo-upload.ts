@@ -192,5 +192,7 @@ export async function readPhotoFile(file: File): Promise<ListingPhoto> {
   return {
     id: createId("photo"),
     dataUrl: canvas.toDataURL("image/jpeg", PHOTO_QUALITY),
+    // Most kos photos are of a room; the owner retags the ones that are not.
+    category: "room",
   };
 }

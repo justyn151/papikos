@@ -15,9 +15,14 @@ import { type ChangeEvent, type FormEvent, useState } from "react";
 import { amenityLabels, typeLabels } from "@/features/home/copy";
 import { discountedPrice, formatPrice } from "@/features/home/home-utils";
 import { detailCopy } from "@/features/listings/detail-copy";
+import {
+  galleryCategories,
+  galleryCategoryLabels,
+} from "@/features/listings/gallery-categories";
 import { amenitiesByCategory } from "@/features/listings/mock-listings";
 import type {
   Amenity,
+  GalleryCategory,
   ListingDetail,
   ListingOverride,
   ListingPhoto,
@@ -853,6 +858,34 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                             </span>
                           ) : null}
                         </div>
+                        <label className="block px-2 pt-2">
+                          <span className="sr-only">{`${t.photoTag}: ${index + 1}`}</span>
+                          <select
+                            className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:focus:ring-blue-950"
+                            disabled={uploading}
+                            onChange={(event) =>
+                              setDraft((d) => ({
+                                ...d,
+                                photos: d.photos.map((item) =>
+                                  item.id === photo.id
+                                    ? {
+                                        ...item,
+                                        category: event.target
+                                          .value as GalleryCategory,
+                                      }
+                                    : item,
+                                ),
+                              }))
+                            }
+                            value={photo.category}
+                          >
+                            {galleryCategories.map((category) => (
+                              <option key={category} value={category}>
+                                {galleryCategoryLabels[category][locale]}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                         <div className="flex items-center justify-between gap-2 p-2">
                           <button
                             className="rounded-lg px-2 py-1 text-xs font-bold text-blue-700 transition hover:bg-blue-50 disabled:opacity-40 dark:text-blue-300 dark:hover:bg-blue-950/40"
