@@ -16,7 +16,6 @@ import {
   Hospital,
   MapPin,
   Maximize2,
-  Navigation,
   Send,
   Share2,
   ShieldCheck,
@@ -63,6 +62,7 @@ import { usePersistentState } from "@/features/shared/use-persistent-state";
 import { costExplanationFor, costPaymentNotice } from "./cost-copy";
 import { detailCopy } from "./detail-copy";
 import { GalleryArtwork, ListingGallery } from "./listing-gallery";
+import { LazyListingMap } from "./listing-map-lazy";
 import type {
   BookingRequest,
   FacilityItem,
@@ -675,15 +675,12 @@ export function ListingDetailPage({
             <Section title={t.location}>
               <div className="overflow-hidden rounded-[1.75rem] border border-blue-100 bg-blue-50/70 dark:bg-blue-950/30">
                 <div className="relative h-72 overflow-hidden">
-                  <div className="detail-map-grid absolute inset-0" aria-hidden="true" />
-                  <div className="absolute left-[7%] top-[35%] h-3 w-[90%] -rotate-6 rounded-full bg-white dark:bg-slate-900" />
-                  <div className="absolute left-[48%] top-[-15%] h-[135%] w-3 rotate-12 rounded-full bg-white dark:bg-slate-900" />
-                  <div className="absolute left-1/2 top-1/2 size-36 -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-300 bg-blue-200/35">
-                    <span className="absolute left-1/2 top-1/2 grid size-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-blue-600 text-white shadow-xl">
-                      <Navigation size={19} fill="currentColor" />
-                    </span>
-                  </div>
-                  <span className="absolute bottom-4 left-4 rounded-full bg-white/90 dark:bg-slate-950/90 px-4 py-2 text-sm font-black text-slate-800 dark:text-slate-200 shadow-lg backdrop-blur">
+                  <LazyListingMap
+                    centre={{ lat: listing.lat, lng: listing.lng }}
+                    label={`${t.approximate}: ${listing.approximateArea}`}
+                    radiusMeters={listing.privacyRadiusMeters}
+                  />
+                  <span className="pointer-events-none absolute bottom-4 left-4 z-[500] rounded-full bg-white/90 px-4 py-2 text-sm font-black text-slate-800 shadow-lg backdrop-blur dark:bg-slate-950/90 dark:text-slate-200">
                     {t.approximate}: {listing.approximateArea}
                   </span>
                 </div>

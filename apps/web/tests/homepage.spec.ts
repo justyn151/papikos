@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./base";
 
 import { openRequestDialog, waitForReady } from "./helpers";
 
@@ -196,4 +196,23 @@ test("browses the kos gallery and opens a photo full size", async ({ page }) => 
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(page.getByText("4 of 5")).toBeVisible();
+});
+
+test("shows an approximate location on a real map, with attribution", async ({
+  page,
+}) => {
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+
+  const map = page.locator(".leaflet-container");
+  await expect(map).toBeVisible();
+  // OpenStreetMap's licence requires the credit, whatever the tiles look like.
+  await expect(
+    page.locator(".leaflet-control-attribution"),
+  ).toContainText("OpenStreetMap");
+
+  // A circle, and no pin: the kos is placed to a district, not an address.
+  await expect(map.locator("path.leaflet-interactive")).toHaveCount(1);
+  await expect(page.locator(".leaflet-marker-icon")).toHaveCount(0);
+  await expect(page.getByText(/circle covers a 450 m radius/)).toBeVisible();
 });

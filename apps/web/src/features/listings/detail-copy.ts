@@ -43,7 +43,7 @@ export const detailCopy = {
     location: "Lokasi dan sekitar",
     approximate: "Lokasi perkiraan",
     privacy:
-      "Titik menunjukkan area dalam radius {radius} m. Alamat tepat tetap privat pada prototipe.",
+      "Lingkaran menandai area dalam radius {radius} m. Alamat persis tidak dibagikan sebelum permintaan sewa disetujui.",
     minutes: "menit",
     rules: "Peraturan kos",
     allowed: "Diizinkan",
@@ -148,7 +148,7 @@ export const detailCopy = {
     location: "Location and surroundings",
     approximate: "Approximate location",
     privacy:
-      "The marker represents a {radius} m radius. The precise address remains private in this prototype.",
+      "The circle covers a {radius} m radius. The exact address is not shared until a rental request is approved.",
     minutes: "minutes",
     rules: "House rules",
     allowed: "Allowed",

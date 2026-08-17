@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./base";
 
 import { openRequestDialog, waitForReady } from "./helpers";
 
@@ -349,4 +349,30 @@ test("a cost the owner adds reaches renters with the reason behind it", async ({
   const dialog = page.getByRole("dialog", { name: "Cost explanation" });
   await expect(dialog.getByText("Ditagih tiap awal months bersama listrik.")).toBeVisible();
   await expect(dialog.getByText(/does not process payments/)).toBeVisible();
+});
+
+test("an owner moves the kos on the map and a renter sees it move", async ({
+  page,
+}) => {
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+  await openEditorSection(page, "Availability");
+
+  const stored = page.getByText(/^Stored point:/);
+  const before = await stored.innerText();
+  await page.locator(".leaflet-container").click({ position: { x: 60, y: 60 } });
+  await expect(stored).not.toHaveText(before);
+
+  // Three decimals and no more: the point a renter can read is deliberately
+  // no more precise than the circle drawn around it.
+  await expect(stored).toHaveText(/^Stored point: -?\d+\.\d{3}, \d+\.\d{3}$/);
+  const moved = await stored.innerText();
+
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
+
+  await page.reload();
+  await waitForReady(page);
+  await openEditorSection(page, "Availability");
+  await expect(stored).toHaveText(moved);
 });

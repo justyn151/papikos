@@ -144,6 +144,12 @@ export interface ListingDetail extends Listing {
   minimumStayMonths: number;
   approximateArea: string;
   privacyRadiusMeters: number;
+  /**
+   * The centre of the privacy circle, already rounded before it is stored —
+   * see `location.ts`. This is deliberately not the address.
+   */
+  lat: number;
+  lng: number;
   ownerName: string;
   ownerSince: number;
   gallery: GalleryItem[];
@@ -290,6 +296,8 @@ export interface ListingOverride {
   district?: string;
   approximateArea?: string;
   privacyRadiusMeters?: number;
+  lat?: number;
+  lng?: number;
   availableFrom?: string;
   minimumStayMonths?: number;
   amenities?: Amenity[];

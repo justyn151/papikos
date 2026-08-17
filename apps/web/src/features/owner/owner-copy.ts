@@ -86,6 +86,10 @@ export const ownerCopy = {
     fieldPrivacyRadius: "Radius privasi (meter)",
     privacyHint:
       "Lokasi persis tidak ditampilkan sebelum permintaan disetujui. Peta menampilkan lingkaran seluas radius ini.",
+    mapLabel: "Titik perkiraan kos",
+    mapHint:
+      "Klik peta untuk memindahkan lingkaran. Yang disimpan hanya titik yang sudah dibulatkan, bukan alamat persis.",
+    mapPoint: "Titik tersimpan: {lat}, {lng}",
     cityHint: "Kota dipakai untuk filter pencarian, tulis persis seperti umumnya.",
 
     roomsSection: "Kamar",
@@ -262,6 +266,10 @@ export const ownerCopy = {
     fieldPrivacyRadius: "Privacy radius (metres)",
     privacyHint:
       "The exact address stays hidden until a request is approved. The map shows a circle this wide instead.",
+    mapLabel: "Approximate point for this kos",
+    mapHint:
+      "Click the map to move the circle. Only the rounded point is stored, never the exact address.",
+    mapPoint: "Stored point: {lat}, {lng}",
     cityHint: "The city drives search filters, so write it the usual way.",
 
     roomsSection: "Rooms",

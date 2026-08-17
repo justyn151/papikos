@@ -19,6 +19,12 @@ import {
   galleryCategories,
   galleryCategoryLabels,
 } from "@/features/listings/gallery-categories";
+import { LazyListingMap } from "@/features/listings/listing-map-lazy";
+import {
+  MIN_PRIVACY_RADIUS,
+  approximate,
+  clampPrivacyRadius,
+} from "@/features/listings/location";
 import { amenitiesByCategory } from "@/features/listings/mock-listings";
 import type {
   Amenity,
@@ -97,6 +103,8 @@ interface Draft {
   minimumStayMonths: string;
   approximateArea: string;
   privacyRadiusMeters: string;
+  lat: number;
+  lng: number;
   amenities: Amenity[];
   photos: ListingPhoto[];
   rooms: DraftRoom[];
@@ -162,6 +170,8 @@ function toDraft(
     minimumStayMonths: String(listing.minimumStayMonths),
     approximateArea: listing.approximateArea,
     privacyRadiusMeters: String(listing.privacyRadiusMeters),
+    lat: listing.lat,
+    lng: listing.lng,
     amenities: [...listing.amenities],
     rooms: listing.rooms.map((room) => ({
       id: room.id,
@@ -313,10 +323,12 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
             type: draft.type,
             description: draft.description.trim(),
             approximateArea: draft.approximateArea.trim(),
-            privacyRadiusMeters: Math.max(
-              0,
-              Number(draft.privacyRadiusMeters) || 0,
+            privacyRadiusMeters: clampPrivacyRadius(
+              Number(draft.privacyRadiusMeters) || MIN_PRIVACY_RADIUS,
             ),
+            // Rounded here rather than when it is drawn: an exact point that
+            // reaches the browser is public whatever the map chooses to show.
+            ...approximate({ lat: draft.lat, lng: draft.lng }),
             availableFrom: draft.availableFrom,
             minimumStayMonths: Math.max(1, Number(draft.minimumStayMonths) || 1),
             // Both prices are derived: the headline follows the cheapest room,
@@ -777,6 +789,31 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   </label>
                 </div>
                 <p className={hint}>{t.privacyHint}</p>
+
+                <div className="mt-5">
+                  <p className="text-xs font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                    {t.mapLabel}
+                  </p>
+                  <div className="mt-2 h-72 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                    <LazyListingMap
+                      centre={{ lat: draft.lat, lng: draft.lng }}
+                      interactive
+                      label={t.mapLabel}
+                      onMove={(next) =>
+                        setDraft((d) => ({ ...d, ...approximate(next) }))
+                      }
+                      radiusMeters={clampPrivacyRadius(
+                        Number(draft.privacyRadiusMeters) || MIN_PRIVACY_RADIUS,
+                      )}
+                    />
+                  </div>
+                  <p className={hint}>{t.mapHint}</p>
+                  <p className="mt-1 text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+                    {t.mapPoint
+                      .replace("{lat}", draft.lat.toFixed(3))
+                      .replace("{lng}", draft.lng.toFixed(3))}
+                  </p>
+                </div>
               </section>
             ) : null}
 

@@ -178,6 +178,9 @@ export function resolveListingDetail(
     ...(override.privacyRadiusMeters !== undefined
       ? { privacyRadiusMeters: override.privacyRadiusMeters }
       : {}),
+    ...(override.lat !== undefined && override.lng !== undefined
+      ? { lat: override.lat, lng: override.lng }
+      : {}),
     ...(override.availableFrom !== undefined
       ? { availableFrom: override.availableFrom }
       : {}),

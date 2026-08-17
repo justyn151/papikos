@@ -15,6 +15,11 @@ import type {
 } from "@/features/listings/types";
 import { discountedPrice } from "@/features/home/home-utils";
 import { isGalleryCategory } from "@/features/listings/gallery-categories";
+import {
+  approximate,
+  clampPrivacyRadius,
+  isPlausibleCoordinate,
+} from "@/features/listings/location";
 import { MAX_PHOTOS } from "@/features/owner/photo-upload";
 
 /**
@@ -181,10 +186,14 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
     override.approximateArea = raw.approximateArea;
   }
   if (typeof raw.privacyRadiusMeters === "number") {
-    override.privacyRadiusMeters = Math.max(
-      0,
-      Math.round(raw.privacyRadiusMeters),
-    );
+    override.privacyRadiusMeters = clampPrivacyRadius(raw.privacyRadiusMeters);
+  }
+  // A pair or nothing: half a coordinate would put the circle in the sea, and
+  // anything outside Indonesia is a swapped or corrupted record.
+  if (isPlausibleCoordinate({ lat: raw.lat, lng: raw.lng })) {
+    const point = approximate({ lat: Number(raw.lat), lng: Number(raw.lng) });
+    override.lat = point.lat;
+    override.lng = point.lng;
   }
   if (typeof raw.availableFrom === "string") {
     override.availableFrom = raw.availableFrom;

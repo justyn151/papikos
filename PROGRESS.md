@@ -24,6 +24,21 @@ Completed owner and administrator capabilities:
 
 ## Completed Milestones
 
+### 17 August 2026 — A Real Map, Kept Approximate
+
+- The kos page draws an actual map (Leaflet with OpenStreetMap tiles) where it
+  used to draw one by hand, and the owner's editor has a click-to-place pin, so
+  location is data an owner sets rather than an illustration.
+- The privacy promise is now structural. Coordinates are rounded to three
+  decimals — about 110m, inside the smallest circle an owner can draw — before
+  they are stored, so the exact address never reaches the browser, and the map
+  shows only the privacy circle: a pin would claim a precision the app
+  deliberately does not have.
+- The radius is clamped to 150–1500m, coordinates are validated as a pair
+  inside Indonesia at the parse boundary, and the test suite stubs tile
+  requests so it neither depends on OpenStreetMap being reachable nor sends
+  their servers CI traffic.
+
 ### 17 August 2026 — Homepage Detailing
 
 - Replaced the hero's drawn map with the search field itself. The map promised

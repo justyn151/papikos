@@ -651,6 +651,23 @@ function createQuestions(listing: Listing): ListingQuestion[] {
   ];
 }
 
+/**
+ * Roughly where each district is, at the precision `location.ts` stores: these
+ * are neighbourhood centres, not addresses, and the privacy circle is drawn
+ * around them.
+ */
+const approximateCentres: Record<string, { lat: number; lng: number }> = {
+  "senja-setiabudi": { lat: -6.209, lng: 106.83 },
+  "asri-dago": { lat: -6.885, lng: 107.613 },
+  "kalyana-gejayan": { lat: -7.766, lng: 110.393 },
+  "ruang-teduh": { lat: -7.28, lng: 112.795 },
+  "nara-kemang": { lat: -6.26, lng: 106.816 },
+  "bumi-pasteur": { lat: -6.895, lng: 107.588 },
+  "oma-pogung": { lat: -7.752, lng: 110.371 },
+  "taman-rungkut": { lat: -7.334, lng: 112.771 },
+  "melati-tebet": { lat: -6.235, lng: 106.848 },
+};
+
 export const listingDetails: ListingDetail[] = listings.map((listing, index) => ({
   ...listing,
   description: descriptions[listing.id],
@@ -659,6 +676,7 @@ export const listingDetails: ListingDetail[] = listings.map((listing, index) => 
   minimumStayMonths: index % 3 === 0 ? 3 : 1,
   approximateArea: `${listing.district}, ${listing.city}`,
   privacyRadiusMeters: 450,
+  ...approximateCentres[listing.id],
   ownerName: [
     "Ayu Pratama",
     "Nadia Kusuma",

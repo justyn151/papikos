@@ -36,6 +36,12 @@ This file tracks unfinished product work. Move completed items to [PROGRESS.md](
       instead of fitting the whole photo: one uniform shape against never
       cropping what an owner shot. The switch is documented in
       `listing-gallery.tsx`.
-- [ ] Integrate a privacy-safe map provider with approximate pre-booking locations.
+- [ ] Move search onto the map: results as circles, "search this area" from the
+      viewport, and a decision on how map bounds combine with the existing
+      filters. The detail page and the owner's pin landed on 17 August 2026.
+- [ ] Replace OpenStreetMap's public tiles before this is anything but a
+      prototype — their tile policy rules out app traffic. One URL and one
+      attribution string in `listing-map.tsx`, plus an API key in the
+      environment for a keyed provider.
 - [ ] Add accessibility audits, performance budgets, error monitoring, and API observability.
 - [ ] Add integration coverage for authorization, validation, and meaningful API failure paths.
