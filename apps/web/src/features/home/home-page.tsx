@@ -5,12 +5,7 @@ import Link from "next/link";
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 
 import { copy } from "./copy";
-import {
-  defaultFilters,
-  effectivePrice,
-  formatPrice,
-  serializeFilters,
-} from "./home-utils";
+import { defaultFilters, serializeFilters } from "./home-utils";
 import { cities, listings } from "./mock-listings";
 import { ListingCard } from "@/features/listings/listing-card";
 import { BrandMark } from "@/features/navigation/brand-mark";
@@ -75,21 +70,6 @@ export function HomePage() {
   };
 
   const previewListings = useMemo(() => listings.slice(0, 8), []);
-
-  // Counts, not claims: everything here is read off the listings, so it stays
-  // true as they change rather than being copy someone has to remember.
-  const cityCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const listing of listings) {
-      counts.set(listing.city, (counts.get(listing.city) ?? 0) + 1);
-    }
-    return counts;
-  }, []);
-
-  const cheapest = useMemo(
-    () => Math.min(...listings.map((listing) => effectivePrice(listing))),
-    [],
-  );
 
   const toggleFavorite = (listingId: string) => {
     const favorite = favoriteIds.includes(listingId);
@@ -206,25 +186,9 @@ export function HomePage() {
                 >
                   <MapPin size={14} aria-hidden="true" />
                   {city}
-                  <span
-                    aria-hidden="true"
-                    className="rounded-full bg-slate-100 px-1.5 text-xs font-black text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                  >
-                    {cityCounts.get(city) ?? 0}
-                  </span>
                 </Link>
               ))}
             </div>
-
-            <p
-              className="hero-enter mt-6 text-sm font-semibold text-slate-500 dark:text-slate-400"
-              style={{ "--hero-delay": "280ms" } as CSSProperties}
-            >
-              {t.heroSummary
-                .replace("{kos}", String(listings.length))
-                .replace("{cities}", String(cityCounts.size))
-                .replace("{price}", formatPrice(cheapest, locale))}
-            </p>
           </div>
         </section>
 
