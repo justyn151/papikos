@@ -11,15 +11,17 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => window.localStorage.clear());
 });
 
-test("header search on the homepage lands on /kos with results", async ({
+test("searching from the homepage lands on /kos with results", async ({
   page,
 }) => {
   await page.reload();
   await waitForReady(page);
 
-  const header = page.getByRole("banner");
-  await header.getByRole("textbox", { name: "Location", exact: true }).fill("Jakarta");
-  await header.getByRole("button", { name: "Find a kos" }).click();
+  // The homepage's search is the hero field; the header only carries one once
+  // that has scrolled away (covered in homepage.spec.ts).
+  const main = page.getByRole("main");
+  await main.getByRole("textbox", { name: "Location", exact: true }).fill("Jakarta");
+  await main.getByRole("button", { name: "Find a kos" }).click();
 
   await expect(page).toHaveURL(/\/kos\?q=Jakarta/);
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();

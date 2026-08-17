@@ -29,6 +29,8 @@ export function HomePage() {
   );
   const [headerQuery, setHeaderQuery] = useState("");
   const [heroQuery, setHeroQuery] = useState("");
+  const [headerSearchRevealed, setHeaderSearchRevealed] = useState(false);
+  const heroSearchRef = useRef<HTMLFormElement>(null);
   const [toast, setToast] = useState("");
   const resultsRef = useRef<HTMLElement>(null);
   const t = copy[locale];
@@ -38,6 +40,28 @@ export function HomePage() {
     return () => {
       delete document.documentElement.dataset.papikosReady;
     };
+  }, []);
+
+  // The header search is the same control as the hero one, so it stays out of
+  // the way until the hero field has scrolled off the top.
+  useEffect(() => {
+    const node = heroSearchRef.current;
+    if (!node || !("IntersectionObserver" in window)) {
+      // Without the observer there is no way to know when to reveal it, and a
+      // reader who cannot search at all is worse than one who sees it twice.
+      setHeaderSearchRevealed(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) =>
+        setHeaderSearchRevealed(
+          !entry.isIntersecting && entry.boundingClientRect.top < 0,
+        ),
+      { threshold: 0 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
   }, []);
 
   const announce = (message: string) => {
@@ -93,6 +117,7 @@ export function HomePage() {
         searchValue={headerQuery}
         onSearchChange={setHeaderQuery}
         onSearchSubmit={goToSearch}
+        searchRevealed={headerSearchRevealed}
       />
 
       <main
@@ -123,6 +148,7 @@ export function HomePage() {
                 event.preventDefault();
                 goToSearch(heroQuery.trim());
               }}
+              ref={heroSearchRef}
               style={{ "--hero-delay": "120ms" } as CSSProperties}
             >
               <label className="flex min-w-0 flex-1 items-center gap-2.5">

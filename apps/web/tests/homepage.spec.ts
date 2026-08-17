@@ -11,16 +11,42 @@ test.beforeEach(async ({ page }) => {
   );
 });
 
-test("navigates to the search page via the header search bar", async ({
+test("reveals the header search once the hero one scrolls away", async ({
   page,
 }) => {
   const header = page.getByRole("banner");
-  await header.getByRole("textbox", { name: "Location", exact: true }).fill("Bandung");
-  await header.getByRole("button", { name: "Find a kos" }).click();
+  const headerSearch = header.getByRole("textbox", {
+    name: "Location",
+    exact: true,
+  });
 
+  // At the top the hero field is the search, so the header would be the same
+  // control twice.
+  await expect(headerSearch).toBeHidden();
+
+  // Past the hero field, which is what the header stands in for.
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect(headerSearch).toBeVisible();
+
+  await headerSearch.fill("Bandung");
+  await header.getByRole("button", { name: "Find a kos" }).click();
   await expect(page).toHaveURL(/\/kos\?q=Bandung/);
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
   await expect(page.getByText("Nara House Kemang")).toHaveCount(0);
+});
+
+test("hides the header search again at the top of the page", async ({
+  page,
+}) => {
+  const headerSearch = page
+    .getByRole("banner")
+    .getByRole("textbox", { name: "Location", exact: true });
+
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect(headerSearch).toBeVisible();
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(headerSearch).toBeHidden();
 });
 
 test("searches from the hero and shortcuts to a city", async ({ page }) => {

@@ -36,6 +36,9 @@ Completed owner and administrator capabilities:
   in front of the same filters search already exposes, at the bottom of the
   page where nobody reached it, and the match badges it fed had no other
   source. `AGENTS.md` is amended in the same change.
+- The header search hides on the homepage until the hero one has scrolled off
+  the top, so the same control is never on screen twice, and reappears as the
+  reader moves into the listings. Every other page carries it as before.
 - The homepage is 2869px instead of 3777px, with the kos it is advertising
   visible without scrolling past a graphic.
 

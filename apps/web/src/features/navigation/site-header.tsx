@@ -34,6 +34,12 @@ export interface SiteHeaderProps {
   onSearchSubmit: (value: string) => void;
   /** Matches the wider body of a page that opts into it, such as search. */
   wide?: boolean;
+  /**
+   * False hides the search without collapsing the bar. The homepage sets it
+   * from its own search field: while that one is on screen this would be the
+   * same control twice, and it slides in as the reader scrolls past it.
+   */
+  searchRevealed?: boolean;
 }
 
 export function SiteHeader({
@@ -56,6 +62,7 @@ export function SiteHeader({
   onSearchChange,
   onSearchSubmit,
   wide,
+  searchRevealed = true,
 }: SiteHeaderProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -104,7 +111,13 @@ export function SiteHeader({
         </div>
 
         <form
-          className="flex min-w-0 items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-1.5 pl-4 pr-1.5 shadow-sm transition focus-within:border-blue-300 focus-within:bg-white dark:focus-within:bg-slate-950 focus-within:ring-4 focus-within:ring-blue-100 dark:focus-within:ring-blue-950 sm:order-2 sm:mx-auto sm:w-full sm:max-w-md"
+          // `invisible` rather than opacity alone: a hidden field that still
+          // takes focus would send a keyboard through a control nobody can see.
+          className={`flex min-w-0 items-center gap-1.5 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 py-1.5 pl-4 pr-1.5 shadow-sm transition duration-200 focus-within:border-blue-300 focus-within:bg-white dark:focus-within:bg-slate-950 focus-within:ring-4 focus-within:ring-blue-100 dark:focus-within:ring-blue-950 sm:order-2 sm:mx-auto sm:w-full sm:max-w-md ${
+            searchRevealed
+              ? "translate-y-0 opacity-100"
+              : "pointer-events-none invisible -translate-y-1 opacity-0"
+          }`}
           onSubmit={handleSubmit}
         >
           <label className="flex min-w-0 flex-1 items-center gap-2">
