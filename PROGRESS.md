@@ -1,6 +1,6 @@
 # Development Progress
 
-Last updated: 16 August 2026
+Last updated: 17 August 2026
 
 ## Current Prototype
 
@@ -19,10 +19,35 @@ Completed renter-facing capabilities:
 Completed owner and administrator capabilities:
 
 - An owner console with sidebar navigation, a dashboard covering earnings, occupancy, and demand, a kos list, a request inbox, and a Q&A inbox.
-- A kos editor covering basics, photos, rooms, grouped amenities, standard and custom house rules, and the cost breakdown, with a reset back to the seeded data.
+- A kos editor covering basics, stay terms, location privacy, photos, rooms (added, edited, and removed), grouped amenities, standard and custom house rules, and the cost breakdown, with a reset back to the seeded data.
 - An administrator console with a sectioned marketplace overview, verification, reports, publication and suspension controls, and an audit trail.
 
 ## Completed Milestones
+
+### 17 August 2026 — The Kos Editor Becomes Real Management
+
+- Rooms can be added, renamed, resized, re-typed, and removed, not only
+  repriced. The override now carries the room list in full rather than a patch
+  keyed by seeded ids, which is what a patch could never express.
+- A room with a pending or approved request cannot be removed: the request
+  stores the room id, and deleting it would leave the renter's record, the
+  owner's inbox, and the earnings report pointing at a room that no longer
+  exists. A kos also cannot drop to zero rooms.
+- The headline price is derived from the cheapest room instead of being typed,
+  so a card can no longer advertise a rate no room offers.
+- Owners set a discount percentage rather than a discounted amount. The
+  percentage is stored, the prices are derived from it, and the same percentage
+  now comes off every room rate instead of a fixed rupiah amount that gave the
+  pricier rooms a smaller cut than the badge promised.
+- Photos went from four per kos to twenty, held inside a 1.5MB per-listing
+  budget. The byte budget is the real limit — the count alone cannot keep a
+  listing inside a 5MB origin — and both refusals are explained separately.
+- Stay terms, city, approximate area, and privacy radius became editable, cost
+  rows can be added and removed, and saving rejects an empty name, city,
+  district, a room priced at zero, and a discount outside 1–90%.
+- Fixed the editor showing seeded data for an already-edited kos: browser
+  storage is read after hydration, so the form initialised before the override
+  arrived, and saving overwrote edits the owner never re-typed.
 
 ### 16 August 2026 — Console Kos Cards
 

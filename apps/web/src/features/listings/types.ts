@@ -212,6 +212,41 @@ export interface ListingModeration {
 }
 
 /**
+ * A room as its owner edits it. Owners write one room name, not a translation
+ * pair, so the text here is single-language and only becomes `LocalizedText`
+ * when it is merged — where a name left untouched keeps the seeded translation.
+ */
+export interface OverrideRoom {
+  id: string;
+  name: string;
+  size: string;
+  price: number;
+  availableRooms: number;
+  bathroom: "private" | "shared";
+  furnishings: string[];
+}
+
+/** An owner's edit to one of the seeded cost rows. */
+export interface OverrideCost {
+  id: string;
+  amount: number | null;
+  included: boolean;
+  /**
+   * A seeded row the owner does not charge. Kept as a tombstone rather than
+   * dropped from the list, so an absent entry still means "unchanged".
+   */
+  removed?: boolean;
+}
+
+/** A cost row the owner added, alongside the seeded ones. */
+export interface CustomCost {
+  id: string;
+  label: string;
+  amount: number | null;
+  included: boolean;
+}
+
+/**
  * Owner edits layered over the seeded listing data. Every field is optional;
  * an absent field means "keep whatever the seed says", which is what lets a
  * reset be a simple delete rather than a restore.
@@ -220,10 +255,27 @@ export interface ListingOverride {
   listingId: string;
   name?: string;
   description?: string;
+  /**
+   * Derived from the rooms rather than typed: the headline is the cheapest
+   * room's rate, so a card can never advertise a price no room actually
+   * offers. Recomputed on read, so a hand-edited record cannot disagree.
+   */
   price?: number;
+  /** Derived from `discountPercent`; kept so every price consumer is unchanged. */
   promoPrice?: number | null;
+  /**
+   * What the owner actually decided: a whole-percent discount, or null for
+   * none. Storing the percentage rather than the discounted amount is what
+   * makes the "-15%" badge exact and the same cut apply to every room.
+   */
+  discountPercent?: number | null;
   type?: ListingType;
+  city?: string;
   district?: string;
+  approximateArea?: string;
+  privacyRadiusMeters?: number;
+  availableFrom?: string;
+  minimumStayMonths?: number;
   amenities?: Amenity[];
   /** Uploaded photos, cover first. An empty array means "no photos". */
   photos?: ListingPhoto[];
@@ -234,8 +286,14 @@ export interface ListingOverride {
    * displayed — unlike amenities, nothing filters on them.
    */
   customRules?: { id: string; label: string; allowed: boolean }[];
-  rooms?: { id: string; price: number; availableRooms: number }[];
-  costs?: { id: string; amount: number | null; included: boolean }[];
+  /**
+   * The listing's rooms in full, not a patch: owners add and remove rooms, and
+   * a patch keyed by seeded id cannot express either. Present means "these are
+   * the rooms"; absent still means "keep the seeded ones".
+   */
+  rooms?: OverrideRoom[];
+  costs?: OverrideCost[];
+  customCosts?: CustomCost[];
   updatedAt: string;
 }
 

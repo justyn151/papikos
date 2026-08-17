@@ -13,6 +13,7 @@ import Link from "next/link";
 import { type ChangeEvent, type FormEvent, useState } from "react";
 
 import { amenityLabels, typeLabels } from "@/features/home/copy";
+import { discountedPrice, formatPrice } from "@/features/home/home-utils";
 import { detailCopy } from "@/features/listings/detail-copy";
 import { amenitiesByCategory } from "@/features/listings/mock-listings";
 import type {
@@ -21,16 +22,22 @@ import type {
   ListingOverride,
   ListingPhoto,
   ListingType,
+  LocalizedText,
 } from "@/features/listings/types";
 import { ConsoleShell } from "@/features/navigation/console-shell";
 import { resolveListingDetail } from "@/features/prototype-data/resolve-listing";
-import { useAuditLog, useOverrides } from "@/features/prototype-data/store";
+import {
+  useAuditLog,
+  useBookings,
+  useOverrides,
+} from "@/features/prototype-data/store";
 import { createId } from "@/features/shared/create-id";
 
 import { ownerCopy } from "./owner-copy";
 import { ownerNavItems } from "./owner-nav";
 import {
   MAX_PHOTOS,
+  MAX_PHOTO_BYTES,
   PhotoUploadError,
   acceptPhotos,
   promoteCover,
@@ -45,26 +52,68 @@ const label =
   "grid gap-1.5 text-xs font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400";
 const card =
   "rounded-[1.25rem] border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900";
+const hint = "mt-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400";
+
+/**
+ * Room and cost text is held as a translation pair so the form can render in
+ * either language, but an owner typing a name sets it for both: they write one
+ * room name, not a translation pair. Text left untouched keeps the seeded pair,
+ * which is what stops an edit from flattening a bilingual listing.
+ */
+interface DraftRoom {
+  id: string;
+  name: LocalizedText;
+  size: string;
+  price: string;
+  availableRooms: string;
+  bathroom: "private" | "shared";
+  furnishings: LocalizedText[];
+}
+
+interface DraftCost {
+  id: string;
+  label: LocalizedText;
+  amount: string;
+  included: boolean;
+  /** Seeded rows are stored as a patch; the owner's own rows are stored whole. */
+  seeded: boolean;
+}
 
 interface Draft {
   name: string;
+  city: string;
   district: string;
   type: ListingType;
   description: string;
-  price: string;
-  promoPrice: string;
+  discountPercent: string;
+  availableFrom: string;
+  minimumStayMonths: string;
+  approximateArea: string;
+  privacyRadiusMeters: string;
   amenities: Amenity[];
   photos: ListingPhoto[];
-  rooms: { id: string; price: string; availableRooms: string }[];
+  rooms: DraftRoom[];
   rules: { id: string; allowed: boolean }[];
   customRules: { id: string; label: string; allowed: boolean }[];
-  costs: { id: string; amount: string; included: boolean }[];
+  costs: DraftCost[];
+  /** Seeded cost rows the owner removed, kept so the save can tombstone them. */
+  removedCosts: string[];
+}
+
+function ownText(value: string): LocalizedText {
+  return { id: value, en: value };
 }
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** The headline price is the cheapest room, never a number of its own. */
+function cheapestRoomPrice(rooms: DraftRoom[]): number {
+  const prices = rooms.map((room) => Number(room.price) || 0);
+  return prices.length > 0 ? Math.min(...prices) : 0;
 }
 
 function toDraft(
@@ -75,50 +124,105 @@ function toDraft(
   // `listing.rules` already has the owner's custom rules appended, so the
   // standard checkboxes are matched back against the seeded set by id.
   const seededRuleIds = new Set(seed.rules.map((rule) => rule.id));
+  const seededCostIds = new Set(seed.costs.map((cost) => cost.id));
 
   return {
     photos: override?.photos ?? [],
     customRules: (override?.customRules ?? []).map((rule) => ({ ...rule })),
     name: listing.name,
+    city: listing.city,
     district: listing.district,
     type: listing.type,
     description: listing.description.id,
-    price: String(listing.price),
-    promoPrice: listing.promoPrice === null ? "" : String(listing.promoPrice),
+    discountPercent:
+      override?.discountPercent != null
+        ? String(override.discountPercent)
+        : seededDiscount(seed),
+    availableFrom: listing.availableFrom,
+    minimumStayMonths: String(listing.minimumStayMonths),
+    approximateArea: listing.approximateArea,
+    privacyRadiusMeters: String(listing.privacyRadiusMeters),
     amenities: [...listing.amenities],
     rooms: listing.rooms.map((room) => ({
       id: room.id,
+      name: room.name,
+      size: room.size,
       price: String(room.price),
       availableRooms: String(room.availableRooms),
+      bathroom: room.bathroom,
+      furnishings: room.furnishings,
     })),
     rules: listing.rules
       .filter((rule) => seededRuleIds.has(rule.id))
       .map((rule) => ({ id: rule.id, allowed: rule.allowed })),
     costs: listing.costs.map((cost) => ({
       id: cost.id,
+      label: cost.label,
       amount: cost.amount === null ? "" : String(cost.amount),
       included: cost.included,
+      seeded: seededCostIds.has(cost.id),
     })),
+    removedCosts: [],
   };
+}
+
+/**
+ * A seeded listing stores a discounted price rather than the percentage behind
+ * it, so the form starts from the percentage that price implies.
+ */
+function seededDiscount(seed: ListingDetail): string {
+  if (seed.promoPrice === null || seed.promoPrice >= seed.price) return "";
+  return String(
+    Math.round(((seed.price - seed.promoPrice) / seed.price) * 100),
+  );
 }
 
 export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
   const { overrideFor, replace, clear, writeError } = useOverrides();
   const { append } = useAuditLog();
+  const { bookings } = useBookings();
   const override = overrideFor(seed.id);
   const listing = resolveListingDetail(seed, override);
 
   const [draft, setDraft] = useState<Draft>(() =>
     toDraft(listing, seed, override),
   );
+
+  // The store reads browser storage after hydration, so the first render of an
+  // already-edited kos sees no override at all. Without this the form would
+  // show the seeded kos, and saving would overwrite the owner's earlier edits
+  // with data they never typed.
+  const stamp = override?.updatedAt ?? "seed";
+  const [loadedStamp, setLoadedStamp] = useState(stamp);
+  if (loadedStamp !== stamp) {
+    setLoadedStamp(stamp);
+    setDraft(toDraft(listing, seed, override));
+  }
+
   const [toast, setToast] = useState("");
   const [error, setError] = useState("");
   const [photoError, setPhotoError] = useState("");
   const [uploading, setUploading] = useState(false);
   const [newRule, setNewRule] = useState("");
   const [ruleError, setRuleError] = useState("");
+  const [newCost, setNewCost] = useState("");
+  const [costError, setCostError] = useState("");
+  const [roomError, setRoomError] = useState("");
 
   const edited = Boolean(override);
+
+  // A room with a request still in play cannot be deleted: the request stores
+  // the room id, and removing it would leave the renter's record, the owner's
+  // inbox, and the earnings report pointing at a room that no longer exists.
+  const bookedRoomIds = new Set(
+    bookings
+      .filter(
+        (booking) =>
+          booking.listingId === seed.id &&
+          (booking.status === "pending" || booking.status === "approved"),
+      )
+      .map((booking) => booking.roomId),
+  );
 
   const announce = (message: string) => {
     setToast(message);
@@ -134,42 +238,81 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
     >
       {(locale) => {
         const t = ownerCopy[locale];
+        const price = cheapestRoomPrice(draft.rooms);
+        const percent = draft.discountPercent === "" ? null : Number(draft.discountPercent);
 
         const save = (event: FormEvent<HTMLFormElement>) => {
           event.preventDefault();
-          const price = Number(draft.price);
-          const promo = draft.promoPrice === "" ? null : Number(draft.promoPrice);
 
-          // A promo that is not cheaper is not a discount, and would render as
-          // a "-0%" badge, so it is rejected rather than silently stored.
-          if (promo !== null && promo >= price) {
-            setError(t.promoInvalid);
-            return;
+          if (!draft.name.trim()) return setError(t.nameRequired);
+          if (!draft.city.trim()) return setError(t.cityRequired);
+          if (!draft.district.trim()) return setError(t.districtRequired);
+          if (draft.rooms.length === 0) return setError(t.roomsMinimum);
+          if (draft.rooms.some((room) => !(Number(room.price) > 0))) {
+            return setError(t.roomPriceInvalid);
+          }
+          // A discount outside this range is either not a discount at all or a
+          // typo that would wipe out the rent.
+          if (percent !== null && !(percent >= 1 && percent <= 90)) {
+            return setError(t.discountInvalid);
           }
           setError("");
 
           const next: ListingOverride = {
             listingId: seed.id,
             name: draft.name.trim(),
+            city: draft.city.trim(),
             district: draft.district.trim(),
             type: draft.type,
             description: draft.description.trim(),
+            approximateArea: draft.approximateArea.trim(),
+            privacyRadiusMeters: Math.max(
+              0,
+              Number(draft.privacyRadiusMeters) || 0,
+            ),
+            availableFrom: draft.availableFrom,
+            minimumStayMonths: Math.max(1, Number(draft.minimumStayMonths) || 1),
+            // Both prices are derived: the headline follows the cheapest room,
+            // and the promo follows the percentage the owner chose.
             price,
-            promoPrice: promo,
+            discountPercent: percent,
+            promoPrice: percent ? discountedPrice(price, percent) : null,
             amenities: draft.amenities,
             photos: draft.photos,
             rooms: draft.rooms.map((room) => ({
               id: room.id,
+              name: room.name.id,
+              size: room.size.trim(),
               price: Number(room.price),
-              availableRooms: Number(room.availableRooms),
+              availableRooms: Math.max(0, Number(room.availableRooms) || 0),
+              bathroom: room.bathroom,
+              furnishings: room.furnishings.map((item) => item.id),
             })),
             rules: draft.rules,
             customRules: draft.customRules,
-            costs: draft.costs.map((cost) => ({
-              id: cost.id,
-              amount: cost.amount === "" ? null : Number(cost.amount),
-              included: cost.included,
-            })),
+            costs: [
+              ...draft.costs
+                .filter((cost) => cost.seeded)
+                .map((cost) => ({
+                  id: cost.id,
+                  amount: cost.amount === "" ? null : Number(cost.amount),
+                  included: cost.included,
+                })),
+              ...draft.removedCosts.map((id) => ({
+                id,
+                amount: null,
+                included: false,
+                removed: true,
+              })),
+            ],
+            customCosts: draft.costs
+              .filter((cost) => !cost.seeded)
+              .map((cost) => ({
+                id: cost.id,
+                label: cost.label.id,
+                amount: cost.amount === "" ? null : Number(cost.amount),
+                included: cost.included,
+              })),
             updatedAt: new Date().toISOString(),
           };
 
@@ -190,13 +333,59 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           setError("");
           setPhotoError("");
           setRuleError("");
+          setCostError("");
+          setRoomError("");
           setNewRule("");
+          setNewCost("");
           announce(t.resetDone);
         };
 
+        const addRoom = () => {
+          setRoomError("");
+          setDraft((d) => ({
+            ...d,
+            rooms: [
+              ...d.rooms,
+              {
+                id: createId("room"),
+                name: ownText(t.roomNewName),
+                size: t.roomNewSize,
+                price: String(cheapestRoomPrice(d.rooms) || ""),
+                availableRooms: "1",
+                bathroom: "shared",
+                furnishings: [],
+              },
+            ],
+          }));
+        };
+
+        const removeRoom = (roomId: string) => {
+          if (draft.rooms.length === 1) {
+            setRoomError(t.roomsMinimum);
+            return;
+          }
+          if (bookedRoomIds.has(roomId)) {
+            setRoomError(t.roomBooked);
+            return;
+          }
+          setRoomError("");
+          setDraft((d) => ({
+            ...d,
+            rooms: d.rooms.filter((room) => room.id !== roomId),
+          }));
+        };
+
+        const editRoom = (roomId: string, patch: Partial<DraftRoom>) =>
+          setDraft((d) => ({
+            ...d,
+            rooms: d.rooms.map((room) =>
+              room.id === roomId ? { ...room, ...patch } : room,
+            ),
+          }));
+
         const addCustomRule = () => {
-          const label = newRule.trim();
-          if (!label) {
+          const text = newRule.trim();
+          if (!text) {
             setRuleError(t.ruleEmptyError);
             return;
           }
@@ -206,10 +395,50 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
             ...d,
             customRules: [
               ...d.customRules,
-              { id: createId("rule"), label, allowed: false },
+              { id: createId("rule"), label: text, allowed: false },
             ],
           }));
         };
+
+        const addCustomCost = () => {
+          const text = newCost.trim();
+          if (!text) {
+            setCostError(t.costEmptyError);
+            return;
+          }
+          setCostError("");
+          setNewCost("");
+          setDraft((d) => ({
+            ...d,
+            costs: [
+              ...d.costs,
+              {
+                id: createId("cost"),
+                label: ownText(text),
+                amount: "",
+                included: false,
+                seeded: false,
+              },
+            ],
+          }));
+        };
+
+        const removeCost = (cost: DraftCost) =>
+          setDraft((d) => ({
+            ...d,
+            costs: d.costs.filter((item) => item.id !== cost.id),
+            removedCosts: cost.seeded
+              ? [...d.removedCosts, cost.id]
+              : d.removedCosts,
+          }));
+
+        const editCost = (costId: string, patch: Partial<DraftCost>) =>
+          setDraft((d) => ({
+            ...d,
+            costs: d.costs.map((cost) =>
+              cost.id === costId ? { ...cost, ...patch } : cost,
+            ),
+          }));
 
         const addPhotos = async (event: ChangeEvent<HTMLInputElement>) => {
           const picked = Array.from(event.target.files ?? []);
@@ -238,8 +467,14 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           // Photo controls are disabled while uploading, so the set captured at
           // call time is still the current one.
           const result = acceptPhotos(draft.photos, read);
-          if (result.rejected > 0) {
+          if (result.rejectedCap > 0) {
             failure = t.photoErrorCap.replace("{max}", String(MAX_PHOTOS));
+          }
+          if (result.rejectedBudget > 0) {
+            failure = t.photoErrorBudget.replace(
+              "{count}",
+              String(result.rejectedBudget),
+            );
           }
 
           setDraft((d) => ({ ...d, photos: result.photos }));
@@ -288,16 +523,6 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     />
                   </label>
                   <label className={label}>
-                    {t.fieldDistrict}
-                    <input
-                      className={field}
-                      onChange={(event) =>
-                        setDraft((d) => ({ ...d, district: event.target.value }))
-                      }
-                      value={draft.district}
-                    />
-                  </label>
-                  <label className={label}>
                     {t.fieldType}
                     <select
                       className={field}
@@ -317,35 +542,61 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     </select>
                   </label>
                   <label className={label}>
-                    {t.fieldPrice}
+                    {t.fieldCity}
                     <input
                       className={field}
-                      inputMode="numeric"
-                      min={0}
                       onChange={(event) =>
-                        setDraft((d) => ({ ...d, price: event.target.value }))
+                        setDraft((d) => ({ ...d, city: event.target.value }))
                       }
-                      type="number"
-                      value={draft.price}
+                      value={draft.city}
                     />
                   </label>
                   <label className={label}>
-                    {t.fieldPromo}
+                    {t.fieldDistrict}
                     <input
                       className={field}
-                      inputMode="numeric"
-                      min={0}
                       onChange={(event) =>
-                        setDraft((d) => ({
-                          ...d,
-                          promoPrice: event.target.value,
-                        }))
+                        setDraft((d) => ({ ...d, district: event.target.value }))
                       }
-                      placeholder={t.promoHint}
-                      type="number"
-                      value={draft.promoPrice}
+                      value={draft.district}
                     />
                   </label>
+                  <div className={label}>
+                    {t.fieldPrice}
+                    <p className="flex h-11 items-center rounded-xl bg-slate-50 px-3 text-sm font-black normal-case tracking-normal text-slate-900 dark:bg-slate-800/60 dark:text-slate-100">
+                      {formatPrice(price, locale)}
+                    </p>
+                    <span className="text-xs font-semibold normal-case tracking-normal text-slate-500 dark:text-slate-400">
+                      {t.priceDerived}
+                    </span>
+                  </div>
+                  {/* The hint sits outside the label so it does not become
+                      part of the field's accessible name. */}
+                  <div className="grid gap-1.5">
+                    <label className={label}>
+                      {t.fieldDiscount}
+                      <input
+                        className={field}
+                        inputMode="numeric"
+                        onChange={(event) =>
+                          setDraft((d) => ({
+                            ...d,
+                            discountPercent: event.target.value,
+                          }))
+                        }
+                        type="number"
+                        value={draft.discountPercent}
+                      />
+                    </label>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      {percent && percent > 0 && percent <= 90
+                        ? t.discountResult.replace(
+                            "{price}",
+                            formatPrice(discountedPrice(price, percent), locale),
+                          )
+                        : t.discountHint}
+                    </span>
+                  </div>
                   <label className={`${label} sm:col-span-2`}>
                     {t.fieldDescription}
                     <textarea
@@ -360,6 +611,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     />
                   </label>
                 </div>
+                <p className={hint}>{t.cityHint}</p>
                 {error ? (
                   <p className="mt-3 text-xs font-bold text-rose-600 dark:text-rose-400">
                     {error}
@@ -369,10 +621,86 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
 
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
+                  {t.staySection}
+                </h2>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <label className={label}>
+                    {t.fieldAvailableFrom}
+                    <input
+                      className={field}
+                      onChange={(event) =>
+                        setDraft((d) => ({
+                          ...d,
+                          availableFrom: event.target.value,
+                        }))
+                      }
+                      type="date"
+                      value={draft.availableFrom}
+                    />
+                  </label>
+                  <label className={label}>
+                    {t.fieldMinimumStay}
+                    <input
+                      className={field}
+                      inputMode="numeric"
+                      onChange={(event) =>
+                        setDraft((d) => ({
+                          ...d,
+                          minimumStayMonths: event.target.value,
+                        }))
+                      }
+                      type="number"
+                      value={draft.minimumStayMonths}
+                    />
+                  </label>
+                </div>
+              </section>
+
+              <section className={card}>
+                <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
+                  {t.locationSection}
+                </h2>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <label className={label}>
+                    {t.fieldArea}
+                    <input
+                      className={field}
+                      onChange={(event) =>
+                        setDraft((d) => ({
+                          ...d,
+                          approximateArea: event.target.value,
+                        }))
+                      }
+                      value={draft.approximateArea}
+                    />
+                  </label>
+                  <label className={label}>
+                    {t.fieldPrivacyRadius}
+                    <input
+                      className={field}
+                      inputMode="numeric"
+                      onChange={(event) =>
+                        setDraft((d) => ({
+                          ...d,
+                          privacyRadiusMeters: event.target.value,
+                        }))
+                      }
+                      type="number"
+                      value={draft.privacyRadiusMeters}
+                    />
+                  </label>
+                </div>
+                <p className={hint}>{t.privacyHint}</p>
+              </section>
+
+              <section className={card}>
+                <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.photosSection}
                 </h2>
                 <p className="mt-1.5 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  {t.photosBody.replace("{max}", String(MAX_PHOTOS))}
+                  {t.photosBody
+                    .replace("{max}", String(MAX_PHOTOS))
+                    .replace("{budget}", formatBytes(MAX_PHOTO_BYTES))}
                 </p>
 
                 <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -400,7 +728,8 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                       : t.photosCount
                           .replace("{count}", String(draft.photos.length))
                           .replace("{max}", String(MAX_PHOTOS))
-                          .replace("{size}", formatBytes(totalBytes(draft.photos)))}
+                          .replace("{size}", formatBytes(totalBytes(draft.photos)))
+                          .replace("{budget}", formatBytes(MAX_PHOTO_BYTES))}
                   </p>
                 </div>
 
@@ -477,61 +806,140 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
               </section>
 
               <section className={card}>
-                <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
-                  {t.roomsSection}
-                </h2>
-                <ul className="mt-4 grid gap-4">
-                  {listing.rooms.map((room, index) => (
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
+                      {t.roomsSection}
+                    </h2>
+                    <p className="mt-1.5 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                      {t.roomsBody}
+                    </p>
+                  </div>
+                  <button
+                    className="btn-secondary gap-2"
+                    onClick={addRoom}
+                    type="button"
+                  >
+                    <Plus size={16} aria-hidden="true" />
+                    {t.roomAdd}
+                  </button>
+                </div>
+
+                {roomError ? (
+                  <p className="mt-3 text-xs font-bold text-rose-600 dark:text-rose-400">
+                    {roomError}
+                  </p>
+                ) : null}
+
+                <ul className="mt-4 grid gap-5">
+                  {draft.rooms.map((room) => (
                     <li
-                      className="grid gap-3 border-t border-slate-100 pt-4 first:border-0 first:pt-0 sm:grid-cols-[1fr_auto_auto] sm:items-end dark:border-slate-800"
+                      className="grid gap-3 border-t border-slate-100 pt-5 first:border-0 first:pt-0 dark:border-slate-800"
                       key={room.id}
                     >
-                      <p className="font-bold text-slate-800 dark:text-slate-200">
-                        {room.name[locale]}
-                      </p>
-                      <label className={label}>
-                        {t.roomPrice}
-                        <input
-                          className={`${field} sm:w-40`}
-                          inputMode="numeric"
-                          min={0}
-                          onChange={(event) =>
-                            setDraft((d) => ({
-                              ...d,
-                              rooms: d.rooms.map((item, i) =>
-                                i === index
-                                  ? { ...item, price: event.target.value }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          type="number"
-                          value={draft.rooms[index]?.price ?? ""}
-                        />
-                      </label>
-                      <label className={label}>
-                        {t.roomAvailable}
-                        <input
-                          className={`${field} sm:w-28`}
-                          inputMode="numeric"
-                          min={0}
-                          onChange={(event) =>
-                            setDraft((d) => ({
-                              ...d,
-                              rooms: d.rooms.map((item, i) =>
-                                i === index
-                                  ? {
-                                      ...item,
-                                      availableRooms: event.target.value,
-                                    }
-                                  : item,
-                              ),
-                            }))
-                          }
-                          type="number"
-                          value={draft.rooms[index]?.availableRooms ?? ""}
-                        />
-                      </label>
+                      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                        <label className={label}>
+                          {t.roomName}
+                          <input
+                            className={field}
+                            onChange={(event) =>
+                              editRoom(room.id, {
+                                name: ownText(event.target.value),
+                              })
+                            }
+                            value={room.name[locale]}
+                          />
+                        </label>
+                        <button
+                          aria-label={`${t.roomRemove}: ${room.name[locale]}`}
+                          className="mt-auto grid size-11 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-rose-950/40"
+                          onClick={() => removeRoom(room.id)}
+                          type="button"
+                        >
+                          <Trash2 size={16} aria-hidden="true" />
+                        </button>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-4">
+                        <label className={label}>
+                          {t.roomPrice}
+                          <input
+                            className={field}
+                            inputMode="numeric"
+                            onChange={(event) =>
+                              editRoom(room.id, { price: event.target.value })
+                            }
+                            type="number"
+                            value={room.price}
+                          />
+                        </label>
+                        <label className={label}>
+                          {t.roomAvailable}
+                          <input
+                            className={field}
+                            inputMode="numeric"
+                            onChange={(event) =>
+                              editRoom(room.id, {
+                                availableRooms: event.target.value,
+                              })
+                            }
+                            type="number"
+                            value={room.availableRooms}
+                          />
+                        </label>
+                        <label className={label}>
+                          {t.roomSize}
+                          <input
+                            className={field}
+                            onChange={(event) =>
+                              editRoom(room.id, { size: event.target.value })
+                            }
+                            value={room.size}
+                          />
+                        </label>
+                        <label className={label}>
+                          {t.roomBathroom}
+                          <select
+                            className={field}
+                            onChange={(event) =>
+                              editRoom(room.id, {
+                                bathroom:
+                                  event.target.value === "private"
+                                    ? "private"
+                                    : "shared",
+                              })
+                            }
+                            value={room.bathroom}
+                          >
+                            <option value="private">{t.bathroomPrivate}</option>
+                            <option value="shared">{t.bathroomShared}</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="grid gap-1.5">
+                        <label className={label}>
+                          {t.roomFurnishings}
+                          <input
+                            className={field}
+                            onChange={(event) =>
+                              editRoom(room.id, {
+                                furnishings: event.target.value
+                                  .split(",")
+                                  .map((item) => item.trim())
+                                  .filter(Boolean)
+                                  .map(ownText),
+                              })
+                            }
+                            value={room.furnishings
+                              .map((item) => item[locale])
+                              .join(", ")}
+                          />
+                        </label>
+                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          {t.roomFurnishingsHint}
+                        </span>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -594,7 +1002,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     <li key={rule.id}>
                       <label className="flex items-center gap-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300">
                         <input
-                          checked={draft.rules[index]?.allowed ?? false}
+                          checked={draft.rules[index]?.allowed ?? rule.allowed}
                           className="size-4 shrink-0 accent-blue-600"
                           onChange={(event) =>
                             setDraft((d) => ({
@@ -708,9 +1116,9 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   {t.costsSection}
                 </h2>
                 <ul className="mt-4 grid gap-4">
-                  {listing.costs.map((cost, index) => (
+                  {draft.costs.map((cost) => (
                     <li
-                      className="grid gap-3 border-t border-slate-100 pt-4 first:border-0 first:pt-0 sm:grid-cols-[1fr_auto_auto] sm:items-end dark:border-slate-800"
+                      className="grid gap-3 border-t border-slate-100 pt-4 first:border-0 first:pt-0 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end dark:border-slate-800"
                       key={cost.id}
                     >
                       <p className="font-bold text-slate-800 dark:text-slate-200">
@@ -720,44 +1128,66 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                         {t.costAmount}
                         <input
                           className={`${field} sm:w-40`}
-                          disabled={draft.costs[index]?.included}
+                          disabled={cost.included}
                           inputMode="numeric"
-                          min={0}
                           onChange={(event) =>
-                            setDraft((d) => ({
-                              ...d,
-                              costs: d.costs.map((item, i) =>
-                                i === index
-                                  ? { ...item, amount: event.target.value }
-                                  : item,
-                              ),
-                            }))
+                            editCost(cost.id, { amount: event.target.value })
                           }
                           type="number"
-                          value={draft.costs[index]?.amount ?? ""}
+                          value={cost.amount}
                         />
                       </label>
                       <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
                         <input
-                          checked={draft.costs[index]?.included ?? false}
+                          checked={cost.included}
                           className="size-4 shrink-0 accent-blue-600"
                           onChange={(event) =>
-                            setDraft((d) => ({
-                              ...d,
-                              costs: d.costs.map((item, i) =>
-                                i === index
-                                  ? { ...item, included: event.target.checked }
-                                  : item,
-                              ),
-                            }))
+                            editCost(cost.id, { included: event.target.checked })
                           }
                           type="checkbox"
                         />
                         {t.costIncluded}
                       </label>
+                      <button
+                        aria-label={`${t.costRemove}: ${cost.label[locale]}`}
+                        className="grid size-9 place-items-center rounded-lg text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/40"
+                        onClick={() => removeCost(cost)}
+                        type="button"
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                      </button>
                     </li>
                   ))}
                 </ul>
+
+                <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-5 dark:border-slate-800">
+                  <input
+                    aria-label={t.costAdd}
+                    className={`${field} sm:max-w-md sm:flex-1`}
+                    onChange={(event) => setNewCost(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        addCustomCost();
+                      }
+                    }}
+                    placeholder={t.costNewPlaceholder}
+                    value={newCost}
+                  />
+                  <button
+                    className="btn-secondary gap-2"
+                    onClick={addCustomCost}
+                    type="button"
+                  >
+                    <Plus size={16} aria-hidden="true" />
+                    {t.costAdd}
+                  </button>
+                </div>
+                {costError ? (
+                  <p className="mt-2 text-xs font-bold text-rose-600 dark:text-rose-400">
+                    {costError}
+                  </p>
+                ) : null}
               </section>
 
               <div className="flex flex-wrap gap-2">

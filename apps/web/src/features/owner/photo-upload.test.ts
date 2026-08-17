@@ -4,6 +4,7 @@ import type { ListingPhoto } from "@/features/listings/types";
 
 import {
   MAX_PHOTOS,
+  MAX_PHOTO_BYTES,
   MAX_PHOTO_EDGE,
   acceptPhotos,
   approximateBytes,
@@ -11,6 +12,7 @@ import {
   isImageFile,
   isQuotaError,
   promoteCover,
+  remainingBytes,
   remainingSlots,
   removePhoto,
   totalBytes,
@@ -18,6 +20,11 @@ import {
 
 function photo(id: string, payload = "AAAA"): ListingPhoto {
   return { id, dataUrl: `data:image/jpeg;base64,${payload}` };
+}
+
+/** A photo of a chosen decoded size, for exercising the byte budget. */
+function sized(id: string, bytes: number): ListingPhoto {
+  return photo(id, "A".repeat(Math.ceil(bytes / 3) * 4));
 }
 
 describe("fitDimensions", () => {
@@ -29,11 +36,15 @@ describe("fitDimensions", () => {
     const fitted = fitDimensions(4000, 3000);
 
     expect(fitted.width).toBe(MAX_PHOTO_EDGE);
-    expect(fitted.height).toBe(600);
+    expect(fitted.height).toBe(Math.round((3000 * MAX_PHOTO_EDGE) / 4000));
+    expect(fitted.width / fitted.height).toBeCloseTo(4 / 3, 2);
   });
 
   it("scales a portrait photo by its height", () => {
-    expect(fitDimensions(1200, 2400)).toEqual({ width: 400, height: 800 });
+    const fitted = fitDimensions(1200, 2400);
+
+    expect(fitted.height).toBe(MAX_PHOTO_EDGE);
+    expect(fitted.width).toBe(MAX_PHOTO_EDGE / 2);
   });
 
   it("never rounds a very thin image down to zero pixels", () => {
@@ -55,7 +66,8 @@ describe("the photo cap", () => {
 
     expect(result.photos).toHaveLength(MAX_PHOTOS);
     expect(result.photos.at(-1)?.id).toBe("new-1");
-    expect(result.rejected).toBe(1);
+    expect(result.rejectedCap).toBe(1);
+    expect(result.rejectedBudget).toBe(0);
   });
 
   it("rejects everything once full", () => {
@@ -65,7 +77,45 @@ describe("the photo cap", () => {
     const result = acceptPhotos(full, [photo("new")]);
 
     expect(result.photos).toEqual(full);
-    expect(result.rejected).toBe(1);
+    expect(result.rejectedCap).toBe(1);
+  });
+});
+
+describe("the photo byte budget", () => {
+  it("reports the free bytes", () => {
+    expect(remainingBytes([])).toBe(MAX_PHOTO_BYTES);
+    expect(remainingBytes([sized("a", 300_000)])).toBe(
+      MAX_PHOTO_BYTES - approximateBytes(sized("a", 300_000).dataUrl),
+    );
+  });
+
+  it("refuses a photo that would not fit in the remaining budget", () => {
+    const existing = [sized("big", MAX_PHOTO_BYTES - 1_000)];
+    const result = acceptPhotos(existing, [sized("another", 300_000)]);
+
+    // Well under the count cap, and still rejected: bytes are the real limit.
+    expect(result.photos).toEqual(existing);
+    expect(result.rejectedCap).toBe(0);
+    expect(result.rejectedBudget).toBe(1);
+  });
+
+  it("takes the photos that fit and drops only the ones that do not", () => {
+    const result = acceptPhotos(
+      [sized("existing", MAX_PHOTO_BYTES - 400_000)],
+      [sized("fits", 200_000), sized("too-big", 300_000), sized("also-fits", 100_000)],
+    );
+
+    expect(result.photos.map((item) => item.id)).toEqual([
+      "existing",
+      "fits",
+      "also-fits",
+    ]);
+    expect(result.rejectedBudget).toBe(1);
+  });
+
+  it("counts a normal photo as a small slice of the budget", () => {
+    // The downscale settings put a photo near 50KB, so twenty of them fit.
+    expect(MAX_PHOTOS * 60_000).toBeLessThan(MAX_PHOTO_BYTES);
   });
 });
 

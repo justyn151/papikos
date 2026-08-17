@@ -90,6 +90,92 @@ describe("defensive parsing", () => {
   });
 });
 
+describe("derived prices", () => {
+  const room = (id: string, price: number) => ({
+    id,
+    name: "Kamar",
+    size: "3 × 3 m",
+    price,
+    availableRooms: 1,
+    bathroom: "shared",
+    furnishings: [],
+  });
+
+  it("takes the headline price from the cheapest room, not the record", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      // A record claiming a price no room offers is the contradiction this
+      // derivation exists to remove.
+      price: 9_000_000,
+      rooms: [room("a", 2_000_000), room("b", 1_500_000)],
+    });
+
+    expect(override?.price).toBe(1_500_000);
+  });
+
+  it("recomputes the promo from the percentage the owner chose", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      discountPercent: 10,
+      promoPrice: 1,
+      rooms: [room("a", 1_000_000)],
+    });
+
+    expect(override?.discountPercent).toBe(10);
+    expect(override?.promoPrice).toBe(900_000);
+  });
+
+  it("treats a nonsense discount as no discount", () => {
+    for (const percent of [0, -5, 120, "half"]) {
+      const override = normalizeOverride({
+        listingId: "senja-setiabudi",
+        discountPercent: percent,
+        rooms: [room("a", 1_000_000)],
+      });
+
+      expect(override?.discountPercent).toBeNull();
+      expect(override?.promoPrice).toBeNull();
+    }
+  });
+
+  it("ignores an empty room list rather than pricing a kos at zero", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      rooms: [],
+    });
+
+    expect(override?.rooms).toBeUndefined();
+    expect(override?.price).toBeUndefined();
+  });
+
+  it("keeps a room's details and defaults a broken bathroom to shared", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      rooms: [
+        {
+          id: "a",
+          name: " Kamar Atas ",
+          size: "4 × 4 m",
+          price: 2_000_000,
+          availableRooms: 3,
+          bathroom: "elsewhere",
+          furnishings: ["Kasur", "", 7],
+        },
+      ],
+    });
+
+    expect(override?.rooms?.[0]).toEqual({
+      id: "a",
+      name: "Kamar Atas",
+      size: "4 × 4 m",
+      price: 2_000_000,
+      availableRooms: 3,
+      bathroom: "shared",
+      furnishings: ["Kasur"],
+    });
+  });
+});
+
 describe("stored photos", () => {
   it("keeps inline images and drops anything else", () => {
     const override = normalizeOverride({

@@ -13,6 +13,7 @@ import type {
   ReportStatus,
   SubmittedQuestion,
 } from "@/features/listings/types";
+import { discountedPrice } from "@/features/home/home-utils";
 import { MAX_PHOTOS } from "@/features/owner/photo-upload";
 
 /**
@@ -163,10 +164,36 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
     override.promoPrice =
       typeof raw.promoPrice === "number" ? raw.promoPrice : null;
   }
+  // The percentage is what the owner decided; `promoPrice` above is only the
+  // cached result of applying it, and is recomputed below when both are known.
+  if ("discountPercent" in raw) {
+    const percent = asNumber(raw.discountPercent, 0);
+    override.discountPercent =
+      percent > 0 && percent < 100 ? Math.round(percent) : null;
+  }
   if (listingTypes.includes(raw.type as ListingType)) {
     override.type = raw.type as ListingType;
   }
+  if (typeof raw.city === "string") override.city = raw.city;
   if (typeof raw.district === "string") override.district = raw.district;
+  if (typeof raw.approximateArea === "string") {
+    override.approximateArea = raw.approximateArea;
+  }
+  if (typeof raw.privacyRadiusMeters === "number") {
+    override.privacyRadiusMeters = Math.max(
+      0,
+      Math.round(raw.privacyRadiusMeters),
+    );
+  }
+  if (typeof raw.availableFrom === "string") {
+    override.availableFrom = raw.availableFrom;
+  }
+  if (typeof raw.minimumStayMonths === "number") {
+    override.minimumStayMonths = Math.max(
+      1,
+      Math.round(raw.minimumStayMonths),
+    );
+  }
 
   if (Array.isArray(raw.amenities)) {
     const known = new Set<string>(knownAmenities);
@@ -214,15 +241,31 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
   }
 
   if (Array.isArray(raw.rooms)) {
-    override.rooms = raw.rooms
+    const rooms = raw.rooms
       .map((item) => asRecord(item))
       .filter((item): item is Record<string, unknown> => item !== null)
       .filter((item) => asString(item.id))
       .map((item) => ({
         id: asString(item.id),
+        name: asString(item.name).trim(),
+        size: asString(item.size).trim(),
         price: Math.max(0, asNumber(item.price, 0)),
         availableRooms: Math.max(0, asNumber(item.availableRooms, 0)),
+        bathroom:
+          item.bathroom === "private"
+            ? ("private" as const)
+            : ("shared" as const),
+        furnishings: Array.isArray(item.furnishings)
+          ? item.furnishings
+              .filter((entry): entry is string => typeof entry === "string")
+              .map((entry) => entry.trim())
+              .filter(Boolean)
+          : [],
       }));
+
+    // A listing with no rooms cannot be booked or priced, so an empty list is
+    // treated as "no opinion" and the seeded rooms show through instead.
+    if (rooms.length > 0) override.rooms = rooms;
   }
 
   if (Array.isArray(raw.costs)) {
@@ -234,7 +277,35 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
         id: asString(item.id),
         amount: typeof item.amount === "number" ? item.amount : null,
         included: item.included === true,
+        ...(item.removed === true ? { removed: true } : {}),
       }));
+  }
+
+  if (Array.isArray(raw.customCosts)) {
+    override.customCosts = raw.customCosts
+      .map((item) => asRecord(item))
+      .filter((item): item is Record<string, unknown> => item !== null)
+      .map((item) => ({
+        id: asString(item.id),
+        label: asString(item.label).trim(),
+        amount: typeof item.amount === "number" ? item.amount : null,
+        included: item.included === true,
+      }))
+      .filter((cost) => cost.id && cost.label);
+  }
+
+  // Both prices are derived, so they are recomputed here rather than trusted:
+  // whatever wrote the record, the headline is the cheapest room and the promo
+  // is the owner's percentage applied to it.
+  if (override.rooms) {
+    override.price = Math.min(...override.rooms.map((room) => room.price));
+  }
+  if (override.discountPercent !== undefined) {
+    const base = override.price;
+    override.promoPrice =
+      override.discountPercent && base !== undefined
+        ? discountedPrice(base, override.discountPercent)
+        : null;
   }
 
   return override;

@@ -149,8 +149,10 @@ test("an owner edit reaches renter search, filtering, and the audit trail", asyn
   await waitForReady(page);
 
   await page.getByLabel("Nama kos").fill("Kos Senja Diperbarui");
-  await page.getByLabel("Harga bulanan").fill("2000000");
-  await page.getByLabel("Harga promo").fill("1700000");
+  // The headline price follows the cheapest room, and the discount is a
+  // percentage, so both are set through what the owner actually decides.
+  await page.getByLabel("Harga", { exact: true }).first().fill("2000000");
+  await page.getByLabel("Diskon (%)").fill("15");
   await page.getByRole("button", { name: "Simpan perubahan" }).click();
   await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
 
@@ -238,7 +240,7 @@ test("an uploaded photo becomes the kos cover and survives a reload", async ({
       "base64",
     ),
   });
-  await expect(page.getByText("1 dari 4 foto")).toBeVisible();
+  await expect(page.getByText("1 dari 20 foto")).toBeVisible();
   await page.getByRole("button", { name: "Simpan perubahan" }).click();
   await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
 
@@ -271,4 +273,33 @@ test("a custom house rule reaches renters alongside the standard ones", async ({
   await expect(rules.getByText("Jam tamu maksimal 21.00")).toBeVisible();
   // The standard set is not replaced by the custom one.
   await expect(rules.getByText("Tamu wajib melapor")).toBeVisible();
+});
+
+test("a room the owner adds is bookable, and the last one cannot be deleted", async ({
+  page,
+}) => {
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+
+  await page.getByRole("button", { name: "Tambah kamar" }).click();
+  await page.getByLabel("Nama kamar").last().fill("Kamar Atas");
+  await page.getByLabel("Harga", { exact: true }).last().fill("3000000");
+  await page.getByLabel("Kamar kosong").last().fill("2");
+  await page.getByRole("button", { name: "Simpan perubahan" }).click();
+  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+
+  // The renter sees the new room in the comparison and can request it.
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  await expect(page.getByText("Kamar Atas").first()).toBeVisible();
+
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+  for (const name of ["Kamar Atas", "Kamar Plus", "Kamar Standard"]) {
+    await page.getByRole("button", { name: `Hapus kamar: ${name}` }).click();
+  }
+
+  // A kos with no rooms cannot be priced or rented, so the last one stays.
+  await expect(page.getByText("Kos harus punya minimal satu kamar.")).toBeVisible();
+  await expect(page.getByLabel("Nama kamar")).toHaveCount(1);
 });

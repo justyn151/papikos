@@ -195,17 +195,37 @@ export function effectivePrice(listing: Listing): number {
 }
 
 /**
- * How much is taken off, in rupiah. A promo is a listing-level discount, so
- * the same amount comes off every room rate — otherwise the summary price and
- * the room list would contradict each other.
+ * How much is taken off the headline rate, in rupiah.
  */
 export function discountDelta(listing: Listing): number {
   return Math.max(0, listing.price - effectivePrice(listing));
 }
 
-/** A room's rate after the listing's promo is applied. */
+/**
+ * The price after a whole-percent discount, rounded to the nearest thousand
+ * rupiah. Owners decide a percentage, not an amount, and no kos is quoted in
+ * loose change — a thousand is close enough that the badge still reads back as
+ * the percentage that was entered.
+ */
+export function discountedPrice(price: number, percent: number): number {
+  if (percent <= 0) return price;
+  return Math.max(0, Math.round((price * (100 - percent)) / 100 / 1000) * 1000);
+}
+
+/**
+ * A room's rate after the listing's promo is applied. The promo is a
+ * percentage, so the same percentage comes off every room: taking a fixed
+ * rupiah amount off instead would quietly give the pricier rooms a smaller
+ * discount than the badge promises.
+ */
 export function roomEffectivePrice(listing: Listing, roomPrice: number): number {
-  return Math.max(0, roomPrice - discountDelta(listing));
+  const promo = effectivePrice(listing);
+  if (listing.price <= 0 || promo >= listing.price) return roomPrice;
+
+  // The ratio rather than the rounded percentage, so the headline room's rate
+  // lands exactly on the advertised promo price instead of a thousand off it.
+  const rate = (roomPrice * promo) / listing.price;
+  return Math.max(0, Math.round(rate / 1000) * 1000);
 }
 
 /** Whole-percent discount, or null when the kos is not discounted. */

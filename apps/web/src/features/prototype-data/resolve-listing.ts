@@ -1,8 +1,44 @@
 import type {
+  CostItem,
   Listing,
   ListingDetail,
   ListingOverride,
+  LocalizedText,
+  OverrideRoom,
+  RoomOption,
 } from "@/features/listings/types";
+
+/** Owner-typed text, which is one language rather than a translation pair. */
+function ownText(value: string): LocalizedText {
+  return { id: value, en: value };
+}
+
+/**
+ * Keeps the seeded translation when the owner left the text alone, and takes
+ * the owner's wording when they did not. Without this, opening the editor and
+ * saving would flatten every seeded room name into whichever language the
+ * owner happened to be reading.
+ */
+function mergedText(value: string, seeded: LocalizedText | undefined) {
+  if (!seeded) return ownText(value);
+  return value === seeded.id || value === seeded.en ? seeded : ownText(value);
+}
+
+function mergeRoom(room: OverrideRoom, seeded: RoomOption | undefined): RoomOption {
+  const furnishings = room.furnishings.map((item, index) =>
+    mergedText(item, seeded?.furnishings[index]),
+  );
+
+  return {
+    id: room.id,
+    name: mergedText(room.name, seeded?.name),
+    size: room.size,
+    price: room.price,
+    availableRooms: room.availableRooms,
+    bathroom: room.bathroom,
+    furnishings,
+  };
+}
 
 /**
  * Merges an owner's edits over the seeded listing data. Absent override fields
@@ -23,6 +59,7 @@ export function resolveListing<T extends Listing>(
       ? { promoPrice: override.promoPrice }
       : {}),
     ...(override.type !== undefined ? { type: override.type } : {}),
+    ...(override.city !== undefined ? { city: override.city } : {}),
     ...(override.district !== undefined ? { district: override.district } : {}),
     ...(override.amenities !== undefined
       ? { amenities: override.amenities }
@@ -40,27 +77,40 @@ export function resolveListingDetail(
   const base = resolveListing(seed, override);
   if (!override) return base;
 
+  // The override's rooms are the whole list, not a patch: owners add and
+  // remove rooms, so a seeded room the owner deleted must not survive here.
   const rooms = override.rooms
-    ? base.rooms.map((room) => {
-        const edit = override.rooms?.find((item) => item.id === room.id);
-        return edit
-          ? {
-              ...room,
-              price: edit.price,
-              availableRooms: edit.availableRooms,
-            }
-          : room;
-      })
+    ? override.rooms.map((room) =>
+        mergeRoom(
+          room,
+          base.rooms.find((seeded) => seeded.id === room.id),
+        ),
+      )
     : base.rooms;
 
-  const costs = override.costs
-    ? base.costs.map((cost) => {
-        const edit = override.costs?.find((item) => item.id === cost.id);
-        return edit
-          ? { ...cost, amount: edit.amount, included: edit.included }
-          : cost;
-      })
+  const seededCosts: CostItem[] = override.costs
+    ? base.costs
+        .map((cost) => {
+          const edit = override.costs?.find((item) => item.id === cost.id);
+          if (!edit) return cost;
+          if (edit.removed) return null;
+          return { ...cost, amount: edit.amount, included: edit.included };
+        })
+        .filter((cost): cost is CostItem => cost !== null)
     : base.costs;
+
+  const costs =
+    override.customCosts && override.customCosts.length > 0
+      ? [
+          ...seededCosts,
+          ...override.customCosts.map((cost) => ({
+            id: cost.id,
+            label: ownText(cost.label),
+            amount: cost.amount,
+            included: cost.included,
+          })),
+        ]
+      : seededCosts;
 
   const seededRules = override.rules
     ? base.rules.map((rule) => {
@@ -108,7 +158,19 @@ export function resolveListingDetail(
     ...base,
     gallery,
     ...(override.description !== undefined
-      ? { description: { id: override.description, en: override.description } }
+      ? { description: ownText(override.description) }
+      : {}),
+    ...(override.approximateArea !== undefined
+      ? { approximateArea: override.approximateArea }
+      : {}),
+    ...(override.privacyRadiusMeters !== undefined
+      ? { privacyRadiusMeters: override.privacyRadiusMeters }
+      : {}),
+    ...(override.availableFrom !== undefined
+      ? { availableFrom: override.availableFrom }
+      : {}),
+    ...(override.minimumStayMonths !== undefined
+      ? { minimumStayMonths: override.minimumStayMonths }
       : {}),
     // Availability is derived so the card, the filters, and the room list
     // cannot disagree about whether a kos has space.

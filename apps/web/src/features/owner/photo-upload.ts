@@ -5,17 +5,30 @@ import { createId } from "@/features/shared/create-id";
  * Photos live in `localStorage` alongside favorites, bookings, and questions,
  * inside a budget of roughly 5MB for the whole origin. Originals from a phone
  * camera are several megabytes each, so every upload is downscaled and
- * re-encoded before it is ever handed to the store, and the count is capped.
+ * re-encoded before it is ever handed to the store.
+ *
+ * The count alone cannot keep a listing inside that budget — twenty large
+ * photos and twenty small ones differ by an order of magnitude — so a listing
+ * is capped by bytes as well. The byte budget is what actually protects the
+ * store; the count is there so the gallery stays a gallery.
  *
  * Real uploads to object storage arrive with the API; this is the prototype's
  * stand-in, not a preview of that contract.
  */
 
-export const MAX_PHOTOS = 4;
-export const MAX_PHOTO_EDGE = 800;
-export const PHOTO_QUALITY = 0.7;
+export const MAX_PHOTOS = 20;
+export const MAX_PHOTO_EDGE = 720;
+export const PHOTO_QUALITY = 0.6;
 
-export type PhotoErrorReason = "type" | "cap" | "read" | "quota";
+/**
+ * Roughly 1.5MB of photos per listing. At the edge and quality above a photo
+ * lands around 40–60KB, so twenty of them fit with room to spare, and a
+ * listing of unusually detailed photos runs out of budget before it can starve
+ * the rest of the store.
+ */
+export const MAX_PHOTO_BYTES = 1_500_000;
+
+export type PhotoErrorReason = "type" | "cap" | "budget" | "read" | "quota";
 
 export class PhotoUploadError extends Error {
   readonly reason: PhotoErrorReason;
@@ -36,19 +49,43 @@ export function remainingSlots(photos: ListingPhoto[]): number {
   return Math.max(0, MAX_PHOTOS - photos.length);
 }
 
+/** How much of the listing's storage budget is left, in bytes. */
+export function remainingBytes(photos: ListingPhoto[]): number {
+  return Math.max(0, MAX_PHOTO_BYTES - totalBytes(photos));
+}
+
 /**
- * Appends what fits and reports what did not, so the caller can explain the
- * cap rather than silently dropping the extra files a user just picked.
+ * Appends what fits and reports what did not, separating the two reasons: an
+ * owner who hit the count can delete a photo to make room, while one who hit
+ * the byte budget cannot fit that particular photo at all. Silently dropping
+ * either would leave them wondering which files actually saved.
  */
 export function acceptPhotos(
   existing: ListingPhoto[],
   incoming: ListingPhoto[],
-): { photos: ListingPhoto[]; rejected: number } {
-  const room = remainingSlots(existing);
-  return {
-    photos: [...existing, ...incoming.slice(0, room)],
-    rejected: Math.max(0, incoming.length - room),
-  };
+): { photos: ListingPhoto[]; rejectedCap: number; rejectedBudget: number } {
+  const photos = [...existing];
+  let used = totalBytes(existing);
+  let rejectedCap = 0;
+  let rejectedBudget = 0;
+
+  for (const photo of incoming) {
+    if (photos.length >= MAX_PHOTOS) {
+      rejectedCap += 1;
+      continue;
+    }
+
+    const size = approximateBytes(photo.dataUrl);
+    if (used + size > MAX_PHOTO_BYTES) {
+      rejectedBudget += 1;
+      continue;
+    }
+
+    photos.push(photo);
+    used += size;
+  }
+
+  return { photos, rejectedCap, rejectedBudget };
 }
 
 /** The first photo is the cover, so promoting one is a move to the front. */

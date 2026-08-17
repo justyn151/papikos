@@ -4,6 +4,7 @@ import { listings } from "./mock-listings";
 import {
   defaultFilters,
   discountPercent,
+  discountedPrice,
   effectivePrice,
   filterListings,
   formatPrice,
@@ -187,12 +188,29 @@ describe("discounted pricing", () => {
     expect(discountPercent({ ...full, promoPrice: full.price })).toBeNull();
   });
 
-  it("takes the same amount off every room rate", () => {
-    const delta = discounted.price - discounted.promoPrice!;
-    expect(roomEffectivePrice(discounted, discounted.price + 250000)).toBe(
-      discounted.price + 250000 - delta,
+  it("takes the same percentage off every room rate", () => {
+    const dearer = discounted.price + 250_000;
+    const rate = roomEffectivePrice(discounted, dearer);
+    const headlineShare = discounted.promoPrice! / discounted.price;
+
+    // A fixed rupiah cut would quietly give the pricier room a smaller
+    // discount than the badge on the card promises.
+    expect(rate / dearer).toBeCloseTo(headlineShare, 3);
+    expect(rate).toBeLessThan(dearer);
+  });
+
+  it("lands the headline room exactly on the advertised promo price", () => {
+    expect(roomEffectivePrice(discounted, discounted.price)).toBe(
+      discounted.promoPrice,
     );
     expect(roomEffectivePrice(full, full.price)).toBe(full.price);
+  });
+
+  it("rounds a percentage discount to whole thousands", () => {
+    expect(discountedPrice(1_350_000, 15)).toBe(1_148_000);
+    expect(discountedPrice(1_000_000, 10)).toBe(900_000);
+    // No discount means no rounding either.
+    expect(discountedPrice(1_234_567, 0)).toBe(1_234_567);
   });
 
   it("filters on what the renter would actually pay", () => {
