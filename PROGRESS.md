@@ -4,7 +4,7 @@ Last updated: 17 August 2026
 
 ## Current Prototype
 
-Papikos currently ships as an owner-only deployed Next.js web prototype. It is English-only, responsive, Docker-ready, and packaged as a finalized Cloudflare Worker through OpenNext.
+Papikos currently ships as an owner-only deployed Next.js web prototype. It opens in English, switches to Indonesian, and is responsive, Docker-ready, and packaged as a finalized Cloudflare Worker through OpenNext.
 
 There is still no backend. Browser storage acts as a shared prototype store, which is what lets a renter submission become a record the owner and administrator can actually act on.
 
@@ -12,7 +12,7 @@ Completed renter-facing capabilities:
 
 - A dedicated search page with location search, room-type, price-range, availability, verification, and grouped amenity filters, live facet counts, and shareable search URLs.
 - Nine fictional kos listings with owner-set discounts, local favorites, and transparent rule-based preference matching.
-- Reduced-motion support, responsive desktop/mobile layouts, and map-contour visual texture. The Indonesian copy and the dark theme are still in the codebase but switched off; see the note in `preferences.tsx`.
+- Animated ID/EN switching, reduced-motion support, responsive desktop/mobile layouts, and map-contour visual texture. Dark mode is switched off but kept in the codebase; see the note in `preferences.tsx`.
 - A dynamic detail route for every listing with a gallery, room comparisons, explained cost breakdowns, facilities, rules, approximate location, landmarks, and verification information.
 - Browser-local booking requests with preserved status history, structured listing Q&A, reporting, favorites, and related listings.
 
@@ -24,17 +24,17 @@ Completed owner and administrator capabilities:
 
 ## Completed Milestones
 
-### 17 August 2026 — One Language, One Theme
+### 17 August 2026 — English First, Light Only
 
-- Locked the app to English and to light mode. Two languages and two themes
-  doubled the copy to write and the styling to check on every change, for a
-  prototype with one audience.
-- Nothing was deleted: the Indonesian half of every copy file, the `dark:`
-  classes, the switching hooks, and both toggles are all still there, commented
-  where they were wired in. Bringing either back is restoring one block in
-  `preferences.tsx` and uncommenting two elements in `site-header.tsx`.
-- A previously stored `id` locale or `dark` theme is ignored rather than read,
-  so an old visit cannot half-apply a mode nobody is maintaining.
+- The app now opens in English rather than Indonesian, and the ID/EN switch
+  stays: the second language is copy that is already written, so it costs
+  nothing to keep.
+- Dark mode is switched off. It was the expensive half of the pair — every
+  surface had to be checked twice — and it is kept whole rather than deleted:
+  the theme hook, its toggle, and every `dark:` class stay in place, inert,
+  behind one commented block in `preferences.tsx`.
+- A stored `dark` theme or the system preference is ignored rather than read,
+  so a return visit cannot half-apply a theme nobody is maintaining.
 
 ### 17 August 2026 — The Kos Editor Becomes Real Management
 
@@ -123,5 +123,5 @@ Completed owner and administrator capabilities:
 ## Quality Baseline
 
 - Strict TypeScript, ESLint, Vitest, Testing Library, and Playwright are wired into root commands.
-- Automated journeys cover desktop and mobile search, preference matching, detail navigation, booking requests, structured Q&A, and the cross-role flows: a request travelling from renter to owner and back, an owner answer reaching the kos page, an administrator suspension leaving renter search, an owner edit reaching search and filtering, uploaded photos becoming the cover, and custom rules reaching renters.
+- Automated journeys cover desktop and mobile search, language switching, preference matching, detail navigation, booking requests, structured Q&A, and the cross-role flows: a request travelling from renter to owner and back, an owner answer reaching the kos page, an administrator suspension leaving renter search, an owner edit reaching search and filtering, uploaded photos becoming the cover, and custom rules reaching renters.
 - Production releases are built from the committed source, saved as Sites versions, and checked through Worker runtime smoke tests and production logs.

@@ -68,35 +68,18 @@ test("supports reduced motion", async ({ page }) => {
   expect(iterationCount).not.toContain("infinite");
 });
 
-test("completes the preference survey", async ({ page }) => {
-  // The app is English-only for now, so the survey is reached directly rather
-  // than through a language switch; see the note in preferences.tsx.
-  await expect(
-    page.getByRole("heading", { name: /Find a kos that fits your life/i }),
-  ).toBeVisible();
-
-  await page
-    .getByRole("button", { name: "Try the preference survey" })
-    .click();
-  await page.getByRole("button", { name: "Show my matches" }).click();
-
-  await expect(
-    page.getByText("Recommendations from your preferences"),
-  ).toBeVisible();
-  await page.reload();
-  await expect(
-    page.getByRole("heading", { name: /Find a kos that fits your life/i }),
-  ).toBeVisible();
-});
-
-/* The language switch this covered is commented out for now:
-
 test("switches language and completes the preference survey", async ({
   page,
 }) => {
+  // The app opens in English; the toggle takes it to Indonesian and back.
   const languageControl = page.locator(".language-toggle");
+  await languageControl.getByRole("button", { name: "ID", exact: true }).click();
+  await expect(languageControl).toHaveAttribute("data-locale", "id");
+  await expect(
+    page.getByRole("heading", { name: /Temukan kos yang pas/i }),
+  ).toBeVisible();
+
   await languageControl.getByRole("button", { name: "EN", exact: true }).click();
-  await expect(languageControl).toHaveAttribute("data-locale", "en");
   await expect(
     page.getByRole("heading", { name: /Find a kos that fits your life/i }),
   ).toBeVisible();
@@ -114,8 +97,6 @@ test("switches language and completes the preference survey", async ({
     page.getByRole("heading", { name: /Find a kos that fits your life/i }),
   ).toBeVisible();
 });
-
-*/
 
 /* The dark-mode toggle is commented out for now:
 

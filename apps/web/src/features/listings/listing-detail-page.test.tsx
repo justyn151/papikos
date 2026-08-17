@@ -130,21 +130,18 @@ describe("kos detail page", () => {
     expect(screen.queryByText(submittedText)).not.toBeInTheDocument();
   });
 
-/* The language switch this covered is commented out for now:
-
-  it("switches the detail experience to English", async () => {
+  it("switches the detail experience to Indonesian", async () => {
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: "EN" }));
+    fireEvent.click(screen.getByRole("button", { name: "ID" }));
 
     expect(
-      await screen.findByRole("heading", { name: "Room options" }),
+      await screen.findByRole("heading", { name: "Pilihan kamar" }),
     ).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Request to rent" }),
+      screen.getByRole("button", { name: "Ajukan sewa" }),
     ).toBeVisible();
   });
 
-*/
   it("explains a cost and states that payment happens outside Papikos", async () => {
     renderPage();
 

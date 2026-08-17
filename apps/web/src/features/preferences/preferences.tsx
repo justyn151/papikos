@@ -1,7 +1,7 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { Locale } from "@/features/home/types";
 
@@ -9,57 +9,17 @@ export type Theme = "light" | "dark";
 export type LocaleTransitionState = "idle" | "out" | "in";
 
 /**
- * The app is English-only for now, and light-only with it. Two languages and
- * two themes doubled the copy to write and the styling to check on every
- * change, for a prototype with one audience.
+ * The app opens in English and can be switched to Indonesian; it is light-only.
+ * Dark mode was the expensive half of the pair — every surface had to be
+ * checked twice — while a second language is copy that is already written.
  *
- * Nothing is thrown away: the Indonesian copy still sits in the `id` half of
- * every copy file, the `dark:` classes are still on the markup (inert while the
- * theme is locked), and the switching hooks and their helpers are kept below,
- * commented. Bringing either back means restoring the block at the bottom of
- * this file and uncommenting the toggles in `site-header.tsx`.
+ * The theme machinery is kept below, commented, along with the switch in
+ * `site-header.tsx`, so bringing dark mode back is restoring one block rather
+ * than rebuilding it. The `dark:` classes stay on the markup meanwhile, inert.
  */
-export const ACTIVE_LOCALE: Locale = "en";
-
-function applyTheme(theme: Theme) {
-  document.documentElement.dataset.theme = theme;
-  document.documentElement.style.colorScheme = theme;
-}
-
-export function useLocaleTransition(initialLocale: Locale = ACTIVE_LOCALE) {
-  // One language means no stored choice, no switch, and so no transition to
-  // animate — but the shape callers destructure stays the same.
-  void initialLocale;
-
-  useEffect(() => {
-    document.documentElement.lang = ACTIVE_LOCALE;
-  }, []);
-
-  return {
-    changeLocale: () => {},
-    locale: ACTIVE_LOCALE,
-    selectedLocale: ACTIVE_LOCALE,
-    transitionState: "idle" as LocaleTransitionState,
-  } as const;
-}
-
-export function useTheme() {
-  // The stored choice and the system preference are ignored rather than read,
-  // so a browser set to dark does not half-apply a theme nobody is maintaining.
-  useEffect(() => {
-    applyTheme("light");
-  }, []);
-
-  return { theme: "light" as Theme, toggleTheme: () => {} } as const;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   Switchable locale and theme, kept whole for when either comes back. Restore
-   these two hooks over the locked ones above, and uncomment the toggles in
-   `site-header.tsx`.
+export const DEFAULT_LOCALE: Locale = "en";
 
 const LOCALE_STORAGE_KEY = "papikos.locale";
-const THEME_STORAGE_KEY = "papikos.theme";
 const localeTransitionOutMs = 120;
 const localeTransitionInMs = 180;
 
@@ -83,13 +43,12 @@ function prefersReducedMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 }
 
-function getSystemTheme(): Theme {
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+function applyTheme(theme: Theme) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
 }
 
-export function useLocaleTransition(initialLocale: Locale = "id") {
+export function useLocaleTransition(initialLocale: Locale = DEFAULT_LOCALE) {
   const [locale, setLocale] = useState<Locale>(initialLocale);
   const [selectedLocale, setSelectedLocale] = useState<Locale>(initialLocale);
   const [transitionState, setTransitionState] =
@@ -162,6 +121,30 @@ export function useLocaleTransition(initialLocale: Locale = "id") {
 }
 
 export function useTheme() {
+  // Locked to light: the stored choice and the system preference are ignored
+  // rather than read, so a browser set to dark does not half-apply a theme
+  // nobody is maintaining.
+  useEffect(() => {
+    applyTheme("light");
+  }, []);
+
+  return { theme: "light" as Theme, toggleTheme: () => {} } as const;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Theme switching, kept whole for when dark mode comes back. Restore this over
+   the locked `useTheme` above, and uncomment the `ThemeToggle` in
+   `site-header.tsx`.
+
+const THEME_STORAGE_KEY = "papikos.theme";
+
+function getSystemTheme(): Theme {
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+export function useTheme() {
   const [theme, setTheme] = useState<Theme>("light");
   const [hasExplicitTheme, setHasExplicitTheme] = useState(false);
 
@@ -212,10 +195,6 @@ export function useTheme() {
 
 ───────────────────────────────────────────────────────────────────────────── */
 
-/* The switches themselves. Nothing renders them while the app is locked to one
-   language and one theme; they are left intact so bringing either back is a
-   matter of uncommenting their use in `site-header.tsx`. */
-
 export function LanguageToggle({
   locale,
   onChange,
@@ -255,6 +234,8 @@ export function LanguageToggle({
   );
 }
 
+/* Rendered by nothing while the app is light-only; uncomment its use in
+   `site-header.tsx` to bring dark mode back. */
 export function ThemeToggle({
   locale,
   theme,

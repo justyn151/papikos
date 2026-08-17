@@ -89,35 +89,32 @@ describe("Papikos homepage", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("renders in English, with no language or theme switch to change it", () => {
+  it("switches all primary copy to Indonesian and persists the locale", async () => {
     render(<HomePage />);
 
-    // Both switches are commented out in site-header.tsx while the app is
-    // English-only and light-only; see the note in preferences.tsx.
-    expect(screen.queryByRole("button", { name: "EN" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "ID" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button", { name: "ID" })[0]);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: /Temukan kos yang pas/i,
+      }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(window.localStorage.getItem("papikos.locale")).toBe('"id"'),
+    );
+  });
+
+  it("offers no theme switch, and stays light", () => {
+    render(<HomePage />);
+
+    // Dark mode is commented out in site-header.tsx; see preferences.tsx.
     expect(
       screen.queryByRole("button", { name: /mode|dark|light/i }),
     ).not.toBeInTheDocument();
     expect(document.documentElement).not.toHaveAttribute("data-theme", "dark");
   });
 
-/* The switching these replaced, kept for when the toggles come back:
-
-  it("switches all primary copy to English and persists the locale", async () => {
-    render(<HomePage />);
-
-    fireEvent.click(screen.getAllByRole("button", { name: "EN" })[0]);
-
-    expect(
-      await screen.findByRole("heading", {
-        name: /Find a kos that fits your life/i,
-      }),
-    ).toBeInTheDocument();
-    await waitFor(() =>
-      expect(window.localStorage.getItem("papikos.locale")).toBe('"en"'),
-    );
-  });
+/* The dark-mode control this replaced, kept for when it comes back:
 
   it("exposes a persistent light and dark mode control", () => {
     render(<HomePage />);

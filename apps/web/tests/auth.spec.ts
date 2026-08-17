@@ -75,21 +75,22 @@ test("validates the registration form and supports the owner role", async ({
   await expect(page.getByText("Sign-up form validated")).toBeVisible();
 });
 
-/* The language switch this covered is commented out for now:
-
-test("switches auth copy to English", async ({ page }) => {
+test("switches auth copy between languages", async ({ page }) => {
   await page.goto("/masuk");
   await waitForReady(page);
 
-  await page
-    .locator(".language-toggle")
-    .getByRole("button", { name: "EN", exact: true })
-    .click();
-
+  // The page opens in English, so the switch is what has to be proven here.
   await expect(
     page.getByRole("heading", { name: "Sign in to Papikos" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
-});
 
-*/
+  await page
+    .locator(".language-toggle")
+    .getByRole("button", { name: "ID", exact: true })
+    .click();
+
+  await expect(
+    page.getByRole("heading", { name: "Masuk ke Papikos" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Masuk", exact: true })).toBeVisible();
+});
