@@ -35,7 +35,11 @@ describe("owner listing editor", () => {
     render(<OwnerEditPage listing={listing} />);
 
     expect(await screen.findByLabelText("Kos name")).toHaveValue(listing.name);
+
+    // City lives with the rest of the location, not split across two tabs.
+    openSection("Location");
     expect(screen.getByLabelText("City")).toHaveValue(listing.city);
+    expect(screen.getByLabelText("District")).toHaveValue(listing.district);
 
     openSection("Rooms");
     expect(screen.getAllByLabelText("Room name")[0]).toHaveValue(
@@ -106,6 +110,20 @@ describe("owner listing editor", () => {
       expect(stored.discountPercent).toBe(10);
       expect(stored.promoPrice).toBe(Math.round((stored.price * 0.9) / 1000) * 1000);
     });
+  });
+
+  it("takes the owner to the section holding the field that blocked the save", async () => {
+    render(<OwnerEditPage listing={listing} />);
+
+    openSection("Location");
+    fireEvent.change(screen.getByLabelText("City"), { target: { value: " " } });
+    openSection("Costs");
+    save();
+
+    expect(screen.getByText("The city cannot be empty.")).toBeInTheDocument();
+    // Back on Location, with the offending field on screen.
+    expect(screen.getByLabelText("City")).toBeInTheDocument();
+    expect(storedOverride()).toEqual([]);
   });
 
   it("refuses to save a kos with no name", async () => {

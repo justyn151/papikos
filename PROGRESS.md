@@ -24,6 +24,15 @@ Completed owner and administrator capabilities:
 
 ## Completed Milestones
 
+### 17 August 2026 — One Place for Location
+
+- City and district moved out of Basics and into the Location section, beside
+  the area, the privacy radius, and the map. Splitting them across two tabs
+  made an owner hunt for half an address, and left "Use my current location"
+  writing into fields that were not on screen.
+- Availability and minimum stay moved to Basics, where the rest of the
+  listing's own terms already are.
+
 ### 17 August 2026 — A Map Owners Can Actually Use
 
 - Swapped OpenStreetMap's default raster for CARTO's Positron basemap: muted

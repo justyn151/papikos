@@ -128,7 +128,7 @@ type SectionId =
   | "photos"
   | "facilities"
   | "costs"
-  | "availability";
+  | "location";
 
 function ownText(value: string): LocalizedText {
   return { id: value, en: value };
@@ -291,7 +291,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
             count: draft.amenities.length,
           },
           { id: "costs", label: t.tabCosts, count: draft.costs.length },
-          { id: "availability", label: t.tabAvailability },
+          { id: "location", label: t.tabLocation },
         ];
         const percent = draft.discountPercent === "" ? null : Number(draft.discountPercent);
 
@@ -306,8 +306,8 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           };
 
           if (!draft.name.trim()) return fail("basics", t.nameRequired);
-          if (!draft.city.trim()) return fail("basics", t.cityRequired);
-          if (!draft.district.trim()) return fail("basics", t.districtRequired);
+          if (!draft.city.trim()) return fail("location", t.cityRequired);
+          if (!draft.district.trim()) return fail("location", t.districtRequired);
           if (draft.rooms.length === 0) return fail("rooms", t.roomsMinimum);
           if (draft.rooms.some((room) => !(Number(room.price) > 0))) {
             return fail("rooms", t.roomPriceInvalid);
@@ -672,26 +672,6 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                       ))}
                     </select>
                   </label>
-                  <label className={label}>
-                    {t.fieldCity}
-                    <input
-                      className={field}
-                      onChange={(event) =>
-                        setDraft((d) => ({ ...d, city: event.target.value }))
-                      }
-                      value={draft.city}
-                    />
-                  </label>
-                  <label className={label}>
-                    {t.fieldDistrict}
-                    <input
-                      className={field}
-                      onChange={(event) =>
-                        setDraft((d) => ({ ...d, district: event.target.value }))
-                      }
-                      value={draft.district}
-                    />
-                  </label>
                   <div className={label}>
                     {t.fieldPrice}
                     <p className="flex h-11 items-center rounded-xl bg-slate-50 px-3 text-sm font-black normal-case tracking-normal text-slate-900 dark:bg-slate-800/60 dark:text-slate-100">
@@ -742,11 +722,10 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     />
                   </label>
                 </div>
-                <p className={hint}>{t.cityHint}</p>
               </section>
             ) : null}
 
-            {section === "availability" ? (
+            {section === "basics" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.staySection}
@@ -785,12 +764,32 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
               </section>
             ) : null}
 
-            {section === "availability" ? (
+            {section === "location" ? (
               <section className={card}>
                 <h2 className="text-base font-black text-slate-950 dark:text-slate-50">
                   {t.locationSection}
                 </h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <label className={label}>
+                    {t.fieldCity}
+                    <input
+                      className={field}
+                      onChange={(event) =>
+                        setDraft((d) => ({ ...d, city: event.target.value }))
+                      }
+                      value={draft.city}
+                    />
+                  </label>
+                  <label className={label}>
+                    {t.fieldDistrict}
+                    <input
+                      className={field}
+                      onChange={(event) =>
+                        setDraft((d) => ({ ...d, district: event.target.value }))
+                      }
+                      value={draft.district}
+                    />
+                  </label>
                   <label className={label}>
                     {t.fieldArea}
                     <input
@@ -820,6 +819,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     />
                   </label>
                 </div>
+                <p className={hint}>{t.cityHint}</p>
                 <p className={hint}>{t.privacyHint}</p>
 
                 <div className="mt-5">

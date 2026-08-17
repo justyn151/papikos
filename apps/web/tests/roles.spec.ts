@@ -356,7 +356,7 @@ test("an owner moves the kos on the map and a renter sees it move", async ({
 }) => {
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
-  await openEditorSection(page, "Availability");
+  await openEditorSection(page, "Location");
 
   const stored = page.getByText(/^Stored point:/);
   const before = await stored.innerText();
@@ -391,7 +391,7 @@ test("an owner moves the kos on the map and a renter sees it move", async ({
 
   await page.reload();
   await waitForReady(page);
-  await openEditorSection(page, "Availability");
+  await openEditorSection(page, "Location");
   await expect(stored).toHaveText(moved);
 });
 
@@ -413,7 +413,7 @@ test("an owner fills the location from the browser, and can still correct it", a
 
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
-  await openEditorSection(page, "Availability");
+  await openEditorSection(page, "Location");
 
   await page.getByRole("button", { name: "Use my current location" }).click();
   await expect(page.getByText(/Map and area filled/)).toBeVisible();
