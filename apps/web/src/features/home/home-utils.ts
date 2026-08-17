@@ -5,10 +5,7 @@ import type {
   Listing,
   ListingTypeFilter,
   Locale,
-  MatchReason,
-  MatchResult,
   SearchFilters,
-  SurveyPreferences,
 } from "./types";
 
 export const defaultFilters: SearchFilters = {
@@ -129,61 +126,6 @@ export function filterListings(
   });
 }
 
-export function rankListings(
-  source: Listing[],
-  preferences: SurveyPreferences,
-): MatchResult[] {
-  return source
-    .map((listing, index) => {
-      let score = 0;
-      const reasons: MatchReason[] = [];
-
-      if (effectivePrice(listing) <= preferences.maxBudget) {
-        score += 35;
-        reasons.push({ kind: "budget" });
-      }
-
-      if (listing.city === preferences.city) {
-        score += 30;
-        reasons.push({ kind: "location" });
-      }
-
-      if (
-        preferences.roomType === "all" ||
-        listing.type === preferences.roomType
-      ) {
-        score += 20;
-        reasons.push({ kind: "roomType" });
-      }
-
-      if (preferences.amenities.length > 0) {
-        const matched = preferences.amenities.filter((amenity) =>
-          listing.amenities.includes(amenity),
-        ).length;
-        const amenityScore = Math.round(
-          (matched / preferences.amenities.length) * 15,
-        );
-        score += amenityScore;
-        if (matched > 0) {
-          reasons.push({
-            kind: "amenities",
-            matched,
-            total: preferences.amenities.length,
-          });
-        }
-      } else {
-        score += 15;
-      }
-
-      return { listingId: listing.id, score, reasons, index };
-    })
-    .sort((a, b) => b.score - a.score || a.index - b.index)
-    .map((result) => ({
-      listingId: result.listingId,
-      score: result.score,
-      reasons: result.reasons,
-    }));
-}
 
 /**
  * The price a renter would actually pay. Filtering, matching, and sorting must

@@ -11,8 +11,8 @@ There is still no backend. Browser storage acts as a shared prototype store, whi
 Completed renter-facing capabilities:
 
 - A dedicated search page with location search, room-type, price-range, availability, verification, and grouped amenity filters, live facet counts, and shareable search URLs.
-- Nine fictional kos listings with owner-set discounts, local favorites, and transparent rule-based preference matching.
-- Animated ID/EN switching, reduced-motion support, responsive desktop/mobile layouts, and map-contour visual texture. Dark mode is switched off but kept in the codebase; see the note in `preferences.tsx`.
+- Nine fictional kos listings with owner-set discounts and local favorites.
+- Animated ID/EN switching, reduced-motion support, and responsive desktop/mobile layouts. Dark mode is switched off but kept in the codebase; see the note in `preferences.tsx`.
 - A dynamic detail route for every listing with a gallery, room comparisons, explained cost breakdowns, facilities, rules, approximate location, landmarks, and verification information.
 - Browser-local booking requests with preserved status history, structured listing Q&A, reporting, favorites, and related listings.
 
@@ -23,6 +23,21 @@ Completed owner and administrator capabilities:
 - An administrator console with a sectioned marketplace overview, verification, reports, publication and suspension controls, and an audit trail.
 
 ## Completed Milestones
+
+### 17 August 2026 — Homepage Detailing
+
+- Replaced the hero's drawn map with the search field itself. The map promised
+  a feature the app does not have, and the page's one job is to start a search.
+  The city shortcuts moved in under it, so the separate "popular locations"
+  strip and the gap it left are gone.
+- Dropped the small blue all-caps eyebrows above the section headings, and the
+  helper line under the headline that repeated what the button said.
+- Removed the preference survey and rule-based matching. It was a quiz sitting
+  in front of the same filters search already exposes, at the bottom of the
+  page where nobody reached it, and the match badges it fed had no other
+  source. `AGENTS.md` is amended in the same change.
+- The homepage is 2869px instead of 3777px, with the kos it is advertising
+  visible without scrolling past a graphic.
 
 ### 17 August 2026 — The Kos Editor Reads as a Form, Not a Wall
 
@@ -155,5 +170,5 @@ Completed owner and administrator capabilities:
 ## Quality Baseline
 
 - Strict TypeScript, ESLint, Vitest, Testing Library, and Playwright are wired into root commands.
-- Automated journeys cover desktop and mobile search, language switching, preference matching, detail navigation, booking requests, structured Q&A, and the cross-role flows: a request travelling from renter to owner and back, an owner answer reaching the kos page, an administrator suspension leaving renter search, an owner edit reaching search and filtering, uploaded photos becoming the cover, and custom rules reaching renters.
+- Automated journeys cover desktop and mobile search, language switching, detail navigation, booking requests, structured Q&A, and the cross-role flows: a request travelling from renter to owner and back, an owner answer reaching the kos page, an administrator suspension leaving renter search, an owner edit reaching search and filtering, uploaded photos becoming the cover, and custom rules reaching renters.
 - Production releases are built from the committed source, saved as Sites versions, and checked through Worker runtime smoke tests and production logs.

@@ -10,7 +10,6 @@ import {
   formatPrice,
   roomEffectivePrice,
   normalizeSearchParams,
-  rankListings,
   serializeFilters,
 } from "./home-utils";
 import type { SearchFilters } from "./types";
@@ -143,28 +142,6 @@ describe("homepage search utilities", () => {
   });
 });
 
-describe("preference matching", () => {
-  it("uses the documented 35/30/20/15 weighting", () => {
-    const results = rankListings(listings, {
-      city: "Jakarta",
-      maxBudget: 2500000,
-      roomType: "campur",
-      amenities: ["wifi", "ac", "privateBathroom"],
-    });
-
-    expect(results[0]).toMatchObject({
-      listingId: "senja-setiabudi",
-      score: 100,
-    });
-    expect(results[0].reasons.map((reason) => reason.kind)).toEqual([
-      "budget",
-      "location",
-      "roomType",
-      "amenities",
-    ]);
-  });
-});
-
 describe("currency formatting", () => {
   it("uses Indonesian and English locale conventions", () => {
     expect(formatPrice(1500000, "id")).toContain("1.500.000");
@@ -225,16 +202,5 @@ describe("discounted pricing", () => {
     });
 
     expect(result).toHaveLength(1);
-  });
-
-  it("scores the budget match on the discounted price", () => {
-    const [match] = rankListings([discounted], {
-      city: discounted.city,
-      maxBudget: discounted.promoPrice!,
-      roomType: "all",
-      amenities: [],
-    });
-
-    expect(match.reasons.map((reason) => reason.kind)).toContain("budget");
   });
 });

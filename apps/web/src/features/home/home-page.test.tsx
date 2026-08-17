@@ -26,10 +26,11 @@ describe("Papikos homepage", () => {
 
     render(<HomePage />);
 
-    fireEvent.change(screen.getByLabelText("Location"), {
+    const header = screen.getByRole("banner");
+    fireEvent.change(within(header).getByLabelText("Location"), {
       target: { value: "Bandung" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Find a kos" }));
+    fireEvent.click(within(header).getByRole("button", { name: "Find a kos" }));
 
     expect(assign).toHaveBeenCalledWith("/kos?q=Bandung");
 
@@ -46,7 +47,7 @@ describe("Papikos homepage", () => {
     expect(screen.queryByLabelText("Kos type")).not.toBeInTheDocument();
   });
 
-  it("keeps the header search focused on renter location search and the hero as a plain CTA", () => {
+  it("keeps the header to sign-in and search, with no navigation menu", () => {
     render(<HomePage />);
 
     const header = screen.getByRole("banner");
@@ -56,33 +57,45 @@ describe("Papikos homepage", () => {
       "/masuk",
     );
     expect(within(header).queryByRole("navigation")).not.toBeInTheDocument();
-
-    expect(screen.getAllByLabelText("Location")).toHaveLength(1);
-    const heroCta = screen.getByRole("link", { name: "Start searching" });
-    expect(heroCta).toHaveAttribute("href", "/kos");
   });
 
-  it("links popular locations and the explore-all CTA to the search page", () => {
+  it("searches from the hero and shortcuts to a city", () => {
+    const assign = vi.fn();
+    const originalLocation = window.location;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...originalLocation, assign },
+    });
+
     render(<HomePage />);
 
-    const popularLocations = screen.getByLabelText("Popular locations");
-    expect(
-      within(popularLocations).getByRole("link", { name: "Bandung" }),
-    ).toHaveAttribute("href", "/kos?q=Bandung");
-    expect(
-      within(popularLocations).getByRole("link", { name: /^All$/ }),
-    ).toHaveAttribute("href", "/kos");
+    // The hero field is the page's one job; the header carries the same search
+    // for every page after this one.
+    const main = screen.getByRole("main");
+    fireEvent.change(within(main).getByLabelText("Location"), {
+      target: { value: "Yogyakarta" },
+    });
+    fireEvent.click(within(main).getByRole("button", { name: "Find a kos" }));
+    expect(assign).toHaveBeenCalledWith("/kos?q=Yogyakarta");
 
+    expect(
+      within(main).getByRole("link", { name: "Bandung" }),
+    ).toHaveAttribute("href", "/kos?q=Bandung");
     expect(
       screen.getByRole("link", { name: "See all kos" }),
     ).toHaveAttribute("href", "/kos");
+
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 
   it("keeps reveal content visible without IntersectionObserver", () => {
     render(<HomePage />);
 
     expect(
-      screen.getByRole("heading", { name: "Kos worth a closer look" }),
+      screen.getByRole("heading", { name: "Kos available now" }),
     ).toBeVisible();
     expect(
       document.querySelectorAll('[data-reveal="static"]').length,
@@ -144,21 +157,4 @@ describe("Papikos homepage", () => {
     );
   });
 
-  it("completes the preference survey and exposes match reasons", async () => {
-    render(<HomePage />);
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Try the preference survey" }),
-    );
-    expect(
-      screen.getByRole("dialog", { name: "Tell us about your ideal kos" }),
-    ).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Show my matches" }));
-
-    expect(
-      await screen.findByText("Recommendations from your preferences"),
-    ).toBeInTheDocument();
-    expect(screen.getAllByText(/match$/).length).toBeGreaterThanOrEqual(3);
-  });
 });

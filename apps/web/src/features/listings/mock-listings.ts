@@ -44,19 +44,6 @@ export const amenities: Amenity[] = [
   "carParking",
 ];
 
-/**
- * The handful the homepage survey asks about. The survey is meant to be short,
- * so it stays curated while search and the owner editor offer the full list.
- */
-export const popularAmenities: Amenity[] = [
-  "wifi",
-  "ac",
-  "privateBathroom",
-  "motorParking",
-  "kitchen",
-  "laundry",
-];
-
 export const listings: Listing[] = [
   {
     id: "senja-setiabudi",

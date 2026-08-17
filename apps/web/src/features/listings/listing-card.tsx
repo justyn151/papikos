@@ -1,11 +1,4 @@
-import {
-  BadgeCheck,
-  Check,
-  ChevronRight,
-  Heart,
-  MapPin,
-  Sparkles,
-} from "lucide-react";
+import { BadgeCheck, ChevronRight, Heart, MapPin } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
@@ -15,25 +8,9 @@ import {
   effectivePrice,
   formatPrice,
 } from "@/features/home/home-utils";
-import type {
-  Listing,
-  Locale,
-  MatchReason,
-  MatchResult,
-} from "@/features/home/types";
+import type { Listing, Locale } from "@/features/home/types";
 
 import { ListingArtwork } from "./listing-artwork";
-
-function reasonText(
-  reason: MatchReason,
-  locale: Locale,
-  t: (typeof copy)[Locale],
-) {
-  if (reason.kind === "budget") return t.matchBudget;
-  if (reason.kind === "location") return t.matchLocation;
-  if (reason.kind === "roomType") return t.matchRoomType;
-  return `${reason.matched}/${reason.total} ${t.matchAmenities}`;
-}
 
 export function ListingCard({
   listing,
@@ -41,7 +18,6 @@ export function ListingCard({
   favorite,
   onFavorite,
   detailHref,
-  match,
   animationIndex,
 }: {
   listing: Listing;
@@ -49,7 +25,6 @@ export function ListingCard({
   favorite: boolean;
   onFavorite: () => void;
   detailHref: string;
-  match?: MatchResult;
   animationIndex: number;
 }) {
   const t = copy[locale];
@@ -81,12 +56,6 @@ export function ListingCard({
             aria-hidden="true"
           />
         </button>
-        {match ? (
-          <span className="absolute bottom-4 left-4 inline-flex items-center gap-1.5 rounded-full bg-blue-950 px-3 py-1.5 text-xs font-black text-white shadow-lg">
-            <Sparkles size={13} aria-hidden="true" />
-            {match.score}% {t.match}
-          </span>
-        ) : null}
       </div>
       <div className="flex flex-1 flex-col p-5">
         <div className="flex-1">
@@ -118,19 +87,6 @@ export function ListingCard({
               </span>
             ))}
           </div>
-          {match && match.reasons.length > 0 ? (
-            <ul className="mt-4 space-y-1.5 border-t border-dashed border-blue-200 pt-4">
-              {match.reasons.slice(0, 3).map((reason) => (
-                <li
-                  className="flex items-center gap-2 text-xs font-semibold text-blue-800 dark:text-blue-200"
-                  key={reason.kind}
-                >
-                  <Check size={14} aria-hidden="true" />
-                  {reasonText(reason, locale, t)}
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </div>
         {/* The card decides this from its own width, not the viewport's: the
             same card sits in a three-column search grid, a two-column

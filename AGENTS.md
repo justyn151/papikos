@@ -25,7 +25,6 @@ The first release is a kos rental marketplace for renters, property owners, and 
 - **Structured Q&A:** Renters can submit listing-related questions, and owners can answer them asynchronously inside the application. Keep questions attached to the relevant listing and preserve their status. This is not an unrestricted or real-time chat channel.
 - **Booking requests:** Renters can request an available room. Owners can approve or reject a pending request, and permitted participants can cancel it. Preserve the status history (`pending`, `approved`, `rejected`, or `cancelled`) without charging the renter inside the application.
 - **Owner earnings reporting:** Owners can see what an approved booking is worth to them: gross rent, the platform commission deducted, and the resulting net. These figures are reported from approved booking requests and published prices. Papikos still collects no money and stores no payment method, so this is reporting, not settlement — the renter always arranges payment directly with the owner.
-- **Preference survey and matching:** Ask renters about budget, preferred location, room type, amenities, and house rules. Rank eligible listings with transparent, rule-based weighted scoring and show the main matching reasons. Do not use machine learning or behavioral profiling.
 - **Administration and operations:** Administrators can verify users and listings, review moderation queues and reports, publish or suspend listings, inspect audit history, and view basic marketplace analytics. Record privileged changes so the responsible administrator and timestamp are traceable.
 
 Phone, email, or WhatsApp contact links may be shown when product requirements allow, but they remain external contact methods and are not messaging integrations.
@@ -39,7 +38,7 @@ Do not add the following without an approved product-scope change:
 - Ratings and reviews.
 - Lease generation, recurring rent collection, tenant management, or property-maintenance workflows.
 - Paid promotions, advertisements, sponsored ranking, or owner subscription plans.
-- Machine-learning recommendations, behavioral profiling, or opaque ranking.
+- Preference surveys and ranked matching of any kind. Renters find kos through search and filters, which they control and can read off the URL. This was in scope and built; it was removed on 17 August 2026 because it duplicated search behind a quiz. Machine-learning recommendations, behavioral profiling, and opaque ranking remain out of scope for the same reason they always were.
 - Synchronization with third-party rental or booking marketplaces.
 
 When an approved change adds, removes, or redefines a feature, update this section in the same pull request.

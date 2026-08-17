@@ -42,11 +42,9 @@ import {
   defaultFilters,
   discountPercent,
   formatPrice,
-  rankListings,
   roomEffectivePrice,
   serializeFilters,
 } from "@/features/home/home-utils";
-import type { MatchReason, SurveyPreferences } from "@/features/home/types";
 import { BrandMark } from "@/features/navigation/brand-mark";
 import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
 import { SiteHeader } from "@/features/navigation/site-header";
@@ -59,10 +57,7 @@ import { statusTone } from "@/features/prototype-data/status-copy";
 import { useOverrides } from "@/features/prototype-data/store";
 import { createId } from "@/features/shared/create-id";
 import { Dialog } from "@/features/shared/dialog";
-import {
-  FAVORITES_STORAGE_KEY,
-  SURVEY_STORAGE_KEY,
-} from "@/features/shared/storage-keys";
+import { FAVORITES_STORAGE_KEY } from "@/features/shared/storage-keys";
 import { usePersistentState } from "@/features/shared/use-persistent-state";
 
 import { costExplanationFor, costPaymentNotice } from "./cost-copy";
@@ -73,13 +68,11 @@ import type {
   FacilityItem,
   ListingDetail,
   ListingReport,
-  Locale,
   SubmittedQuestion,
 } from "./types";
 
 const STORAGE_KEYS = {
   favorites: FAVORITES_STORAGE_KEY,
-  survey: SURVEY_STORAGE_KEY,
   bookings: "papikos.bookingRequests",
   questions: "papikos.listingQuestions",
   reports: "papikos.listingReports",
@@ -122,17 +115,6 @@ function Section({
   );
 }
 
-function matchReasonText(
-  reason: MatchReason,
-  locale: Locale,
-  t: (typeof detailCopy)[Locale],
-) {
-  if (reason.kind === "amenities") {
-    return `${reason.matched}/${reason.total} ${t.matchReasons.amenities}`;
-  }
-  return t.matchReasons[reason.kind];
-}
-
 export function ListingDetailPage({
   listing: seedListing,
   related,
@@ -156,10 +138,6 @@ export function ListingDetailPage({
   const [favoriteIds, setFavoriteIds] = usePersistentState<string[]>(
     STORAGE_KEYS.favorites,
     [],
-  );
-  const [survey] = usePersistentState<SurveyPreferences | null>(
-    STORAGE_KEYS.survey,
-    null,
   );
   const [bookings, setBookings] = usePersistentState<BookingRequest[]>(
     STORAGE_KEYS.bookings,
@@ -210,10 +188,6 @@ export function ListingDetailPage({
   const bookingRoom =
     listing.rooms.find((room) => room.id === bookingRoomId) ?? initialRoom;
   const existingBooking = bookings.find((item) => item.listingId === listing.id);
-  const match = useMemo(
-    () => (survey ? rankListings([listing], survey)[0] : null),
-    [listing, survey],
-  );
 
   useEffect(() => {
     document.documentElement.dataset.papikosReady = "true";
@@ -696,41 +670,6 @@ export function ListingDetailPage({
                   );
                 })}
               </div>
-            </Section>
-
-            <Section title={match ? t.matchTitle : t.matchEmptyTitle}>
-              {match ? (
-                <div className="rounded-[1.75rem] bg-blue-600 p-6 text-white sm:p-8">
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="inline-flex items-center gap-2 text-sm font-black text-blue-100">
-                        <Sparkles size={17} />
-                        {t.matchBody}
-                      </p>
-                      <p className="mt-3 text-4xl font-black">{match.score}%</p>
-                    </div>
-                    <ul className="space-y-2">
-                      {match.reasons.map((reason) => (
-                        <li
-                          className="flex items-center gap-2 text-sm font-bold"
-                          key={reason.kind}
-                        >
-                          <Check size={16} />
-                          {matchReasonText(reason, locale, t)}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-5 rounded-[1.5rem] border border-blue-100 bg-blue-50 dark:bg-blue-950/35 p-6 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="max-w-xl leading-7 text-slate-600 dark:text-slate-300">{t.matchEmptyBody}</p>
-                  <Link className="btn-primary shrink-0 gap-2" href="/#preference-survey">
-                    <Sparkles size={17} />
-                    {t.takeSurvey}
-                  </Link>
-                </div>
-              )}
             </Section>
 
             <Section title={t.location}>

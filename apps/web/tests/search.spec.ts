@@ -17,8 +17,9 @@ test("header search on the homepage lands on /kos with results", async ({
   await page.reload();
   await waitForReady(page);
 
-  await page.getByRole("textbox", { name: "Location", exact: true }).fill("Jakarta");
-  await page.getByRole("button", { name: "Find a kos" }).click();
+  const header = page.getByRole("banner");
+  await header.getByRole("textbox", { name: "Location", exact: true }).fill("Jakarta");
+  await header.getByRole("button", { name: "Find a kos" }).click();
 
   await expect(page).toHaveURL(/\/kos\?q=Jakarta/);
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();

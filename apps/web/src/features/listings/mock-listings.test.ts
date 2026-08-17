@@ -10,7 +10,6 @@ import {
   getRelatedListings,
   listingDetails,
   listings,
-  popularAmenities,
 } from "./mock-listings";
 
 describe("listing detail data", () => {
@@ -63,12 +62,6 @@ describe("the amenity taxonomy", () => {
     expect(new Set(grouped)).toEqual(new Set(amenities));
   });
 
-  it("keeps the short homepage survey to a subset of the real amenities", () => {
-    expect(popularAmenities.length).toBeLessThan(amenities.length);
-    for (const amenity of popularAmenities) {
-      expect(amenities).toContain(amenity);
-    }
-  });
 
   it("advertises only the amenities a listing actually has", () => {
     for (const detail of listingDetails) {

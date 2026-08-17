@@ -14,17 +14,16 @@ test.beforeEach(async ({ page }) => {
 test("navigates to the search page via the header search bar", async ({
   page,
 }) => {
-  await page.getByRole("textbox", { name: "Location", exact: true }).fill("Bandung");
-  await page.getByRole("button", { name: "Find a kos" }).click();
+  const header = page.getByRole("banner");
+  await header.getByRole("textbox", { name: "Location", exact: true }).fill("Bandung");
+  await header.getByRole("button", { name: "Find a kos" }).click();
 
   await expect(page).toHaveURL(/\/kos\?q=Bandung/);
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
   await expect(page.getByText("Nara House Kemang")).toHaveCount(0);
 });
 
-test("shows a focused header search and a hero CTA into search", async ({
-  page,
-}) => {
+test("searches from the hero and shortcuts to a city", async ({ page }) => {
   const header = page.getByRole("banner");
   await expect(header.getByLabel("Papikos")).toBeVisible();
   await expect(header.getByRole("link", { name: "Sign in" })).toHaveAttribute(
@@ -32,24 +31,18 @@ test("shows a focused header search and a hero CTA into search", async ({
     "/masuk",
   );
   await expect(header.getByRole("navigation")).toHaveCount(0);
-  await expect(header.getByRole("textbox", { name: "Location" })).toBeVisible();
 
-  const heroCta = page.getByRole("link", { name: "Start searching" });
-  await expect(heroCta).toBeVisible();
-  await expect(heroCta).toHaveAttribute("href", "/kos");
-});
+  // The hero carries the page's one job; the header carries it everywhere else.
+  const main = page.getByRole("main");
+  await main.getByRole("textbox", { name: "Location" }).fill("Yogyakarta");
+  await main.getByRole("button", { name: "Find a kos" }).click();
+  await expect(page).toHaveURL(/\/kos\?q=Yogyakarta/);
 
-test("links popular locations and the explore-all CTA to the search page", async ({
-  page,
-}) => {
-  const popularLocations = page.getByLabel("Popular locations", { exact: true });
+  await page.goto("/");
+  await waitForReady(page);
   await expect(
-    popularLocations.getByRole("link", { name: "Bandung" }),
+    main.getByRole("link", { name: "Bandung" }),
   ).toHaveAttribute("href", "/kos?q=Bandung");
-  await expect(
-    popularLocations.getByRole("link", { name: "All", exact: true }),
-  ).toHaveAttribute("href", "/kos");
-
   await expect(
     page.getByRole("link", { name: "See all kos" }),
   ).toHaveAttribute("href", "/kos");
@@ -60,17 +53,16 @@ test("supports reduced motion", async ({ page }) => {
   await page.reload();
 
   await expect(
-    page.getByRole("heading", { name: "Kos worth a closer look" }),
+    page.getByRole("heading", { name: "Kos available now" }),
   ).toBeVisible();
   const iterationCount = await page
-    .locator(".map-float")
+    .locator(".listing-card")
+    .first()
     .evaluate((element) => getComputedStyle(element).animationIterationCount);
   expect(iterationCount).not.toContain("infinite");
 });
 
-test("switches language and completes the preference survey", async ({
-  page,
-}) => {
+test("switches language", async ({ page }) => {
   // The app opens in English; the toggle takes it to Indonesian and back.
   const languageControl = page.locator(".language-toggle");
   await languageControl.getByRole("button", { name: "ID", exact: true }).click();
@@ -84,14 +76,6 @@ test("switches language and completes the preference survey", async ({
     page.getByRole("heading", { name: /Find a kos that fits your life/i }),
   ).toBeVisible();
 
-  await page
-    .getByRole("button", { name: "Try the preference survey" })
-    .click();
-  await page.getByRole("button", { name: "Show my matches" }).click();
-
-  await expect(
-    page.getByText("Recommendations from your preferences"),
-  ).toBeVisible();
   await page.reload();
   await expect(
     page.getByRole("heading", { name: /Find a kos that fits your life/i }),
