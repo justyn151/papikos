@@ -36,6 +36,10 @@ Completed owner and administrator capabilities:
   in front of the same filters search already exposes, at the bottom of the
   page where nobody reached it, and the match badges it fed had no other
   source. `AGENTS.md` is amended in the same change.
+- The hero states what the catalogue holds — kos count, cities, cheapest rent —
+  and each city shortcut carries its own count, all read off the listings rather
+  than written as copy. Liveliness the page can back up, instead of decoration
+  between a reader and the kos.
 - The header search hides on the homepage until the hero one has scrolled off
   the top, so the same control is never on screen twice, and reappears as the
   reader moves into the listings. Every other page carries it as before.
