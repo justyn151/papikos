@@ -6,6 +6,8 @@ import Link from "next/link";
 import type { Locale, PrototypeRole } from "@/features/listings/types";
 import { prototypeRoles, usePrototypeRole } from "@/features/prototype-data/role";
 
+import { widthClass } from "./content-width";
+
 const roleCopy: Record<Locale, Record<PrototypeRole, string>> = {
   // "Penyewa" rather than "Pencari kos": it matches the wording the owner
   // pages already use, and avoids colliding with the "Cari kos" search button.
@@ -37,13 +39,21 @@ const barCopy: Record<Locale, { notice: string; label: string; open: string }> =
  * AGENTS.md requires the API to enforce roles, and hiding client controls is
  * explicitly called out as insufficient. The banner keeps that honest.
  */
-export function PrototypeRoleBar({ locale }: { locale: Locale }) {
+export function PrototypeRoleBar({
+  locale,
+  wide,
+}: {
+  locale: Locale;
+  wide?: boolean;
+}) {
   const { role, setRole } = usePrototypeRole();
   const t = barCopy[locale];
 
   return (
     <div className="border-b border-amber-200 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40">
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+      <div
+        className={`mx-auto flex ${widthClass(wide)} flex-col gap-2 px-4 py-2 sm:flex-row sm:items-center sm:justify-between sm:px-8`}
+      >
         <p className="flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-amber-200">
           <TriangleAlert size={14} className="shrink-0" aria-hidden="true" />
           {t.notice}

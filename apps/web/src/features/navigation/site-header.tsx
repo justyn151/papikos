@@ -12,6 +12,7 @@ import {
 } from "@/features/preferences/preferences";
 
 import { BrandMark } from "./brand-mark";
+import { widthClass } from "./content-width";
 
 export interface SiteHeaderProps {
   locale: Locale;
@@ -31,6 +32,8 @@ export interface SiteHeaderProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit: (value: string) => void;
+  /** Matches the wider body of a page that opts into it, such as search. */
+  wide?: boolean;
 }
 
 export function SiteHeader({
@@ -50,6 +53,7 @@ export function SiteHeader({
   searchValue,
   onSearchChange,
   onSearchSubmit,
+  wide,
 }: SiteHeaderProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -58,7 +62,9 @@ export function SiteHeader({
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-2.5 sm:h-[68px] sm:flex-row sm:items-center sm:gap-3 sm:py-0 sm:px-8">
+      <div
+        className={`mx-auto flex ${widthClass(wide)} flex-col gap-2 px-4 py-2.5 sm:h-[68px] sm:flex-row sm:items-center sm:gap-3 sm:py-0 sm:px-8`}
+      >
         <div className="flex items-center justify-between gap-3 sm:contents">
           <Link
             className="sm:order-1 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-200"

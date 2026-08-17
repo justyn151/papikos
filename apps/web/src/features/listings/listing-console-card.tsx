@@ -43,7 +43,7 @@ export function ListingStatusBadge({
  * so the primary action sits in the same place on every card.
  */
 export const consoleCtaClass =
-  "detail-button inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200";
+  "detail-button inline-flex shrink-0 items-center justify-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200";
 
 /**
  * The console counterpart of `listing-card.tsx`: the same artwork, name, and
@@ -76,7 +76,7 @@ export function ListingConsoleCard({
 
   return (
     <article
-      className="result-card-enter flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] dark:border-slate-700 dark:bg-slate-900"
+      className="result-card-enter @container flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] dark:border-slate-700 dark:bg-slate-900"
       style={
         {
           "--card-delay": `${Math.min(animationIndex, 5) * 45}ms`,
@@ -122,7 +122,9 @@ export function ListingConsoleCard({
         </div>
 
         <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
-          <div className="flex items-end justify-between gap-3">
+          {/* Same rule as the renter card: below 20rem the price and the
+              primary action stop sharing a row. */}
+          <div className="flex flex-col gap-3 @[20rem]:flex-row @[20rem]:items-end @[20rem]:justify-between">
             <div>
               {discount ? (
                 <p className="flex items-center gap-1.5">

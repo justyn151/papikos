@@ -11,6 +11,7 @@ import {
 } from "@/features/home/home-utils";
 import type { SearchFilters } from "@/features/home/types";
 import { ListingCard } from "@/features/listings/listing-card";
+import { wideContentWidth } from "@/features/navigation/content-width";
 import { PrototypeRoleBar } from "@/features/navigation/prototype-role-bar";
 import { SiteHeader } from "@/features/navigation/site-header";
 import { useResolvedListings } from "@/features/prototype-data/use-resolved-listings";
@@ -128,7 +129,7 @@ export function SearchPage({
         {t.skip}
       </a>
 
-      <PrototypeRoleBar locale={locale} />
+      <PrototypeRoleBar locale={locale} wide />
 
       <SiteHeader
         locale={locale}
@@ -147,6 +148,7 @@ export function SearchPage({
         searchValue={headerQuery}
         onSearchChange={setHeaderQuery}
         onSearchSubmit={(value) => applyFilters({ ...filters, query: value })}
+        wide
       />
 
       <main
@@ -154,7 +156,7 @@ export function SearchPage({
         data-locale-transition={transitionState}
         id="main-content"
       >
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+        <div className={`mx-auto ${wideContentWidth} px-5 py-10 sm:px-8`}>
           <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50 sm:text-3xl">
             {st.resultsHeading}
           </h1>
@@ -165,7 +167,7 @@ export function SearchPage({
             {results.length} {t.results}
           </p>
 
-          <div className="mt-6 grid gap-8 lg:grid-cols-[280px_1fr]">
+          <div className="mt-6 grid gap-8 lg:grid-cols-[240px_1fr]">
             <SearchFiltersPanel
               countFor={countFor}
               filters={filters}
@@ -177,11 +179,10 @@ export function SearchPage({
             <div>
               {results.length > 0 ? (
                 <Reveal>
-                  {/* Two columns, not three: the filter rail takes 280px out
-                      of the same container the homepage gives three cards, so
-                      a third column here squeezes each card to 285px and the
-                      price and its button end up fighting for the same row. */}
-                  <div className="grid gap-6 md:grid-cols-2">
+                  {/* Three only once the row can hold three at the width the
+                      rest of the app gives a kos card. The page runs wider than
+                      the standard container to pay for the filter rail. */}
+                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                     {results.map((listing, index) => (
                       <ListingCard
                         animationIndex={index}

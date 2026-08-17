@@ -57,7 +57,7 @@ export function ListingCard({
 
   return (
     <article
-      className="listing-card result-card-enter group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_65px_-30px_rgba(37,99,235,0.35)]"
+      className="listing-card result-card-enter group @container flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-[0_16px_50px_-32px_rgba(15,23,42,0.35)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_24px_65px_-30px_rgba(37,99,235,0.35)]"
       style={
         {
           "--card-delay": `${Math.min(animationIndex, 5) * 45}ms`,
@@ -132,7 +132,11 @@ export function ListingCard({
             </ul>
           ) : null}
         </div>
-        <div className="mt-5 flex items-end justify-between gap-3 border-t border-slate-100 dark:border-slate-800 pt-4">
+        {/* The card decides this from its own width, not the viewport's: the
+            same card sits in a three-column search grid, a two-column
+            favorites list, and the homepage. Below 20rem the price and the
+            button stop sharing a row instead of squeezing each other. */}
+        <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 dark:border-slate-800 pt-4 @[20rem]:flex-row @[20rem]:items-end @[20rem]:justify-between">
           <div>
             {discount ? (
               // Beside the price it applies to rather than stacked under the
@@ -154,7 +158,7 @@ export function ListingCard({
             </p>
           </div>
           <Link
-            className="detail-button inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200"
+            className="detail-button inline-flex shrink-0 items-center justify-center gap-1 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-200"
             href={detailHref}
             // The href carries the live filter state, so leaving prefetch on
             // re-requests every card's RSC payload each time a filter changes.
