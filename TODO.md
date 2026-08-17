@@ -32,6 +32,10 @@ This file tracks unfinished product work. Move completed items to [PROGRESS.md](
 ## Product Quality
 
 - [ ] Add a production media upload, moderation, and responsive-image pipeline, replacing the browser-local downscaled data URLs and their per-listing byte budget (and revisit video, which cannot fit in browser storage).
+- [ ] Decide whether the photo dialog should force 16:9 like the carousel does,
+      instead of fitting the whole photo: one uniform shape against never
+      cropping what an owner shot. The switch is documented in
+      `listing-gallery.tsx`.
 - [ ] Integrate a privacy-safe map provider with approximate pre-booking locations.
 - [ ] Add accessibility audits, performance budgets, error monitoring, and API observability.
 - [ ] Add integration coverage for authorization, validation, and meaningful API failure paths.

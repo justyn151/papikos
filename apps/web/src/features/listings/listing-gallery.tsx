@@ -284,7 +284,14 @@ function GalleryLightbox({
             itself, so a portrait shot keeps its top and bottom. The frame is a
             fixed slice of the viewport rather than 16:9, so a tall photo gets
             the height it needs and stepping between shapes does not resize the
-            dialog. */}
+            dialog.
+
+            The alternative, still on the table: force 16:9 here too, so every
+            photo is presented in one shape and the dialog matches the carousel
+            exactly. That crops portrait shots, which is why it is not the
+            default — but it is a two-line change if uniformity wins later.
+            Swap `fit="contain"` for `fit="cover"` and put this frame back to
+            `aspect-[16/10] sm:aspect-[16/9]`. */}
         <div className="h-[58vh] w-full overflow-hidden sm:h-[72vh]">
           <GalleryArtwork
             fit="contain"
