@@ -181,6 +181,9 @@ export function resolveListingDetail(
     ...(override.lat !== undefined && override.lng !== undefined
       ? { lat: override.lat, lng: override.lng }
       : {}),
+    ...(override.addressDetail !== undefined
+      ? { addressDetail: override.addressDetail }
+      : {}),
     ...(override.availableFrom !== undefined
       ? { availableFrom: override.availableFrom }
       : {}),

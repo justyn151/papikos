@@ -36,10 +36,15 @@ describe("owner listing editor", () => {
 
     expect(await screen.findByLabelText("Kos name")).toHaveValue(listing.name);
 
-    // City lives with the rest of the location, not split across two tabs.
+    // City, district, and area come from the map pin, so they are shown
+    // rather than typed: an owner who could type them could claim a
+    // neighbourhood their kos is not in, and search would believe it.
     openSection("Location");
-    expect(screen.getByLabelText("City")).toHaveValue(listing.city);
-    expect(screen.getByLabelText("District")).toHaveValue(listing.district);
+    expect(screen.getByText(listing.city)).toBeVisible();
+    expect(screen.getByText(listing.district)).toBeVisible();
+    expect(screen.queryByLabelText("City")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("District")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Approximate area")).not.toBeInTheDocument();
 
     openSection("Rooms");
     expect(screen.getAllByLabelText("Room name")[0]).toHaveValue(
@@ -112,18 +117,23 @@ describe("owner listing editor", () => {
     });
   });
 
-  it("takes the owner to the section holding the field that blocked the save", async () => {
+  it("stores the address the owner writes for approved renters", async () => {
     render(<OwnerEditPage listing={listing} />);
 
     openSection("Location");
-    fireEvent.change(screen.getByLabelText("City"), { target: { value: " " } });
-    openSection("Costs");
+    fireEvent.change(
+      await screen.findByLabelText("Full address and directions"),
+      { target: { value: "Block C no. 12, grey gate" } },
+    );
     save();
 
-    expect(screen.getByText("The city cannot be empty.")).toBeInTheDocument();
-    // Back on Location, with the offending field on screen.
-    expect(screen.getByLabelText("City")).toBeInTheDocument();
-    expect(storedOverride()).toEqual([]);
+    await waitFor(() =>
+      expect(storedOverride()[0]).toMatchObject({
+        addressDetail: "Block C no. 12, grey gate",
+        // The names still belong to the pin, so the save is allowed through.
+        locationConfirmedAt: { lat: listing.lat, lng: listing.lng },
+      }),
+    );
   });
 
   it("refuses to save a kos with no name", async () => {

@@ -13,6 +13,7 @@ import {
   Flag,
   GraduationCap,
   Heart,
+  Lock,
   Hospital,
   MapPin,
   Maximize2,
@@ -188,6 +189,9 @@ export function ListingDetailPage({
   const bookingRoom =
     listing.rooms.find((room) => room.id === bookingRoomId) ?? initialRoom;
   const existingBooking = bookings.find((item) => item.listingId === listing.id);
+  const addressUnlocked = bookings.some(
+    (item) => item.listingId === listing.id && item.status === "approved",
+  );
 
   useEffect(() => {
     document.documentElement.dataset.papikosReady = "true";
@@ -688,6 +692,32 @@ export function ListingDetailPage({
                   <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
                     {t.privacy.replace("{radius}", String(listing.privacyRadiusMeters))}
                   </p>
+
+                  {listing.addressDetail ? (
+                    <div className="mt-4 rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+                      <p className="text-xs font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                        {t.addressTitle}
+                      </p>
+                      {/* The promise above is only worth anything if something
+                          actually keeps it: the owner's address is held back
+                          until they have approved this renter's request. */}
+                      {addressUnlocked ? (
+                        <>
+                          <p className="mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                            {t.addressUnlocked}
+                          </p>
+                          <p className="mt-1 text-sm leading-6 font-semibold text-slate-800 dark:text-slate-200">
+                            {listing.addressDetail}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="mt-2 flex items-start gap-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                          <Lock size={15} className="mt-1 shrink-0" aria-hidden="true" />
+                          {t.addressLocked}
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">

@@ -24,6 +24,21 @@ Completed owner and administrator capabilities:
 
 ## Completed Milestones
 
+### 17 August 2026 — The Area Is Read, the Address Is Earned
+
+- City, district, and area are derived from the map pin and shown read-only.
+  Typing them was an exploit: those three drive the search facets, so an owner
+  could pin a cheap street and claim a premium neighbourhood, and search would
+  answer for it.
+- The names are stored with the point they were read from. If a record's point
+  and its confirmation disagree, the names are dropped at the parse boundary,
+  and a save whose pin has moved without a fresh reading is refused. The
+  mismatch is unrepresentable rather than merely discouraged.
+- Owners write the part only they know: the full address and directions —
+  block number, landmarks, the gate. It is the one field held back from the
+  public page and released to a renter only once that renter's request is
+  approved, which is what the privacy line has always promised.
+
 ### 17 August 2026 — One Place for Location
 
 - City and district moved out of Basics and into the Location section, beside

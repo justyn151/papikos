@@ -97,7 +97,18 @@ export const ownerCopy = {
     locateFilled: "Peta dan area diisi dari lokasimu. Periksa dan ubah bila perlu.",
     locateFilledPointOnly:
       "Peta dipindahkan ke lokasimu. Nama area tidak ditemukan, tulis sendiri di atas.",
-    cityHint: "Kota dipakai untuk filter pencarian, tulis persis seperti umumnya.",
+    cityHint:
+      "Kota, kecamatan, dan area diambil otomatis dari titik peta. Geser peta untuk mengubahnya.",
+    derivedFromMap: "Diisi otomatis dari peta",
+    confirmingLocation: "Membaca nama area…",
+    locationUnconfirmed:
+      "Nama area belum bisa dipastikan untuk titik ini. Coba lagi sebelum menyimpan.",
+    retryLocation: "Coba lagi",
+    addressDetail: "Alamat lengkap dan petunjuk arah",
+    addressDetailHint:
+      "Nomor blok atau rumah, patokan, dan arah masuk. Hanya dikirim ke penyewa setelah kamu menyetujui permintaan sewanya.",
+    addressPlaceholder:
+      "Contoh: Blok C no. 12, gang di sebelah masjid hijau, pagar abu-abu.",
 
     roomsSection: "Kamar",
     roomsBody:
@@ -284,7 +295,18 @@ export const ownerCopy = {
     locateFilled: "Map and area filled from your location. Check them and edit if needed.",
     locateFilledPointOnly:
       "Map moved to your location. No area name was found, so write one above.",
-    cityHint: "The city drives search filters, so write it the usual way.",
+    cityHint:
+      "City, district, and area are read from the map pin. Move the map to change them.",
+    derivedFromMap: "Filled from the map",
+    confirmingLocation: "Reading the area name…",
+    locationUnconfirmed:
+      "The area name could not be confirmed for this point. Try again before saving.",
+    retryLocation: "Try again",
+    addressDetail: "Full address and directions",
+    addressDetailHint:
+      "Block or house number, landmarks, and how to get in. Sent to a renter only after you approve their rental request.",
+    addressPlaceholder:
+      "Example: Block C no. 12, the lane beside the green mosque, grey gate.",
 
     roomsSection: "Rooms",
     roomsBody:

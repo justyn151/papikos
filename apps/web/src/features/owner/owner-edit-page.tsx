@@ -107,6 +107,9 @@ interface Draft {
   privacyRadiusMeters: string;
   lat: number;
   lng: number;
+  /** The point `city`, `district`, and `approximateArea` were read from. */
+  confirmedAt: { lat: number; lng: number } | null;
+  addressDetail: string;
   amenities: Amenity[];
   photos: ListingPhoto[];
   rooms: DraftRoom[];
@@ -174,6 +177,9 @@ function toDraft(
     privacyRadiusMeters: String(listing.privacyRadiusMeters),
     lat: listing.lat,
     lng: listing.lng,
+    // What is on screen was derived from where the pin is, until it moves.
+    confirmedAt: { lat: listing.lat, lng: listing.lng },
+    addressDetail: listing.addressDetail ?? "",
     amenities: [...listing.amenities],
     rooms: listing.rooms.map((room) => ({
       id: room.id,
@@ -247,6 +253,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
   const [costError, setCostError] = useState("");
   const [roomError, setRoomError] = useState("");
   const [locating, setLocating] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [locateNote, setLocateNote] = useState("");
 
   const edited = Boolean(override);
@@ -308,6 +315,15 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           if (!draft.name.trim()) return fail("basics", t.nameRequired);
           if (!draft.city.trim()) return fail("location", t.cityRequired);
           if (!draft.district.trim()) return fail("location", t.districtRequired);
+          // The names are derived, so they are only trustworthy while they
+          // still belong to the pin. A record that carries one district's name
+          // over another district's point is the whole exploit.
+          if (
+            draft.confirmedAt?.lat !== draft.lat ||
+            draft.confirmedAt?.lng !== draft.lng
+          ) {
+            return fail("location", t.locationUnconfirmed);
+          }
           if (draft.rooms.length === 0) return fail("rooms", t.roomsMinimum);
           if (draft.rooms.some((room) => !(Number(room.price) > 0))) {
             return fail("rooms", t.roomPriceInvalid);
@@ -334,6 +350,8 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
             // reaches the browser is public whatever the map chooses to show.
             ...approximate({ lat: draft.lat, lng: draft.lng }),
             availableFrom: draft.availableFrom,
+            addressDetail: draft.addressDetail.trim(),
+            locationConfirmedAt: draft.confirmedAt ?? undefined,
             minimumStayMonths: Math.max(1, Number(draft.minimumStayMonths) || 1),
             // Both prices are derived: the headline follows the cheapest room,
             // and the promo follows the percentage the owner chose.
@@ -406,6 +424,37 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           announce(t.resetDone);
         };
 
+        // Reads the place names for a point and marks them as belonging to it.
+        // Everything the owner sees under Location comes from here; none of it
+        // is typed, because a typed district would let a kos answer searches
+        // for a neighbourhood it is not in.
+        const confirmPoint = async (point: { lat: number; lng: number }) => {
+          setConfirming(true);
+          const place = await describePoint(point);
+          setConfirming(false);
+          if (!place) return false;
+
+          setDraft((d) =>
+            // Ignore a late answer for a pin that has already moved on.
+            d.lat === point.lat && d.lng === point.lng
+              ? {
+                  ...d,
+                  ...(place.district ? { district: place.district } : {}),
+                  ...(place.city ? { city: place.city } : {}),
+                  approximateArea: place.area,
+                  confirmedAt: point,
+                }
+              : d,
+          );
+          return true;
+        };
+
+        const movePin = (next: { lat: number; lng: number }) => {
+          const point = approximate(next);
+          setDraft((d) => ({ ...d, ...point, confirmedAt: null }));
+          void confirmPoint(point);
+        };
+
         // Fills the point, and the place names it can work out, from the
         // browser's own location. Everything it writes stays editable: a
         // geocoder that is confidently wrong about a neighbourhood is worse
@@ -422,16 +471,10 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           }
 
           const rounded = approximate(point);
-          const place = await describePoint(rounded);
-          setDraft((d) => ({
-            ...d,
-            ...rounded,
-            ...(place?.district ? { district: place.district } : {}),
-            ...(place?.city ? { city: place.city } : {}),
-            ...(place?.area ? { approximateArea: place.area } : {}),
-          }));
+          setDraft((d) => ({ ...d, ...rounded, confirmedAt: null }));
+          const confirmed = await confirmPoint(rounded);
           setLocating(false);
-          setLocateNote(place ? t.locateFilled : t.locateFilledPointOnly);
+          setLocateNote(confirmed ? t.locateFilled : t.locateFilledPointOnly);
         };
 
         const addRoom = () => {
@@ -770,39 +813,27 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   {t.locationSection}
                 </h2>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <label className={label}>
+                  {/* Read-only on purpose: these three come from the pin. An
+                      owner who could type them could put their kos in a
+                      neighbourhood it is not in, and search would believe it. */}
+                  <div className={label}>
                     {t.fieldCity}
-                    <input
-                      className={field}
-                      onChange={(event) =>
-                        setDraft((d) => ({ ...d, city: event.target.value }))
-                      }
-                      value={draft.city}
-                    />
-                  </label>
-                  <label className={label}>
+                    <p className="flex h-11 items-center rounded-xl bg-slate-50 px-3 text-sm font-semibold normal-case tracking-normal text-slate-900 dark:bg-slate-800/60 dark:text-slate-100">
+                      {draft.city || "—"}
+                    </p>
+                  </div>
+                  <div className={label}>
                     {t.fieldDistrict}
-                    <input
-                      className={field}
-                      onChange={(event) =>
-                        setDraft((d) => ({ ...d, district: event.target.value }))
-                      }
-                      value={draft.district}
-                    />
-                  </label>
-                  <label className={label}>
+                    <p className="flex h-11 items-center rounded-xl bg-slate-50 px-3 text-sm font-semibold normal-case tracking-normal text-slate-900 dark:bg-slate-800/60 dark:text-slate-100">
+                      {draft.district || "—"}
+                    </p>
+                  </div>
+                  <div className={label}>
                     {t.fieldArea}
-                    <input
-                      className={field}
-                      onChange={(event) =>
-                        setDraft((d) => ({
-                          ...d,
-                          approximateArea: event.target.value,
-                        }))
-                      }
-                      value={draft.approximateArea}
-                    />
-                  </label>
+                    <p className="flex h-11 items-center rounded-xl bg-slate-50 px-3 text-sm font-semibold normal-case tracking-normal text-slate-900 dark:bg-slate-800/60 dark:text-slate-100">
+                      {draft.approximateArea || "—"}
+                    </p>
+                  </div>
                   <label className={label}>
                     {t.fieldPrivacyRadius}
                     <input
@@ -819,6 +850,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     />
                   </label>
                 </div>
+
                 <p className={hint}>{t.cityHint}</p>
                 <p className={hint}>{t.privacyHint}</p>
 
@@ -842,9 +874,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                     <LazyListingMap
                       centre={{ lat: draft.lat, lng: draft.lng }}
                       label={t.mapLabel}
-                      onPick={(next) =>
-                        setDraft((d) => ({ ...d, ...approximate(next) }))
-                      }
+                      onPick={movePin}
                       picking
                       radiusMeters={clampPrivacyRadius(
                         Number(draft.privacyRadiusMeters) || MIN_PRIVACY_RADIUS,
@@ -857,12 +887,51 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                       .replace("{lat}", draft.lat.toFixed(3))
                       .replace("{lng}", draft.lng.toFixed(3))}
                   </p>
+                  {confirming ? (
+                    <p className="mt-2 text-xs font-bold text-slate-500 dark:text-slate-400">
+                      {t.confirmingLocation}
+                    </p>
+                  ) : draft.confirmedAt?.lat === draft.lat &&
+                    draft.confirmedAt?.lng === draft.lng ? (
+                    <p className="mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                      {t.derivedFromMap}
+                    </p>
+                  ) : (
+                    <p className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold text-rose-600 dark:text-rose-400">
+                      {t.locationUnconfirmed}
+                      <button
+                        className="rounded-lg border border-rose-200 px-2 py-1 font-black text-rose-700 transition hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300"
+                        onClick={() =>
+                          void confirmPoint({ lat: draft.lat, lng: draft.lng })
+                        }
+                        type="button"
+                      >
+                        {t.retryLocation}
+                      </button>
+                    </p>
+                  )}
                   {locateNote ? (
                     <p className="mt-2 text-xs font-bold text-blue-700 dark:text-blue-300">
                       {locateNote}
                     </p>
                   ) : null}
                 </div>
+
+                <label className={`${label} mt-5`}>
+                  {t.addressDetail}
+                  <textarea
+                    className="min-h-20 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-medium normal-case tracking-normal text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-blue-950"
+                    onChange={(event) =>
+                      setDraft((d) => ({
+                        ...d,
+                        addressDetail: event.target.value,
+                      }))
+                    }
+                    placeholder={t.addressPlaceholder}
+                    value={draft.addressDetail}
+                  />
+                </label>
+                <p className={hint}>{t.addressDetailHint}</p>
               </section>
             ) : null}
 

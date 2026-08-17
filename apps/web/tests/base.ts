@@ -21,6 +21,18 @@ export const test = base.extend({
     await page.route(/basemaps\.cartocdn\.com|tile\.openstreetmap\.org/, (route) =>
       route.fulfill({ body: BLANK_TILE, contentType: "image/png", status: 200 }),
     );
+    // The same argument for the geocoder, which the editor calls whenever the
+    // pin moves. A test that names its own place wins: Playwright matches the
+    // most recently added route first.
+    await page.route(/nominatim\.openstreetmap\.org/, (route) =>
+      route.fulfill({
+        body: JSON.stringify({
+          address: { suburb: "Setiabudi", city: "Jakarta" },
+        }),
+        contentType: "application/json",
+        status: 200,
+      }),
+    );
     await use(page);
   },
 });

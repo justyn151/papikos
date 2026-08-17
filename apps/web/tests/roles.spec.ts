@@ -417,20 +417,62 @@ test("an owner fills the location from the browser, and can still correct it", a
 
   await page.getByRole("button", { name: "Use my current location" }).click();
   await expect(page.getByText(/Map and area filled/)).toBeVisible();
-  await expect(page.getByLabel("Approximate area")).toHaveValue(
-    "Lebak Siliwangi, Bandung",
-  );
+
+  // Read from the pin, not typed: there is no field here to type them into.
+  await expect(page.getByText("Lebak Siliwangi, Bandung")).toBeVisible();
+  await expect(page.getByText("Filled from the map")).toBeVisible();
+  await expect(page.getByLabel("Approximate area")).toHaveCount(0);
   // Rounded on the way in: the browser's exact fix is never what gets stored.
   await expect(page.getByText(/^Stored point:/)).toHaveText(
     "Stored point: -6.895, 107.613",
   );
 
-  // Everything it filled is still the owner's to correct.
-  await page.getByLabel("Approximate area").fill("Dago Atas, Bandung");
+  // What the owner does write is the address, which only they can know.
+  await page
+    .getByLabel("Full address and directions")
+    .fill("Block C no. 12, grey gate");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Changes saved.")).toBeVisible();
 
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
-  await expect(page.getByText("Approximate location: Dago Atas, Bandung")).toBeVisible();
+  await expect(
+    page.getByText("Approximate location: Lebak Siliwangi, Bandung"),
+  ).toBeVisible();
+});
+
+test("the full address reaches a renter only once their request is approved", async ({
+  page,
+}) => {
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+  await openEditorSection(page, "Location");
+  await page
+    .getByLabel("Full address and directions")
+    .fill("Block C no. 12, grey gate");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
+
+  // A renter with no request sees the promise, not the address.
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  await expect(page.getByText(/owner shares the full address/)).toBeVisible();
+  await expect(page.getByText("Block C no. 12, grey gate")).toHaveCount(0);
+
+  await openRequestDialog(page);
+  await page.getByRole("button", { name: "Submit request" }).click();
+  await page.getByRole("button", { name: "Close" }).click();
+
+  // Still not while it is pending: approval is what unlocks it.
+  await page.reload();
+  await waitForReady(page);
+  await expect(page.getByText("Block C no. 12, grey gate")).toHaveCount(0);
+
+  await page.goto("/pemilik/permintaan");
+  await waitForReady(page);
+  await page.getByRole("button", { name: "Approve" }).click();
+
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  await expect(page.getByText("Block C no. 12, grey gate")).toBeVisible();
 });

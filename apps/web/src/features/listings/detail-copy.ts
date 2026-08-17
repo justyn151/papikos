@@ -42,6 +42,10 @@ export const detailCopy = {
     },
     location: "Lokasi dan sekitar",
     approximate: "Lokasi perkiraan",
+    addressTitle: "Alamat lengkap",
+    addressLocked:
+      "Alamat lengkap dan petunjuk arah dikirim pemilik setelah permintaan sewamu disetujui.",
+    addressUnlocked: "Permintaanmu disetujui, jadi pemilik membagikan ini:",
     privacy:
       "Lingkaran menandai area dalam radius {radius} m. Alamat persis tidak dibagikan sebelum permintaan sewa disetujui.",
     minutes: "menit",
@@ -147,6 +151,10 @@ export const detailCopy = {
     },
     location: "Location and surroundings",
     approximate: "Approximate location",
+    addressTitle: "Full address",
+    addressLocked:
+      "The owner shares the full address and directions once your rental request is approved.",
+    addressUnlocked: "Your request was approved, so the owner shared this:",
     privacy:
       "The circle covers a {radius} m radius. The exact address is not shared until a rental request is approved.",
     minutes: "minutes",

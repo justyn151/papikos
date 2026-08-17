@@ -176,6 +176,58 @@ describe("derived prices", () => {
   });
 });
 
+describe("derived place names", () => {
+  const point = { lat: -6.209, lng: 106.83 };
+
+  it("keeps the names when they belong to the stored point", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      ...point,
+      locationConfirmedAt: point,
+      city: "Jakarta",
+      district: "Setiabudi",
+      approximateArea: "Setiabudi, Jakarta",
+    });
+
+    expect(override).toMatchObject({
+      city: "Jakarta",
+      district: "Setiabudi",
+      approximateArea: "Setiabudi, Jakarta",
+    });
+  });
+
+  it("drops names that were confirmed somewhere else", () => {
+    // The exploit this exists to stop: a premium district's name carried over
+    // a point in another one, which search would then answer for.
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      lat: -6.9,
+      lng: 107.6,
+      locationConfirmedAt: point,
+      city: "Jakarta",
+      district: "Setiabudi",
+      approximateArea: "Setiabudi, Jakarta",
+    });
+
+    expect(override?.lat).toBe(-6.9);
+    expect(override?.city).toBeUndefined();
+    expect(override?.district).toBeUndefined();
+    expect(override?.approximateArea).toBeUndefined();
+  });
+
+  it("drops names that were never confirmed at all", () => {
+    const override = normalizeOverride({
+      listingId: "senja-setiabudi",
+      ...point,
+      city: "Jakarta",
+      district: "Setiabudi",
+    });
+
+    expect(override?.city).toBeUndefined();
+    expect(override?.district).toBeUndefined();
+  });
+});
+
 describe("stored photos", () => {
   it("keeps inline images and drops anything else", () => {
     const override = normalizeOverride({

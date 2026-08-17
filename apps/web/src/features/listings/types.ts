@@ -150,6 +150,13 @@ export interface ListingDetail extends Listing {
    */
   lat: number;
   lng: number;
+  /**
+   * The exact address in the owner's words — block and house number, the turn
+   * after the mosque. This is the one field that is not public: it reaches a
+   * renter only once their booking request is approved, which is exactly what
+   * the rest of the location design promises.
+   */
+  addressDetail?: string;
   ownerName: string;
   ownerSince: number;
   gallery: GalleryItem[];
@@ -294,10 +301,22 @@ export interface ListingOverride {
   type?: ListingType;
   city?: string;
   district?: string;
+  /**
+   * Derived from the pin, never typed. An owner who could write this could put
+   * a kos in a neighbourhood it is not in, and city and district drive the
+   * search facets, so the listing would answer searches it has no business in.
+   */
   approximateArea?: string;
   privacyRadiusMeters?: number;
   lat?: number;
   lng?: number;
+  /**
+   * The point the names above were derived from. If it does not match `lat`
+   * and `lng`, the names belong to somewhere else and the record is refused.
+   */
+  locationConfirmedAt?: { lat: number; lng: number };
+  /** The owner's own words; see `ListingDetail.addressDetail`. */
+  addressDetail?: string;
   availableFrom?: string;
   minimumStayMonths?: number;
   amenities?: Amenity[];

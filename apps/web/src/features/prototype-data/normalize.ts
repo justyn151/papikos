@@ -194,6 +194,24 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
     const point = approximate({ lat: Number(raw.lat), lng: Number(raw.lng) });
     override.lat = point.lat;
     override.lng = point.lng;
+
+    const source = asRecord(raw.locationConfirmedAt);
+    const confirmed = source
+      ? approximate({ lat: asNumber(source.lat), lng: asNumber(source.lng) })
+      : null;
+    // Place names are only kept when they belong to this point. A record
+    // carrying one district's name over another's coordinates — hand-edited,
+    // or half-written — loses the name rather than the truth.
+    if (confirmed && confirmed.lat === point.lat && confirmed.lng === point.lng) {
+      override.locationConfirmedAt = confirmed;
+    } else {
+      delete override.city;
+      delete override.district;
+      delete override.approximateArea;
+    }
+  }
+  if (typeof raw.addressDetail === "string") {
+    override.addressDetail = raw.addressDetail.trim();
   }
   if (typeof raw.availableFrom === "string") {
     override.availableFrom = raw.availableFrom;
