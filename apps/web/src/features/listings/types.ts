@@ -232,6 +232,11 @@ export interface OverrideCost {
   amount: number | null;
   included: boolean;
   /**
+   * Why the charge exists, in the owner's words. An empty string clears the
+   * seeded explanation; absent means the seeded one stands.
+   */
+  note?: string;
+  /**
    * A seeded row the owner does not charge. Kept as a tombstone rather than
    * dropped from the list, so an absent entry still means "unchanged".
    */
@@ -244,6 +249,11 @@ export interface CustomCost {
   label: string;
   amount: number | null;
   included: boolean;
+  /**
+   * The only explanation an owner-added charge can have: there is no seeded
+   * copy to fall back on for a fee Papikos has never heard of.
+   */
+  note?: string;
 }
 
 /**

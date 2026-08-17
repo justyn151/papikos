@@ -303,3 +303,31 @@ test("a room the owner adds is bookable, and the last one cannot be deleted", as
   await expect(page.getByText("Kos harus punya minimal satu kamar.")).toBeVisible();
   await expect(page.getByLabel("Nama kamar")).toHaveCount(1);
 });
+
+test("a cost the owner adds reaches renters with the reason behind it", async ({
+  page,
+}) => {
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+
+  await page.getByLabel("Tambah biaya").fill("Iuran kebersihan");
+  await page.getByRole("button", { name: "Tambah biaya" }).click();
+  await page
+    .getByLabel("Penjelasan: Iuran kebersihan")
+    .fill("Ditagih tiap awal bulan bersama listrik.");
+  await page.getByLabel("Nominal").last().fill("50000");
+  await page.getByRole("button", { name: "Simpan perubahan" }).click();
+  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  await page
+    .getByRole("button", { name: "Iuran kebersihan — Lihat penjelasan biaya" })
+    .click();
+
+  // Papikos has no seeded copy for a charge it has never heard of, so the
+  // owner's own words are the only explanation there is.
+  const dialog = page.getByRole("dialog", { name: "Penjelasan biaya" });
+  await expect(dialog.getByText("Ditagih tiap awal bulan bersama listrik.")).toBeVisible();
+  await expect(dialog.getByText(/tidak memproses pembayaran/)).toBeVisible();
+});

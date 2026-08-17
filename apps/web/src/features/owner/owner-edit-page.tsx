@@ -75,6 +75,8 @@ interface DraftCost {
   label: LocalizedText;
   amount: string;
   included: boolean;
+  /** Why the charge exists. Owner-added rows have no seeded copy to fall back on. */
+  note: LocalizedText | null;
   /** Seeded rows are stored as a patch; the owner's own rows are stored whole. */
   seeded: boolean;
 }
@@ -160,6 +162,7 @@ function toDraft(
       label: cost.label,
       amount: cost.amount === null ? "" : String(cost.amount),
       included: cost.included,
+      note: cost.note ?? null,
       seeded: seededCostIds.has(cost.id),
     })),
     removedCosts: [],
@@ -297,6 +300,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                   id: cost.id,
                   amount: cost.amount === "" ? null : Number(cost.amount),
                   included: cost.included,
+                  note: cost.note?.id ?? "",
                 })),
               ...draft.removedCosts.map((id) => ({
                 id,
@@ -312,6 +316,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                 label: cost.label.id,
                 amount: cost.amount === "" ? null : Number(cost.amount),
                 included: cost.included,
+                note: cost.note?.id ?? "",
               })),
             updatedAt: new Date().toISOString(),
           };
@@ -417,6 +422,7 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                 label: ownText(text),
                 amount: "",
                 included: false,
+                note: null,
                 seeded: false,
               },
             ],
@@ -1118,44 +1124,64 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                 <ul className="mt-4 grid gap-4">
                   {draft.costs.map((cost) => (
                     <li
-                      className="grid gap-3 border-t border-slate-100 pt-4 first:border-0 first:pt-0 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end dark:border-slate-800"
+                      className="grid gap-3 border-t border-slate-100 pt-4 first:border-0 first:pt-0 dark:border-slate-800"
                       key={cost.id}
                     >
-                      <p className="font-bold text-slate-800 dark:text-slate-200">
-                        {cost.label[locale]}
-                      </p>
+                      <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
+                        <p className="font-bold text-slate-800 dark:text-slate-200">
+                          {cost.label[locale]}
+                        </p>
+                        <label className={label}>
+                          {t.costAmount}
+                          <input
+                            className={`${field} sm:w-40`}
+                            disabled={cost.included}
+                            inputMode="numeric"
+                            onChange={(event) =>
+                              editCost(cost.id, { amount: event.target.value })
+                            }
+                            type="number"
+                            value={cost.amount}
+                          />
+                        </label>
+                        <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+                          <input
+                            checked={cost.included}
+                            className="size-4 shrink-0 accent-blue-600"
+                            onChange={(event) =>
+                              editCost(cost.id, {
+                                included: event.target.checked,
+                              })
+                            }
+                            type="checkbox"
+                          />
+                          {t.costIncluded}
+                        </label>
+                        <button
+                          aria-label={`${t.costRemove}: ${cost.label[locale]}`}
+                          className="grid size-9 place-items-center rounded-lg text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/40"
+                          onClick={() => removeCost(cost)}
+                          type="button"
+                        >
+                          <Trash2 size={15} aria-hidden="true" />
+                        </button>
+                      </div>
+
                       <label className={label}>
-                        {t.costAmount}
+                        {`${t.costNote}: ${cost.label[locale]}`}
                         <input
-                          className={`${field} sm:w-40`}
-                          disabled={cost.included}
-                          inputMode="numeric"
+                          className={field}
                           onChange={(event) =>
-                            editCost(cost.id, { amount: event.target.value })
+                            editCost(cost.id, {
+                              note: event.target.value.trim()
+                                ? ownText(event.target.value)
+                                : null,
+                            })
                           }
-                          type="number"
-                          value={cost.amount}
+                          placeholder={t.costNoteHint}
+                          value={cost.note?.[locale] ?? ""}
                         />
                       </label>
-                      <label className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300">
-                        <input
-                          checked={cost.included}
-                          className="size-4 shrink-0 accent-blue-600"
-                          onChange={(event) =>
-                            editCost(cost.id, { included: event.target.checked })
-                          }
-                          type="checkbox"
-                        />
-                        {t.costIncluded}
-                      </label>
-                      <button
-                        aria-label={`${t.costRemove}: ${cost.label[locale]}`}
-                        className="grid size-9 place-items-center rounded-lg text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/40"
-                        onClick={() => removeCost(cost)}
-                        type="button"
-                      >
-                        <Trash2 size={15} aria-hidden="true" />
-                      </button>
                     </li>
                   ))}
                 </ul>

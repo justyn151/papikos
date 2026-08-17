@@ -207,6 +207,7 @@ describe("cost rows", () => {
             label: "Iuran kebersihan",
             amount: 50_000,
             included: false,
+            note: "Ditagih tiap awal bulan",
           },
         ],
       }),
@@ -215,12 +216,62 @@ describe("cost rows", () => {
     expect(merged.costs.slice(0, seedDetail.costs.length)).toEqual(
       seedDetail.costs,
     );
+    // The note is the only explanation an added charge can have: there is no
+    // seeded copy for a fee Papikos has never heard of.
     expect(merged.costs.at(-1)).toEqual({
       id: "cost-1",
       label: { id: "Iuran kebersihan", en: "Iuran kebersihan" },
       amount: 50_000,
       included: false,
+      note: { id: "Ditagih tiap awal bulan", en: "Ditagih tiap awal bulan" },
     });
+  });
+
+  it("leaves an added charge without a note rather than inventing one", () => {
+    const merged = resolveListingDetail(
+      seedDetail,
+      override({
+        customCosts: [
+          { id: "cost-2", label: "Iuran RT", amount: null, included: false },
+        ],
+      }),
+    );
+
+    expect(merged.costs.at(-1)?.note).toBeUndefined();
+  });
+
+  it("keeps the seeded explanation when the owner did not touch it", () => {
+    const explained = seedDetail.costs.find((cost) => cost.note)!;
+    const merged = resolveListingDetail(
+      seedDetail,
+      override({
+        costs: [
+          {
+            id: explained.id,
+            amount: 90_000,
+            included: false,
+            note: explained.note!.id,
+          },
+        ],
+      }),
+    );
+
+    expect(merged.costs.find((cost) => cost.id === explained.id)?.note).toEqual(
+      explained.note,
+    );
+  });
+
+  it("clears the seeded explanation when the owner emptied it", () => {
+    const explained = seedDetail.costs.find((cost) => cost.note)!;
+    const merged = resolveListingDetail(
+      seedDetail,
+      override({
+        costs: [{ id: explained.id, amount: null, included: false, note: "" }],
+      }),
+    );
+
+    expect(merged.costs.find((cost) => cost.id === explained.id)?.note)
+      .toBeUndefined();
   });
 });
 

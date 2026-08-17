@@ -740,13 +740,18 @@ export function ListingDetailPage({
                     // Charged rows keep the amount prominent; the rest read as
                     // a status, so they share the app's status-pill palette.
                     const charged = !cost.included && cost.amount;
-                    const value = cost.included
+                    const price = cost.included
                       ? cost.id === "deposit"
                         ? t.noCharge
                         : t.included
                       : cost.amount
                         ? `${formatPrice(cost.amount, locale)} / ${t.month}`
-                        : cost.note?.[locale];
+                        : null;
+                    // With no price to show, the owner's note stands in for
+                    // one; with neither, the row still has to say something,
+                    // because an empty pill reads as a rendering fault rather
+                    // than as "the owner did not say".
+                    const value = price ?? cost.note?.[locale] ?? t.costUnstated;
 
                     return (
                       <div key={cost.id}>
@@ -766,7 +771,10 @@ export function ListingDetailPage({
                                 aria-hidden="true"
                               />
                             </dt>
-                            {cost.note ? (
+                            {cost.note && price ? (
+                              // Only when the value column is showing a price:
+                              // otherwise the note is already standing in for
+                              // it, and this would print the same line twice.
                               <dd className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                                 {cost.note[locale]}
                               </dd>
@@ -1314,6 +1322,13 @@ export function ListingDetailPage({
         (() => {
           const cost = listing.costs.find((item) => item.id === explainedCostId);
           const explanation = costExplanationFor(explainedCostId, locale);
+          const costPrice = cost?.included
+            ? cost.id === "deposit"
+              ? t.noCharge
+              : t.included
+            : cost?.amount
+              ? `${formatPrice(cost.amount, locale)} / ${t.month}`
+              : null;
           return (
             <Dialog
               label={t.costDialogTitle}
@@ -1329,13 +1344,7 @@ export function ListingDetailPage({
                   </h2>
                   {cost ? (
                     <p className="mt-1 text-sm font-bold text-slate-500 dark:text-slate-400">
-                      {cost.included
-                        ? cost.id === "deposit"
-                          ? t.noCharge
-                          : t.included
-                        : cost.amount
-                          ? `${formatPrice(cost.amount, locale)} / ${t.month}`
-                          : cost.note?.[locale]}
+                      {costPrice ?? cost.note?.[locale] ?? t.costUnstated}
                     </p>
                   ) : null}
                 </div>
@@ -1350,6 +1359,16 @@ export function ListingDetailPage({
               </div>
 
               <div className="p-6">
+                {cost?.note && costPrice ? (
+                  // The owner's own words come first: for a charge they added
+                  // themselves this is the only real explanation there is, and
+                  // everything below it is Papikos boilerplate. Skipped when
+                  // the line above is already showing this same note in place
+                  // of a price.
+                  <p className="mb-4 rounded-xl bg-blue-50 p-4 text-sm leading-6 font-semibold text-blue-900 dark:bg-blue-950/40 dark:text-blue-100">
+                    {cost.note[locale]}
+                  </p>
+                ) : null}
                 <p className="text-sm leading-6 text-slate-700 dark:text-slate-200">
                   {explanation.body}
                 </p>

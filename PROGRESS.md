@@ -45,6 +45,10 @@ Completed owner and administrator capabilities:
 - Stay terms, city, approximate area, and privacy radius became editable, cost
   rows can be added and removed, and saving rejects an empty name, city,
   district, a room priced at zero, and a discount outside 1–90%.
+- Cost rows carry the owner's explanation, which an added charge previously had
+  no way to state: Papikos only ships seeded copy for the charges it knows
+  about. A charge with neither an amount nor an explanation now says so instead
+  of rendering an empty pill, and the note is no longer printed twice.
 - Fixed the editor showing seeded data for an already-edited kos: browser
   storage is read after hydration, so the form initialised before the override
   arrived, and saving overwrote edits the owner never re-typed.

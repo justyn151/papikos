@@ -277,6 +277,9 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
         id: asString(item.id),
         amount: typeof item.amount === "number" ? item.amount : null,
         included: item.included === true,
+        // An empty string is meaningful here — it clears the seeded note — so
+        // presence matters, not truthiness.
+        ...(typeof item.note === "string" ? { note: item.note.trim() } : {}),
         ...(item.removed === true ? { removed: true } : {}),
       }));
   }
@@ -290,6 +293,7 @@ export function normalizeOverride(value: unknown): ListingOverride | null {
         label: asString(item.label).trim(),
         amount: typeof item.amount === "number" ? item.amount : null,
         included: item.included === true,
+        ...(typeof item.note === "string" ? { note: item.note.trim() } : {}),
       }))
       .filter((cost) => cost.id && cost.label);
   }

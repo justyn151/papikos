@@ -94,7 +94,18 @@ export function resolveListingDetail(
           const edit = override.costs?.find((item) => item.id === cost.id);
           if (!edit) return cost;
           if (edit.removed) return null;
-          return { ...cost, amount: edit.amount, included: edit.included };
+          return {
+            ...cost,
+            amount: edit.amount,
+            included: edit.included,
+            // An owner who cleared the explanation gets no explanation, so the
+            // empty case has to delete the key rather than fall through.
+            ...(edit.note === undefined
+              ? {}
+              : edit.note
+                ? { note: mergedText(edit.note, cost.note) }
+                : { note: undefined }),
+          };
         })
         .filter((cost): cost is CostItem => cost !== null)
     : base.costs;
@@ -108,6 +119,7 @@ export function resolveListingDetail(
             label: ownText(cost.label),
             amount: cost.amount,
             included: cost.included,
+            ...(cost.note ? { note: ownText(cost.note) } : {}),
           })),
         ]
       : seededCosts;

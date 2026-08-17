@@ -287,18 +287,28 @@ describe("adding and removing rooms", () => {
 });
 
 describe("cost rows", () => {
-  it("adds the owner's own cost row", async () => {
+  it("adds the owner's own cost row, with the reason behind it", async () => {
     render(<OwnerEditPage listing={listing} />);
 
     fireEvent.change(await screen.findByLabelText("Tambah biaya"), {
       target: { value: "Iuran kebersihan" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Tambah biaya" }));
+    fireEvent.change(
+      screen.getByLabelText("Penjelasan: Iuran kebersihan"),
+      { target: { value: "Ditagih tiap awal bulan" } },
+    );
     save();
 
+    // Without the note an added charge reaches renters as a bare label: the
+    // seeded explanations only cover the charges Papikos shipped.
     await waitFor(() =>
       expect(storedOverride()[0].customCosts).toEqual([
-        expect.objectContaining({ label: "Iuran kebersihan", included: false }),
+        expect.objectContaining({
+          label: "Iuran kebersihan",
+          included: false,
+          note: "Ditagih tiap awal bulan",
+        }),
       ]),
     );
   });
