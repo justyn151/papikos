@@ -24,6 +24,15 @@ Completed owner and administrator capabilities:
 
 ## Completed Milestones
 
+### 17 August 2026 — One Photo at a Time
+
+- Replaced the detail page's photo-plus-thumbnail-strip with a single centred
+  carousel: arrows on the photo, dots beneath it, and a counter. The strip
+  spent a third of the width on images too small to read and left the main one
+  no bigger than a card.
+- The photo opens full size in a dialog, which keeps its own arrows and closes
+  on Escape; the page keeps whichever photo the dialog was left on.
+
 ### 17 August 2026 — English First, Light Only
 
 - The app now opens in English rather than Indonesian, and the ID/EN switch

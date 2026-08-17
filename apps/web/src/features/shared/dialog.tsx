@@ -7,11 +7,14 @@ export function Dialog({
   label,
   motionState = "open",
   onClose,
+  size = "panel",
 }: {
   children: ReactNode;
   label: string;
   motionState?: "open" | "closing";
   onClose: () => void;
+  /** "wide" is for content that is the point rather than the frame: a photo. */
+  size?: "panel" | "wide";
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +47,9 @@ export function Dialog({
       <div
         aria-label={label}
         aria-modal="true"
-        className="dialog-panel max-h-[92vh] w-full overflow-y-auto rounded-t-[2rem] bg-white dark:bg-slate-900 shadow-2xl sm:max-w-xl sm:rounded-[2rem]"
+        className={`dialog-panel max-h-[92vh] w-full overflow-y-auto rounded-t-[2rem] bg-white dark:bg-slate-900 shadow-2xl sm:rounded-[2rem] ${
+          size === "wide" ? "sm:max-w-[min(92vw,1400px)]" : "sm:max-w-xl"
+        }`}
         data-dialog-state={motionState}
         ref={panelRef}
         role="dialog"

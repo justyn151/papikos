@@ -2,14 +2,11 @@
 
 import {
   BadgeCheck,
-  Bath,
   BedDouble,
   Bike,
-  Building2,
   BusFront,
   CalendarDays,
   Check,
-  ChevronLeft,
   ChevronRight,
   CircleHelp,
   Clock3,
@@ -70,11 +67,10 @@ import { usePersistentState } from "@/features/shared/use-persistent-state";
 
 import { costExplanationFor, costPaymentNotice } from "./cost-copy";
 import { detailCopy } from "./detail-copy";
+import { GalleryArtwork, ListingGallery } from "./listing-gallery";
 import type {
   BookingRequest,
   FacilityItem,
-  GalleryCategory,
-  GalleryItem,
   ListingDetail,
   ListingReport,
   Locale,
@@ -88,14 +84,6 @@ const STORAGE_KEYS = {
   questions: "papikos.listingQuestions",
   reports: "papikos.listingReports",
 } as const;
-
-const galleryIcons: Record<GalleryCategory, typeof BedDouble> = {
-  room: BedDouble,
-  bathroom: Bath,
-  shared: UsersRound,
-  exterior: Building2,
-  neighborhood: MapPin,
-};
 
 const facilityIcons: Record<FacilityItem["category"], typeof BedDouble> = {
   room: BedDouble,
@@ -111,79 +99,6 @@ const landmarkIcons = {
   shopping: ShoppingBag,
   health: Hospital,
 } as const;
-
-function PropertyArtwork({
-  item,
-  listing,
-  locale,
-  compact = false,
-}: {
-  item: GalleryItem;
-  listing: ListingDetail;
-  locale: Locale;
-  compact?: boolean;
-}) {
-  const Icon = galleryIcons[item.category];
-  const shift = (item.variant % 4) * 8;
-
-  if (item.dataUrl) {
-    return (
-      // A stored data URL has no intrinsic size and never hits the network, so
-      // next/image would only add a loader around it.
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        alt={item.label[locale]}
-        className="property-artwork h-full min-h-36 w-full object-cover"
-        src={item.dataUrl}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={`property-artwork relative h-full min-h-36 overflow-hidden bg-gradient-to-br ${listing.tone}`}
-      aria-label={item.label[locale]}
-      role="img"
-    >
-      <span
-        className="absolute rounded-full bg-white/10"
-        style={{
-          height: compact ? 90 : 190,
-          right: `${-24 + shift}px`,
-          top: `${-35 + shift / 2}px`,
-          width: compact ? 90 : 190,
-        }}
-      />
-      <span className="absolute -bottom-20 -left-12 size-56 rounded-full bg-cyan-100/15" />
-      {item.category === "exterior" ? (
-        <span className="absolute bottom-0 left-[14%] right-[14%] h-[68%] rounded-t-[2rem] border border-white/30 bg-white/15 backdrop-blur-sm">
-          <span className="absolute inset-x-[12%] top-[18%] grid grid-cols-3 gap-3">
-            {[0, 1, 2, 3, 4, 5].map((window) => (
-              <span
-                className={`h-8 rounded-lg ${
-                  window === 1 || window === 5 ? listing.accent : "bg-white/35"
-                }`}
-                key={window}
-              />
-            ))}
-          </span>
-        </span>
-      ) : (
-        <span className="absolute inset-[12%] rounded-[2rem] border border-white/30 bg-white/15 shadow-2xl backdrop-blur-sm">
-          <span className="absolute bottom-[12%] left-[10%] h-[30%] w-[52%] rounded-xl bg-white/30" />
-          <span
-            className={`absolute bottom-[12%] right-[10%] h-[48%] w-[22%] rounded-xl ${listing.accent} opacity-80`}
-          />
-          <span className="absolute left-[10%] top-[14%] h-[12%] w-[35%] rounded-full bg-white/35" />
-        </span>
-      )}
-      <span className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-slate-950/25 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-md">
-        <Icon size={14} aria-hidden="true" />
-        {item.label[locale]}
-      </span>
-    </div>
-  );
-}
 
 function Section({
   children,
@@ -265,7 +180,6 @@ export function ListingDetailPage({
   );
   const discount = discountPercent(listing);
   const [explainedCostId, setExplainedCostId] = useState<string | null>(null);
-  const [selectedGallery, setSelectedGallery] = useState(0);
   const initialRoom =
     listing.rooms.find((room) => room.availableRooms > 0) ?? listing.rooms[0];
   const [bookingRoomId, setBookingRoomId] = useState(initialRoom.id);
@@ -502,69 +416,7 @@ export function ListingDetailPage({
         id="main-content"
       >
         <section className="mx-auto max-w-7xl px-5 pt-6 sm:px-8 sm:pt-8">
-          <div className="grid gap-3 lg:grid-cols-[1.65fr_.85fr]">
-            <div className="min-h-[320px] overflow-hidden rounded-[1.75rem] sm:min-h-[460px]">
-              <PropertyArtwork
-                item={listing.gallery[selectedGallery]}
-                listing={listing}
-                locale={locale}
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-3 overflow-x-auto lg:grid-cols-2">
-              {listing.gallery.slice(1).map((item, index) => {
-                const itemIndex = index + 1;
-                return (
-                  <button
-                    className={`min-w-32 overflow-hidden rounded-2xl border-2 transition focus:outline-none focus:ring-4 focus:ring-blue-100 ${
-                      selectedGallery === itemIndex
-                        ? "border-blue-600"
-                        : "border-transparent hover:border-blue-200"
-                    }`}
-                    key={item.id}
-                    onClick={() => setSelectedGallery(itemIndex)}
-                    type="button"
-                    aria-label={item.label[locale]}
-                    aria-pressed={selectedGallery === itemIndex}
-                  >
-                    <PropertyArtwork
-                      compact
-                      item={item}
-                      listing={listing}
-                      locale={locale}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <div className="mt-3 flex justify-end">
-            <div className="flex gap-2">
-              <button
-                className="grid size-10 place-items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 transition hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-300"
-                onClick={() =>
-                  setSelectedGallery((current) =>
-                    current === 0 ? listing.gallery.length - 1 : current - 1,
-                  )
-                }
-                type="button"
-                aria-label="Previous image"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                className="grid size-10 place-items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 transition hover:border-blue-300 hover:text-blue-700 dark:hover:text-blue-300"
-                onClick={() =>
-                  setSelectedGallery((current) =>
-                    current === listing.gallery.length - 1 ? 0 : current + 1,
-                  )
-                }
-                type="button"
-                aria-label="Next image"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
-          </div>
+          <ListingGallery listing={listing} locale={locale} />
         </section>
 
         <section className="contour-surface mt-7 border-y border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -1115,7 +967,7 @@ export function ListingDetailPage({
                   key={item.id}
                 >
                   <div className="h-44">
-                    <PropertyArtwork
+                    <GalleryArtwork
                       compact
                       item={item.gallery[0]}
                       listing={item}

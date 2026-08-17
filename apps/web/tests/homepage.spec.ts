@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { openRequestDialog } from "./helpers";
+import { openRequestDialog, waitForReady } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
@@ -164,4 +164,26 @@ test("persists a local booking request and structured question", async ({
   await expect(
     page.getByRole("heading", { name: "Rental request submitted" }),
   ).toBeVisible();
+});
+
+test("browses the kos gallery and opens a photo full size", async ({ page }) => {
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+
+  await expect(page.getByText("1 of 5")).toBeVisible();
+  await page.getByRole("button", { name: "Next photo" }).click();
+  await expect(page.getByText("2 of 5")).toBeVisible();
+
+  await page.getByRole("button", { name: "Go to photo 4" }).click();
+  await expect(page.getByText("4 of 5")).toBeVisible();
+
+  await page.getByRole("button", { name: "View this photo larger" }).click();
+  const dialog = page.getByRole("dialog", { name: "Photo gallery" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("4 of 5")).toBeVisible();
+
+  // Escape closes it, and the page keeps the photo the dialog was left on.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByText("4 of 5")).toBeVisible();
 });
