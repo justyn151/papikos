@@ -5,11 +5,8 @@ import Link from "next/link";
 import type { FormEvent } from "react";
 
 import type { Locale } from "@/features/home/types";
-import {
-  LanguageToggle,
-  ThemeToggle,
-  type Theme,
-} from "@/features/preferences/preferences";
+// LanguageToggle and ThemeToggle come back with the switches below.
+import type { Theme } from "@/features/preferences/preferences";
 
 import { BrandMark } from "./brand-mark";
 import { widthClass } from "./content-width";
@@ -37,16 +34,18 @@ export interface SiteHeaderProps {
 }
 
 export function SiteHeader({
-  locale,
-  selectedLocale,
-  onChangeLocale,
-  theme,
-  onToggleTheme,
+  // Still accepted, and still passed by every page, so the two switches below
+  // can be uncommented without touching their call sites again.
+  // locale,
+  // selectedLocale,
+  // onChangeLocale,
+  // theme,
+  // onToggleTheme,
+  // languageLabel,
   loginHref,
   loginLabel,
   favoritesHref,
   favoritesLabel,
-  languageLabel,
   searchLabel,
   searchPlaceholder,
   searchButtonLabel,
@@ -74,12 +73,17 @@ export function SiteHeader({
           </Link>
 
           <div className="flex items-center gap-2 sm:order-3">
+            {/* The app is English-only and light-only for now; see the note in
+                `preferences.tsx`. Both switches stay here, commented, because
+                the copy and the dark styles they drive are still in place.
+
             <LanguageToggle
               locale={selectedLocale}
               onChange={onChangeLocale}
               label={languageLabel}
             />
             <ThemeToggle locale={locale} theme={theme} onToggle={onToggleTheme} />
+            */}
             {favoritesHref && favoritesLabel ? (
               <Link
                 aria-label={favoritesLabel}

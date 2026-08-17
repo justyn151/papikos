@@ -29,7 +29,7 @@ function seedReport(status = "submitted") {
         id: "report-1",
         listingId: "senja-setiabudi",
         reason: "price",
-        details: "Harga di iklan berbeda dengan aslinya.",
+        details: "Price di iklan berbeda dengan aslinya.",
         status,
         createdAt: "2026-08-01T00:00:00.000Z",
       },
@@ -57,7 +57,7 @@ describe("admin listings", () => {
     render(<AdminListingsPage />);
 
     fireEvent.click(
-      (await screen.findAllByRole("button", { name: "Tangguhkan" }))[0],
+      (await screen.findAllByRole("button", { name: "Suspend" }))[0],
     );
 
     await waitFor(() => {
@@ -98,7 +98,7 @@ describe("admin verification", () => {
 
     // Ruang Teduh Keputih ships unverified in the sample data.
     fireEvent.click(
-      (await screen.findAllByRole("button", { name: "Verifikasi" }))[0],
+      (await screen.findAllByRole("button", { name: "Verify" }))[0],
     );
 
     await waitFor(() => {
@@ -114,14 +114,14 @@ describe("admin reports", () => {
   it("shows an empty state when nothing was reported", async () => {
     render(<AdminReportsPage />);
 
-    expect(await screen.findByText("Belum ada laporan masuk.")).toBeInTheDocument();
+    expect(await screen.findByText("No reports yet.")).toBeInTheDocument();
   });
 
   it("moves a report through review to resolved", async () => {
     seedReport();
     render(<AdminReportsPage />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Tandai ditinjau" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Mark reviewing" }));
     await waitFor(() => {
       const stored = JSON.parse(
         window.localStorage.getItem(REPORTS_STORAGE_KEY) ?? "[]",
@@ -129,7 +129,7 @@ describe("admin reports", () => {
       expect(stored[0].status).toBe("reviewing");
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Selesaikan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resolve" }));
     await waitFor(() => {
       const stored = JSON.parse(
         window.localStorage.getItem(REPORTS_STORAGE_KEY) ?? "[]",
@@ -145,8 +145,8 @@ describe("admin overview and audit", () => {
     render(<AdminOverviewPage />);
 
     expect(await screen.findByText("Total kos")).toBeInTheDocument();
-    expect(screen.getByText("Kos tayang")).toBeInTheDocument();
-    expect(screen.getByText("Sebaran kota")).toBeInTheDocument();
+    expect(screen.getByText("Live kos")).toBeInTheDocument();
+    expect(screen.getByText("City spread")).toBeInTheDocument();
   });
 
   it("lists recorded privileged changes", async () => {
@@ -172,7 +172,7 @@ describe("admin overview and audit", () => {
     render(<AdminAuditPage />);
 
     expect(
-      await screen.findByText("Belum ada aktivitas tercatat."),
+      await screen.findByText("No recorded activity yet."),
     ).toBeInTheDocument();
   });
 });

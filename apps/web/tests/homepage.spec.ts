@@ -14,8 +14,8 @@ test.beforeEach(async ({ page }) => {
 test("navigates to the search page via the header search bar", async ({
   page,
 }) => {
-  await page.getByRole("textbox", { name: "Lokasi", exact: true }).fill("Bandung");
-  await page.getByRole("button", { name: "Cari kos" }).click();
+  await page.getByRole("textbox", { name: "Location", exact: true }).fill("Bandung");
+  await page.getByRole("button", { name: "Find a kos" }).click();
 
   await expect(page).toHaveURL(/\/kos\?q=Bandung/);
   await expect(page.getByText("Kos Asri Dago")).toBeVisible();
@@ -27,14 +27,14 @@ test("shows a focused header search and a hero CTA into search", async ({
 }) => {
   const header = page.getByRole("banner");
   await expect(header.getByLabel("Papikos")).toBeVisible();
-  await expect(header.getByRole("link", { name: "Masuk" })).toHaveAttribute(
+  await expect(header.getByRole("link", { name: "Sign in" })).toHaveAttribute(
     "href",
     "/masuk",
   );
   await expect(header.getByRole("navigation")).toHaveCount(0);
-  await expect(header.getByRole("textbox", { name: "Lokasi" })).toBeVisible();
+  await expect(header.getByRole("textbox", { name: "Location" })).toBeVisible();
 
-  const heroCta = page.getByRole("link", { name: "Mulai cari kos" });
+  const heroCta = page.getByRole("link", { name: "Start searching" });
   await expect(heroCta).toBeVisible();
   await expect(heroCta).toHaveAttribute("href", "/kos");
 });
@@ -42,16 +42,16 @@ test("shows a focused header search and a hero CTA into search", async ({
 test("links popular locations and the explore-all CTA to the search page", async ({
   page,
 }) => {
-  const popularLocations = page.getByLabel("Lokasi populer", { exact: true });
+  const popularLocations = page.getByLabel("Popular locations", { exact: true });
   await expect(
     popularLocations.getByRole("link", { name: "Bandung" }),
   ).toHaveAttribute("href", "/kos?q=Bandung");
   await expect(
-    popularLocations.getByRole("link", { name: "Semua", exact: true }),
+    popularLocations.getByRole("link", { name: "All", exact: true }),
   ).toHaveAttribute("href", "/kos");
 
   await expect(
-    page.getByRole("link", { name: "Lihat semua kos" }),
+    page.getByRole("link", { name: "See all kos" }),
   ).toHaveAttribute("href", "/kos");
 });
 
@@ -60,13 +60,36 @@ test("supports reduced motion", async ({ page }) => {
   await page.reload();
 
   await expect(
-    page.getByRole("heading", { name: "Kos yang layak dilihat" }),
+    page.getByRole("heading", { name: "Kos worth a closer look" }),
   ).toBeVisible();
   const iterationCount = await page
     .locator(".map-float")
     .evaluate((element) => getComputedStyle(element).animationIterationCount);
   expect(iterationCount).not.toContain("infinite");
 });
+
+test("completes the preference survey", async ({ page }) => {
+  // The app is English-only for now, so the survey is reached directly rather
+  // than through a language switch; see the note in preferences.tsx.
+  await expect(
+    page.getByRole("heading", { name: /Find a kos that fits your life/i }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Try the preference survey" })
+    .click();
+  await page.getByRole("button", { name: "Show my matches" }).click();
+
+  await expect(
+    page.getByText("Recommendations from your preferences"),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: /Find a kos that fits your life/i }),
+  ).toBeVisible();
+});
+
+/* The language switch this covered is commented out for now:
 
 test("switches language and completes the preference survey", async ({
   page,
@@ -92,6 +115,10 @@ test("switches language and completes the preference survey", async ({
   ).toBeVisible();
 });
 
+*/
+
+/* The dark-mode toggle is commented out for now:
+
 test("persists dark mode across homepage and detail navigation", async ({
   page,
 }) => {
@@ -103,12 +130,14 @@ test("persists dark mode across homepage and detail navigation", async ({
     .poll(() => page.evaluate(() => window.localStorage.getItem("papikos.theme")))
     .toBe('"dark"');
 
-  await page.getByRole("link", { name: "Lihat detail" }).first().click();
+  await page.getByRole("link", { name: "View details" }).first().click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(
     page.getByRole("button", { name: "Aktifkan mode terang" }),
   ).toBeVisible();
 });
+
+*/
 
 test("persists a local booking request and structured question", async ({
   page,
@@ -123,24 +152,24 @@ test("persists a local booking request and structured question", async ({
   // on an exact offset.
   await openRequestDialog(page);
   const bookingDialog = page.getByRole("dialog", {
-    name: "Ajukan permintaan sewa",
+    name: "Submit a rental request",
   });
   await expect(bookingDialog).toHaveAttribute("data-dialog-state", "open");
-  await page.getByLabel("Pilihan kamar").selectOption("senja-setiabudi-plus");
-  await page.getByRole("button", { name: "Kirim permintaan" }).click();
+  await page.getByLabel("Room choice").selectOption("senja-setiabudi-plus");
+  await page.getByRole("button", { name: "Submit request" }).click();
   await expect(
-    page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
+    page.getByRole("heading", { name: "Rental request submitted" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Tutup" }).click();
+  await page.getByRole("button", { name: "Close" }).click();
   await expect(bookingDialog).toHaveAttribute("data-dialog-state", "closing");
   await expect(bookingDialog).toHaveCount(0);
 
   await page
-    .getByLabel("Pertanyaanmu")
+    .getByLabel("Your question")
     .fill("Apakah saya boleh membawa kursi kerja sendiri?");
-  await page.getByRole("button", { name: "Kirim pertanyaan" }).click();
+  await page.getByRole("button", { name: "Submit question" }).click();
   await expect(
-    page.getByText("Pertanyaan tersimpan untuk pemilik (prototipe)."),
+    page.getByText("Question saved for the owner (prototype)."),
   ).toBeVisible();
   await expect(
     page.getByText("Apakah saya boleh membawa kursi kerja sendiri?"),
@@ -152,6 +181,6 @@ test("persists a local booking request and structured question", async ({
   ).toHaveCount(0);
   await openRequestDialog(page);
   await expect(
-    page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
+    page.getByRole("heading", { name: "Rental request submitted" }),
   ).toBeVisible();
 });

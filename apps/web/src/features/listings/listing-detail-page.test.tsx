@@ -29,20 +29,20 @@ describe("kos detail page", () => {
     expect(
       screen.getByRole("heading", { name: listing.name }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Pilihan kamar" })).toBeVisible();
-    expect(screen.getByRole("heading", { name: "Rincian biaya" })).toBeVisible();
-    expect(screen.getByText("Tidak ada deposit")).toBeInTheDocument();
-    expect(screen.queryByText("Kamar utama · 1/5")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Room options" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Cost breakdown" })).toBeVisible();
+    expect(screen.getByText("No deposit required")).toBeInTheDocument();
+    expect(screen.queryByText("Rooms utama · 1/5")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Pilih kamar" }),
     ).not.toBeInTheDocument();
-    expect(screen.getAllByText("Kamar tersedia").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("1 kamar tersedia").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Rooms available").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("1 rooms available").length).toBeGreaterThan(0);
     // There is no in-page back link: the page is reached from the homepage,
     // search, favorites, and both consoles, and browser back is the only
     // control that returns to the right one of those.
     expect(
-      screen.queryByRole("link", { name: /Kembali ke hasil/i }),
+      screen.queryByRole("link", { name: /Kembali ke results/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -50,7 +50,7 @@ describe("kos detail page", () => {
     renderPage();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Simpan ke favorit" }),
+      screen.getByRole("button", { name: "Save to favorites" }),
     );
 
     await waitFor(() =>
@@ -63,23 +63,23 @@ describe("kos detail page", () => {
   it("submits and persists a pending rental request without payment", async () => {
     renderPage();
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Ajukan sewa" })[0],
+      screen.getAllByRole("button", { name: "Request to rent" })[0],
     );
 
     const dialog = screen.getByRole("dialog", {
-      name: "Ajukan permintaan sewa",
+      name: "Submit a rental request",
     });
-    expect(within(dialog).getByText(/tidak ada pembayaran/i)).toBeInTheDocument();
-    fireEvent.change(within(dialog).getByLabelText("Pilihan kamar"), {
+    expect(within(dialog).getByText(/no payment/i)).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText("Room choice"), {
       target: { value: "senja-setiabudi-plus" },
     });
     fireEvent.click(
-      within(dialog).getByRole("button", { name: "Kirim permintaan" }),
+      within(dialog).getByRole("button", { name: "Submit request" }),
     );
 
     expect(
       await screen.findByRole("heading", {
-        name: "Permintaan sewa terkirim",
+        name: "Rental request submitted",
       }),
     ).toBeVisible();
     await waitFor(() =>
@@ -91,15 +91,15 @@ describe("kos detail page", () => {
 
   it("animates the booking dialog out before restoring trigger focus", async () => {
     renderPage();
-    const trigger = screen.getAllByRole("button", { name: "Ajukan sewa" })[0];
+    const trigger = screen.getAllByRole("button", { name: "Request to rent" })[0];
     fireEvent.click(trigger);
 
     const dialog = screen.getByRole("dialog", {
-      name: "Ajukan permintaan sewa",
+      name: "Submit a rental request",
     });
     expect(dialog).toHaveAttribute("data-dialog-state", "open");
 
-    fireEvent.click(within(dialog).getByRole("button", { name: "Tutup" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
 
     expect(dialog).toHaveAttribute("data-dialog-state", "closing");
     expect(dialog).toBeInTheDocument();
@@ -110,13 +110,13 @@ describe("kos detail page", () => {
   it("stores a structured question without publishing it in the Q&A list", async () => {
     const { unmount } = renderPage();
     const submittedText = "Apakah saya boleh membawa kursi kerja sendiri?";
-    fireEvent.change(screen.getByLabelText("Pertanyaanmu"), {
+    fireEvent.change(screen.getByLabelText("Your question"), {
       target: { value: submittedText },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Kirim pertanyaan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit question" }));
 
     expect(
-      await screen.findByText("Pertanyaan tersimpan untuk pemilik (prototipe)."),
+      await screen.findByText("Question saved for the owner (prototype)."),
     ).toBeVisible();
     expect(screen.queryByText(submittedText)).not.toBeInTheDocument();
     await waitFor(() =>
@@ -130,6 +130,8 @@ describe("kos detail page", () => {
     expect(screen.queryByText(submittedText)).not.toBeInTheDocument();
   });
 
+/* The language switch this covered is commented out for now:
+
   it("switches the detail experience to English", async () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "EN" }));
@@ -141,22 +143,24 @@ describe("kos detail page", () => {
       screen.getByRole("button", { name: "Request to rent" }),
     ).toBeVisible();
   });
+
+*/
   it("explains a cost and states that payment happens outside Papikos", async () => {
     renderPage();
 
     fireEvent.click(
-      screen.getByRole("button", { name: /^Listrik — Lihat penjelasan biaya$/ }),
+      screen.getByRole("button", { name: /^Electricity — See how this charge works$/ }),
     );
 
     const dialog = await screen.findByRole("dialog", {
-      name: "Penjelasan biaya",
+      name: "Cost explanation",
     });
     expect(
-      within(dialog).getByText(/dihitung terpisah mengikuti meteran/),
+      within(dialog).getByText(/billed separately from your room's meter/),
     ).toBeInTheDocument();
     // AGENTS.md rules out payment processing, so the dialog must say so.
     expect(
-      within(dialog).getByText(/tidak memproses pembayaran/),
+      within(dialog).getByText(/does not process payments/),
     ).toBeInTheDocument();
   });
 
@@ -164,16 +168,16 @@ describe("kos detail page", () => {
     renderPage();
 
     fireEvent.click(
-      screen.getByRole("button", { name: /^Deposit — Lihat penjelasan biaya$/ }),
+      screen.getByRole("button", { name: /^Deposit — See how this charge works$/ }),
     );
     const dialog = await screen.findByRole("dialog", {
-      name: "Penjelasan biaya",
+      name: "Cost explanation",
     });
-    fireEvent.click(within(dialog).getByRole("button", { name: "Tutup" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
 
     await waitFor(() =>
       expect(
-        screen.queryByRole("dialog", { name: "Penjelasan biaya" }),
+        screen.queryByRole("dialog", { name: "Cost explanation" }),
       ).not.toBeInTheDocument(),
     );
   });

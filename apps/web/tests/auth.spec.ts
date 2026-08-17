@@ -12,19 +12,19 @@ test("reaches the login page from the header and moves between auth pages", asyn
   await page.goto("/");
   await waitForReady(page);
 
-  await page.getByRole("banner").getByRole("link", { name: "Masuk" }).click();
+  await page.getByRole("banner").getByRole("link", { name: "Sign in" }).click();
   await expect(page).toHaveURL(/\/masuk$/);
   await expect(
-    page.getByRole("heading", { name: "Masuk ke Papikos" }),
+    page.getByRole("heading", { name: "Sign in to Papikos" }),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Daftar sekarang" }).click();
+  await page.getByRole("link", { name: "Create one" }).click();
   await expect(page).toHaveURL(/\/daftar$/);
   await expect(
-    page.getByRole("heading", { name: "Buat akun Papikos" }),
+    page.getByRole("heading", { name: "Create a Papikos account" }),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: "Masuk di sini" }).click();
+  await page.getByRole("link", { name: "Sign in here" }).click();
   await expect(page).toHaveURL(/\/masuk$/);
 });
 
@@ -34,14 +34,14 @@ test("blocks an invalid sign-in and confirms a valid one without a session", asy
   await page.goto("/masuk");
   await waitForReady(page);
 
-  await page.getByRole("button", { name: "Masuk" }).click();
-  await expect(page.getByText("Wajib diisi.").first()).toBeVisible();
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page.getByText("This field is required.").first()).toBeVisible();
 
   await page.getByLabel("Email").fill("renter@papikos.id");
-  await page.getByLabel("Kata sandi", { exact: true }).fill("kosidaman1");
-  await page.getByRole("button", { name: "Masuk" }).click();
+  await page.getByLabel("Password", { exact: true }).fill("kosidaman1");
+  await page.getByRole("button", { name: "Sign in" }).click();
 
-  await expect(page.getByText("Form masuk tervalidasi")).toBeVisible();
+  await expect(page.getByText("Sign-in form validated")).toBeVisible();
 
   // The prototype must not mint a session or keep the password anywhere.
   const stored = await page.evaluate(() => JSON.stringify(window.localStorage));
@@ -54,26 +54,28 @@ test("validates the registration form and supports the owner role", async ({
   await page.goto("/daftar");
   await waitForReady(page);
 
-  await page.getByRole("button", { name: "Menyewakan kos" }).click();
+  await page.getByRole("button", { name: "List a kos" }).click();
   await expect(
-    page.getByRole("button", { name: "Menyewakan kos" }),
+    page.getByRole("button", { name: "List a kos" }),
   ).toHaveAttribute("aria-pressed", "true");
 
-  await page.getByLabel("Nama lengkap").fill("Sinta");
+  await page.getByLabel("Full name").fill("Sinta");
   await page.getByLabel("Email").fill("sinta@papikos.id");
-  await page.getByLabel("Nomor HP").fill("081234567890");
-  await page.getByLabel("Kata sandi", { exact: true }).fill("kosidaman1");
-  await page.getByLabel("Ulangi kata sandi").fill("kosidaman2");
+  await page.getByLabel("Phone number").fill("081234567890");
+  await page.getByLabel("Password", { exact: true }).fill("kosidaman1");
+  await page.getByLabel("Repeat password").fill("kosidaman2");
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "Daftar" }).click();
+  await page.getByRole("button", { name: "Sign up" }).click();
 
-  await expect(page.getByText("Kata sandi tidak sama.")).toBeVisible();
+  await expect(page.getByText("Passwords do not match.")).toBeVisible();
 
-  await page.getByLabel("Ulangi kata sandi").fill("kosidaman1");
-  await page.getByRole("button", { name: "Daftar" }).click();
+  await page.getByLabel("Repeat password").fill("kosidaman1");
+  await page.getByRole("button", { name: "Sign up" }).click();
 
-  await expect(page.getByText("Form pendaftaran tervalidasi")).toBeVisible();
+  await expect(page.getByText("Sign-up form validated")).toBeVisible();
 });
+
+/* The language switch this covered is commented out for now:
 
 test("switches auth copy to English", async ({ page }) => {
   await page.goto("/masuk");
@@ -89,3 +91,5 @@ test("switches auth copy to English", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 });
+
+*/

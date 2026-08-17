@@ -17,8 +17,8 @@ test("header search on the homepage lands on /kos with results", async ({
   await page.reload();
   await waitForReady(page);
 
-  await page.getByRole("textbox", { name: "Lokasi", exact: true }).fill("Jakarta");
-  await page.getByRole("button", { name: "Cari kos" }).click();
+  await page.getByRole("textbox", { name: "Location", exact: true }).fill("Jakarta");
+  await page.getByRole("button", { name: "Find a kos" }).click();
 
   await expect(page).toHaveURL(/\/kos\?q=Jakarta/);
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
@@ -31,14 +31,14 @@ test("combines location, room type, price range, and amenities, and survives a r
   await page.goto("/kos");
   await waitForReady(page);
 
-  await page.getByRole("textbox", { name: "Lokasi", exact: true }).fill("Jakarta");
-  await page.getByRole("button", { name: "Cari kos" }).click();
+  await page.getByRole("textbox", { name: "Location", exact: true }).fill("Jakarta");
+  await page.getByRole("button", { name: "Find a kos" }).click();
   await expect(page).toHaveURL(/q=Jakarta/);
 
-  await page.getByRole("button", { name: "Campur", exact: true }).click();
+  await page.getByRole("button", { name: "Mixed", exact: true }).click();
   await expect(page).toHaveURL(/type=campur/);
 
-  const maxPriceSlider = page.getByLabel("Harga maksimum");
+  const maxPriceSlider = page.getByLabel("Maximum price");
   await maxPriceSlider.focus();
   // Default is 3,000,000; step down by 50,000 x 8 to reach 2,600,000.
   for (let i = 0; i < 8; i += 1) {
@@ -46,7 +46,7 @@ test("combines location, room type, price range, and amenities, and survives a r
   }
   await expect(page).toHaveURL(/max=2600000/);
 
-  await page.getByRole("button", { name: "AC", exact: true }).click();
+  await page.getByRole("button", { name: "Air conditioning", exact: true }).click();
   await expect(page).toHaveURL(/amenities=ac/);
 
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
@@ -64,10 +64,10 @@ test("combines location, room type, price range, and amenities, and survives a r
   await expect(page).toHaveURL(url);
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Campur", exact: true }),
+    page.getByRole("button", { name: "Mixed", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await expect(
-    page.getByRole("button", { name: "AC", exact: true }),
+    page.getByRole("button", { name: "Air conditioning", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
 });
 
@@ -77,9 +77,9 @@ test("shows an empty state and resets via the clear-filters control", async ({
   await page.goto("/kos?q=Atlantis");
   await waitForReady(page);
 
-  await expect(page.getByText("Belum ada kos yang cocok")).toBeVisible();
+  await expect(page.getByText("No matching kos yet")).toBeVisible();
 
-  await page.getByRole("button", { name: "Atur ulang pencarian" }).click();
+  await page.getByRole("button", { name: "Reset search" }).click();
 
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
   await expect(page).toHaveURL(/\/kos$/);
@@ -91,7 +91,7 @@ test("clears all filters via the filter panel's clear control", async ({
   await page.goto("/kos?q=Bandung&type=putri");
   await waitForReady(page);
 
-  await page.getByRole("button", { name: "Hapus semua filter" }).click();
+  await page.getByRole("button", { name: "Clear all filters" }).click();
 
   await expect(page).toHaveURL(/\/kos$/);
   await expect(page.getByText("Nara House Kemang")).toBeVisible();
@@ -103,7 +103,7 @@ test("opens a kos detail page from search results and browser back returns to th
   await page.goto("/kos?q=Jakarta");
   await waitForReady(page);
 
-  await page.getByRole("link", { name: "Lihat detail" }).first().click();
+  await page.getByRole("link", { name: "View details" }).first().click();
   await expect(page).toHaveURL(/\/kos\/senja-setiabudi/);
   await expect(
     page.getByRole("heading", { name: "Papikos Senja Setiabudi" }),
@@ -113,7 +113,7 @@ test("opens a kos detail page from search results and browser back returns to th
   // homepage, favorites, and both consoles, and only browser history knows
   // which of those the renter actually came from.
   await expect(
-    page.getByRole("link", { name: "Kembali ke hasil" }),
+    page.getByRole("link", { name: "Kembali ke results" }),
   ).toHaveCount(0);
 
   await page.goBack();
@@ -127,7 +127,7 @@ test("amenities filter requires every selected amenity (AND semantics)", async (
   await page.goto("/kos");
   await waitForReady(page);
 
-  await page.getByRole("button", { name: "Dapur", exact: true }).click();
+  await page.getByRole("button", { name: "Kitchen", exact: true }).click();
   await page.getByRole("button", { name: "Laundry", exact: true }).click();
 
   await expect(page).toHaveURL(/amenities=/);
@@ -147,11 +147,11 @@ test("availability and verified toggles narrow results and survive a reload", as
   await expect(page.getByText("Kos Melati Tebet")).toBeVisible();
   await expect(page.getByText("Ruang Teduh Keputih")).toBeVisible();
 
-  await page.getByRole("checkbox", { name: "Masih ada kamar kosong" }).check();
+  await page.getByRole("checkbox", { name: "Has rooms available" }).check();
   await expect(page).toHaveURL(/available=1/);
   await expect(page.getByText("Kos Melati Tebet")).toHaveCount(0);
 
-  await page.getByRole("checkbox", { name: "Hanya kos terverifikasi" }).check();
+  await page.getByRole("checkbox", { name: "Verified kos only" }).check();
   await expect(page).toHaveURL(/verified=1/);
   await expect(page.getByText("Ruang Teduh Keputih")).toHaveCount(0);
 
@@ -159,10 +159,10 @@ test("availability and verified toggles narrow results and survive a reload", as
   await waitForReady(page);
 
   await expect(
-    page.getByRole("checkbox", { name: "Masih ada kamar kosong" }),
+    page.getByRole("checkbox", { name: "Has rooms available" }),
   ).toBeChecked();
   await expect(
-    page.getByRole("checkbox", { name: "Hanya kos terverifikasi" }),
+    page.getByRole("checkbox", { name: "Verified kos only" }),
   ).toBeChecked();
   await expect(page.getByText("Kos Melati Tebet")).toHaveCount(0);
   await expect(page.getByText("Ruang Teduh Keputih")).toHaveCount(0);

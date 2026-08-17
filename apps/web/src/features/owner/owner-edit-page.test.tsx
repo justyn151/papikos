@@ -22,24 +22,24 @@ function storedOverride() {
 }
 
 function save() {
-  fireEvent.click(screen.getByRole("button", { name: "Simpan perubahan" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 }
 
 describe("owner listing editor", () => {
   it("prefills the form from the listing", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    expect(await screen.findByLabelText("Nama kos")).toHaveValue(listing.name);
-    expect(screen.getByLabelText("Kota")).toHaveValue(listing.city);
-    expect(screen.getAllByLabelText("Nama kamar")[0]).toHaveValue(
-      listing.rooms[0].name.id,
+    expect(await screen.findByLabelText("Kos name")).toHaveValue(listing.name);
+    expect(screen.getByLabelText("City")).toHaveValue(listing.city);
+    expect(screen.getAllByLabelText("Room name")[0]).toHaveValue(
+      listing.rooms[0].name.en,
     );
   });
 
   it("saves an edit and records who made it", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    fireEvent.change(await screen.findByLabelText("Nama kos"), {
+    fireEvent.change(await screen.findByLabelText("Kos name"), {
       target: { value: "Kos Senja Baru" },
     });
     save();
@@ -60,7 +60,7 @@ describe("owner listing editor", () => {
   it("prices the kos from its cheapest room instead of a typed number", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    const prices = await screen.findAllByLabelText("Harga");
+    const prices = await screen.findAllByLabelText("Price");
     fireEvent.change(prices[0], { target: { value: "1250000" } });
     fireEvent.change(prices[1], { target: { value: "3000000" } });
     save();
@@ -73,14 +73,14 @@ describe("owner listing editor", () => {
   it("rejects a discount outside the sensible range", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    fireEvent.change(await screen.findByLabelText("Diskon (%)"), {
+    fireEvent.change(await screen.findByLabelText("Discount (%)"), {
       target: { value: "150" },
     });
     save();
 
     // A 150% discount would pay the renter to move in.
     expect(
-      screen.getByText("Diskon harus antara 1% dan 90%."),
+      screen.getByText("The discount must be between 1% and 90%."),
     ).toBeInTheDocument();
     expect(storedOverride()).toEqual([]);
   });
@@ -88,7 +88,7 @@ describe("owner listing editor", () => {
   it("stores the percentage and the price it produces", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    fireEvent.change(await screen.findByLabelText("Diskon (%)"), {
+    fireEvent.change(await screen.findByLabelText("Discount (%)"), {
       target: { value: "10" },
     });
     save();
@@ -103,13 +103,13 @@ describe("owner listing editor", () => {
   it("refuses to save a kos with no name", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    fireEvent.change(await screen.findByLabelText("Nama kos"), {
+    fireEvent.change(await screen.findByLabelText("Kos name"), {
       target: { value: "   " },
     });
     save();
 
     expect(
-      screen.getByText("Nama kos tidak boleh kosong."),
+      screen.getByText("The kos name cannot be empty."),
     ).toBeInTheDocument();
     expect(storedOverride()).toEqual([]);
   });
@@ -117,25 +117,25 @@ describe("owner listing editor", () => {
   it("restores the seeded data on reset", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    fireEvent.change(await screen.findByLabelText("Nama kos"), {
+    fireEvent.change(await screen.findByLabelText("Kos name"), {
       target: { value: "Sementara" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Simpan perubahan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(storedOverride()).toHaveLength(1));
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Kembalikan ke data awal" }),
+      screen.getByRole("button", { name: "Restore original data" }),
     );
 
     // Reset deletes the override so the seed shows through again.
     await waitFor(() => expect(storedOverride()).toEqual([]));
-    expect(screen.getByLabelText("Nama kos")).toHaveValue(listing.name);
+    expect(screen.getByLabelText("Kos name")).toHaveValue(listing.name);
   });
 
   it("edits room availability", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    const roomInputs = await screen.findAllByLabelText("Kamar kosong");
+    const roomInputs = await screen.findAllByLabelText("Rooms free");
     fireEvent.change(roomInputs[0], { target: { value: "0" } });
     save();
 
@@ -174,10 +174,10 @@ describe("loading an already-edited kos", () => {
     // render, the owner would see the seeded kos and saving would overwrite
     // everything they had already changed.
     await waitFor(() =>
-      expect(screen.getByLabelText("Nama kos")).toHaveValue("Kos Tersimpan"),
+      expect(screen.getByLabelText("Kos name")).toHaveValue("Kos Tersimpan"),
     );
-    expect(screen.getAllByLabelText("Nama kamar")).toHaveLength(1);
-    expect(screen.getByLabelText("Nama kamar")).toHaveValue("Kamar Tersimpan");
+    expect(screen.getAllByLabelText("Room name")).toHaveLength(1);
+    expect(screen.getByLabelText("Room name")).toHaveValue("Kamar Tersimpan");
   });
 });
 
@@ -185,13 +185,13 @@ describe("adding and removing rooms", () => {
   it("adds a room the owner can fill in", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Tambah kamar" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add room" }));
 
-    const names = screen.getAllByLabelText("Nama kamar");
+    const names = screen.getAllByLabelText("Room name");
     expect(names).toHaveLength(listing.rooms.length + 1);
 
     fireEvent.change(names.at(-1)!, { target: { value: "Kamar Atas" } });
-    fireEvent.change(screen.getAllByLabelText("Harga").at(-1)!, {
+    fireEvent.change(screen.getAllByLabelText("Price").at(-1)!, {
       target: { value: "3000000" },
     });
     save();
@@ -212,7 +212,7 @@ describe("adding and removing rooms", () => {
     fireEvent.click(
       (
         await screen.findAllByRole("button", {
-          name: `Hapus kamar: ${listing.rooms[1].name.id}`,
+          name: `Remove room: ${listing.rooms[1].name.en}`,
         })
       )[0],
     );
@@ -230,19 +230,19 @@ describe("adding and removing rooms", () => {
 
     for (const room of listing.rooms.slice(1)) {
       fireEvent.click(
-        screen.getByRole("button", { name: `Hapus kamar: ${room.name.id}` }),
+        screen.getByRole("button", { name: `Remove room: ${room.name.en}` }),
       );
     }
     fireEvent.click(
       screen.getByRole("button", {
-        name: `Hapus kamar: ${listing.rooms[0].name.id}`,
+        name: `Remove room: ${listing.rooms[0].name.en}`,
       }),
     );
 
     expect(
-      screen.getByText("Kos harus punya minimal satu kamar."),
+      screen.getByText("A kos needs at least one room."),
     ).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Nama kamar")).toHaveLength(1);
+    expect(screen.getAllByLabelText("Room name")).toHaveLength(1);
   });
 
   it("refuses to remove a room a renter has a live request for", async () => {
@@ -269,7 +269,7 @@ describe("adding and removing rooms", () => {
 
     fireEvent.click(
       await screen.findByRole("button", {
-        name: `Hapus kamar: ${booked.name.id}`,
+        name: `Remove room: ${booked.name.en}`,
       }),
     );
 
@@ -277,10 +277,10 @@ describe("adding and removing rooms", () => {
     // report pointing at a room that no longer exists.
     expect(
       screen.getByText(
-        "Kamar ini punya permintaan sewa yang masih berjalan, jadi belum bisa dihapus.",
+        "This room has a rental request still running, so it cannot be removed yet.",
       ),
     ).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Nama kamar")).toHaveLength(
+    expect(screen.getAllByLabelText("Room name")).toHaveLength(
       listing.rooms.length,
     );
   });
@@ -290,13 +290,13 @@ describe("cost rows", () => {
   it("adds the owner's own cost row, with the reason behind it", async () => {
     render(<OwnerEditPage listing={listing} />);
 
-    fireEvent.change(await screen.findByLabelText("Tambah biaya"), {
+    fireEvent.change(await screen.findByLabelText("Add cost"), {
       target: { value: "Iuran kebersihan" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Tambah biaya" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add cost" }));
     fireEvent.change(
-      screen.getByLabelText("Penjelasan: Iuran kebersihan"),
-      { target: { value: "Ditagih tiap awal bulan" } },
+      screen.getByLabelText("Explanation: Iuran kebersihan"),
+      { target: { value: "Ditagih tiap awal months" } },
     );
     save();
 
@@ -307,7 +307,7 @@ describe("cost rows", () => {
         expect.objectContaining({
           label: "Iuran kebersihan",
           included: false,
-          note: "Ditagih tiap awal bulan",
+          note: "Ditagih tiap awal months",
         }),
       ]),
     );
@@ -319,7 +319,7 @@ describe("cost rows", () => {
 
     fireEvent.click(
       await screen.findByRole("button", {
-        name: `Hapus biaya: ${removed.label.id}`,
+        name: `Remove cost: ${removed.label.en}`,
       }),
     );
     save();

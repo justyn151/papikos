@@ -1,6 +1,6 @@
 # Papikos
 
-Papikos is a cross-platform Indonesian kos marketplace in development. The current bilingual web prototype includes listing discovery, transparent preference matching, and complete kos detail pages with room, cost, location, verification, booking-request, and structured Q&A interactions.
+Papikos is a cross-platform Indonesian kos marketplace in development. The current web prototype (English-only for now) includes listing discovery, transparent preference matching, and complete kos detail pages with room, cost, location, verification, booking-request, and structured Q&A interactions.
 
 Project tracking:
 

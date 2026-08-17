@@ -26,10 +26,10 @@ describe("Papikos homepage", () => {
 
     render(<HomePage />);
 
-    fireEvent.change(screen.getByLabelText("Lokasi"), {
+    fireEvent.change(screen.getByLabelText("Location"), {
       target: { value: "Bandung" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Cari kos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Find a kos" }));
 
     expect(assign).toHaveBeenCalledWith("/kos?q=Bandung");
 
@@ -43,7 +43,7 @@ describe("Papikos homepage", () => {
     render(<HomePage />);
 
     expect(document.querySelectorAll(".listing-card")).toHaveLength(8);
-    expect(screen.queryByLabelText("Tipe kos")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Kos type")).not.toBeInTheDocument();
   });
 
   it("keeps the header search focused on renter location search and the hero as a plain CTA", () => {
@@ -51,30 +51,30 @@ describe("Papikos homepage", () => {
 
     const header = screen.getByRole("banner");
     expect(within(header).getByLabelText("Papikos")).toBeInTheDocument();
-    expect(within(header).getByRole("link", { name: "Masuk" })).toHaveAttribute(
+    expect(within(header).getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
       "/masuk",
     );
     expect(within(header).queryByRole("navigation")).not.toBeInTheDocument();
 
-    expect(screen.getAllByLabelText("Lokasi")).toHaveLength(1);
-    const heroCta = screen.getByRole("link", { name: "Mulai cari kos" });
+    expect(screen.getAllByLabelText("Location")).toHaveLength(1);
+    const heroCta = screen.getByRole("link", { name: "Start searching" });
     expect(heroCta).toHaveAttribute("href", "/kos");
   });
 
   it("links popular locations and the explore-all CTA to the search page", () => {
     render(<HomePage />);
 
-    const popularLocations = screen.getByLabelText("Lokasi populer");
+    const popularLocations = screen.getByLabelText("Popular locations");
     expect(
       within(popularLocations).getByRole("link", { name: "Bandung" }),
     ).toHaveAttribute("href", "/kos?q=Bandung");
     expect(
-      within(popularLocations).getByRole("link", { name: /^Semua$/ }),
+      within(popularLocations).getByRole("link", { name: /^All$/ }),
     ).toHaveAttribute("href", "/kos");
 
     expect(
-      screen.getByRole("link", { name: "Lihat semua kos" }),
+      screen.getByRole("link", { name: "See all kos" }),
     ).toHaveAttribute("href", "/kos");
   });
 
@@ -82,12 +82,27 @@ describe("Papikos homepage", () => {
     render(<HomePage />);
 
     expect(
-      screen.getByRole("heading", { name: "Kos yang layak dilihat" }),
+      screen.getByRole("heading", { name: "Kos worth a closer look" }),
     ).toBeVisible();
     expect(
       document.querySelectorAll('[data-reveal="static"]').length,
     ).toBeGreaterThan(0);
   });
+
+  it("renders in English, with no language or theme switch to change it", () => {
+    render(<HomePage />);
+
+    // Both switches are commented out in site-header.tsx while the app is
+    // English-only and light-only; see the note in preferences.tsx.
+    expect(screen.queryByRole("button", { name: "EN" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "ID" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /mode|dark|light/i }),
+    ).not.toBeInTheDocument();
+    expect(document.documentElement).not.toHaveAttribute("data-theme", "dark");
+  });
+
+/* The switching these replaced, kept for when the toggles come back:
 
   it("switches all primary copy to English and persists the locale", async () => {
     render(<HomePage />);
@@ -118,10 +133,12 @@ describe("Papikos homepage", () => {
     ).toBeVisible();
   });
 
+*/
+
   it("persists favorites locally", async () => {
     render(<HomePage />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Simpan ke favorit" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Save to favorites" })[0]);
 
     await waitFor(() =>
       expect(window.localStorage.getItem("papikos.favorites")).toContain(
@@ -134,17 +151,17 @@ describe("Papikos homepage", () => {
     render(<HomePage />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Coba survei preferensi" }),
+      screen.getByRole("button", { name: "Try the preference survey" }),
     );
     expect(
-      screen.getByRole("dialog", { name: "Ceritakan kos idealmu" }),
+      screen.getByRole("dialog", { name: "Tell us about your ideal kos" }),
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Tampilkan kecocokan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show my matches" }));
 
     expect(
-      await screen.findByText("Rekomendasi dari preferensimu"),
+      await screen.findByText("Recommendations from your preferences"),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/cocok$/).length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByText(/match$/).length).toBeGreaterThanOrEqual(3);
   });
 });

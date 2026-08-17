@@ -39,9 +39,9 @@ describe("favorites page", () => {
     render(<FavoritesPage />);
 
     expect(
-      await screen.findByText("Belum ada kos favorit"),
+      await screen.findByText("No saved kos yet"),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Cari kos" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Find a kos" })).toHaveAttribute(
       "href",
       "/kos",
     );
@@ -67,10 +67,10 @@ describe("favorites page", () => {
     render(<FavoritesPage />);
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Hapus dari favorit" }),
+      await screen.findByRole("button", { name: "Remove from favorites" }),
     );
 
-    expect(await screen.findByText("Belum ada kos favorit")).toBeInTheDocument();
+    expect(await screen.findByText("No saved kos yet")).toBeInTheDocument();
     await waitFor(() =>
       expect(window.localStorage.getItem(FAVORITES_STORAGE_KEY)).toBe("[]"),
     );
@@ -82,7 +82,7 @@ describe("renter requests page", () => {
     render(<RequestsPage />);
 
     expect(
-      await screen.findByText("Belum ada permintaan sewa"),
+      await screen.findByText("No rental requests yet"),
     ).toBeInTheDocument();
   });
 
@@ -93,7 +93,7 @@ describe("renter requests page", () => {
     expect(
       await screen.findByText("Papikos Senja Setiabudi"),
     ).toBeInTheDocument();
-    expect(screen.getAllByText("Menunggu").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Pending").length).toBeGreaterThan(0);
   });
 
   it("cancels a pending request and records it in the history", async () => {
@@ -101,11 +101,11 @@ describe("renter requests page", () => {
     render(<RequestsPage />);
 
     fireEvent.click(
-      await screen.findByRole("button", { name: "Batalkan permintaan" }),
+      await screen.findByRole("button", { name: "Cancel request" }),
     );
 
     // The badge shows both as the headline status and in the history list.
-    expect((await screen.findAllByText("Dibatalkan")).length).toBeGreaterThan(1);
+    expect((await screen.findAllByText("Cancelled")).length).toBeGreaterThan(1);
     await waitFor(() => {
       const stored = JSON.parse(
         window.localStorage.getItem(BOOKINGS_STORAGE_KEY) ?? "[]",
@@ -125,9 +125,9 @@ describe("renter requests page", () => {
     });
     render(<RequestsPage />);
 
-    expect((await screen.findAllByText("Disetujui")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("Approved")).length).toBeGreaterThan(0);
     expect(
-      screen.queryByRole("button", { name: "Batalkan permintaan" }),
+      screen.queryByRole("button", { name: "Cancel request" }),
     ).not.toBeInTheDocument();
   });
 
@@ -152,7 +152,7 @@ describe("renter requests page", () => {
 
     expect(await screen.findByText("Kos Asri Dago")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Batalkan permintaan" }),
+      screen.getByRole("button", { name: "Cancel request" }),
     ).toBeInTheDocument();
   });
 });

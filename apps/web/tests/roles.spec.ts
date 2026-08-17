@@ -4,7 +4,7 @@ import { openRequestDialog, waitForReady } from "./helpers";
 
 async function switchRole(
   page: import("@playwright/test").Page,
-  label: "Penyewa" | "Pemilik kos" | "Admin",
+  label: "Renter" | "Owner" | "Admin",
 ) {
   await page.getByRole("button", { name: label, exact: true }).click();
 }
@@ -18,37 +18,37 @@ test("a rental request travels from renter to owner and back", async ({
   await waitForReady(page);
 
   await openRequestDialog(page);
-  await page.getByRole("button", { name: "Kirim permintaan" }).click();
+  await page.getByRole("button", { name: "Submit request" }).click();
   await expect(
-    page.getByRole("heading", { name: "Permintaan sewa terkirim" }),
+    page.getByRole("heading", { name: "Rental request submitted" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Tutup" }).click();
+  await page.getByRole("button", { name: "Close" }).click();
 
   // Renter sees it as pending.
   await page.goto("/permintaan");
   await waitForReady(page);
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
-  await expect(page.getByText("Menunggu").first()).toBeVisible();
+  await expect(page.getByText("Pending").first()).toBeVisible();
 
   // Owner sees the same record and approves it.
-  await switchRole(page, "Pemilik kos");
+  await switchRole(page, "Owner");
   await page.goto("/pemilik/permintaan");
   await waitForReady(page);
   await expect(page.getByText("Papikos Senja Setiabudi")).toBeVisible();
-  await page.getByRole("button", { name: "Setujui" }).click();
-  await expect(page.getByText("Sudah diputuskan")).toBeVisible();
+  await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByText("Already decided")).toBeVisible();
 
   // The decision is visible to the renter, with both history entries kept.
-  await switchRole(page, "Penyewa");
+  await switchRole(page, "Renter");
   await page.goto("/permintaan");
   await waitForReady(page);
-  await expect(page.getByText("Disetujui").first()).toBeVisible();
+  await expect(page.getByText("Approved").first()).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Batalkan permintaan" }),
+    page.getByRole("button", { name: "Cancel request" }),
   ).toHaveCount(0);
 
-  await page.getByText("Riwayat status").click();
-  await expect(page.getByText("oleh pemilik")).toBeVisible();
+  await page.getByText("Status history").click();
+  await expect(page.getByText("by owner")).toBeVisible();
 });
 
 test("an owner answer reaches the kos page", async ({ page }) => {
@@ -56,11 +56,11 @@ test("an owner answer reaches the kos page", async ({ page }) => {
   await waitForReady(page);
 
   await page
-    .getByLabel("Pertanyaanmu")
+    .getByLabel("Your question")
     .fill("Apakah ada jam malam untuk penghuni?");
-  await page.getByRole("button", { name: "Kirim pertanyaan" }).click();
+  await page.getByRole("button", { name: "Submit question" }).click();
   await expect(
-    page.getByText("Pertanyaan tersimpan untuk pemilik (prototipe)."),
+    page.getByText("Question saved for the owner (prototype)."),
   ).toBeVisible();
 
   // A pending question stays private between renter and owner.
@@ -72,8 +72,8 @@ test("an owner answer reaches the kos page", async ({ page }) => {
 
   await page.goto("/pemilik/tanya-jawab");
   await waitForReady(page);
-  await page.getByLabel("Jawabanmu").fill("Tidak ada jam malam, akses 24 jam.");
-  await page.getByRole("button", { name: "Kirim jawaban" }).click();
+  await page.getByLabel("Your answer").fill("Tidak ada jam malam, akses 24 jam.");
+  await page.getByRole("button", { name: "Send answer" }).click();
 
   // Once answered it becomes useful to everyone.
   await page.goto("/kos/senja-setiabudi");
@@ -96,8 +96,8 @@ test("an admin suspension removes a kos from renter search and is audited", asyn
     .locator("li")
     .filter({ hasText: "Papikos Senja Setiabudi" })
     .first();
-  await row.getByRole("button", { name: "Tangguhkan" }).click();
-  await expect(row.getByText("Ditangguhkan")).toBeVisible();
+  await row.getByRole("button", { name: "Suspend" }).click();
+  await expect(row.getByText("Suspended")).toBeVisible();
 
   await page.goto("/kos");
   await waitForReady(page);
@@ -116,14 +116,14 @@ test("saved kos are listed on the favorites page", async ({ page }) => {
 
   const firstCard = page.locator(".listing-card").first();
   const name = await firstCard.locator("h3").innerText();
-  await firstCard.getByRole("button", { name: "Simpan ke favorit" }).click();
+  await firstCard.getByRole("button", { name: "Save to favorites" }).click();
 
-  await page.getByRole("link", { name: "Kos favorit" }).click();
+  await page.getByRole("link", { name: "Saved kos" }).click();
   await expect(page).toHaveURL(/\/favorit$/);
   await expect(page.getByText(name)).toBeVisible();
 
-  await page.getByRole("button", { name: "Hapus dari favorit" }).click();
-  await expect(page.getByText("Belum ada kos favorit")).toBeVisible();
+  await page.getByRole("button", { name: "Remove from favorites" }).click();
+  await expect(page.getByText("No saved kos yet")).toBeVisible();
 });
 
 test("a cost row explains itself and rules out in-app payment", async ({
@@ -133,13 +133,13 @@ test("a cost row explains itself and rules out in-app payment", async ({
   await waitForReady(page);
 
   await page
-    .getByRole("button", { name: "Listrik — Lihat penjelasan biaya" })
+    .getByRole("button", { name: "Electricity — See how this charge works" })
     .click();
 
-  const dialog = page.getByRole("dialog", { name: "Penjelasan biaya" });
+  const dialog = page.getByRole("dialog", { name: "Cost explanation" });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByText(/meteran/)).toBeVisible();
-  await expect(dialog.getByText(/tidak memproses pembayaran/)).toBeVisible();
+  await expect(dialog.getByText(/room's meter/)).toBeVisible();
+  await expect(dialog.getByText(/does not process payments/)).toBeVisible();
 });
 
 test("an owner edit reaches renter search, filtering, and the audit trail", async ({
@@ -148,25 +148,25 @@ test("an owner edit reaches renter search, filtering, and the audit trail", asyn
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
-  await page.getByLabel("Nama kos").fill("Kos Senja Diperbarui");
+  await page.getByLabel("Kos name").fill("Kos Senja Updated");
   // The headline price follows the cheapest room, and the discount is a
   // percentage, so both are set through what the owner actually decides.
-  await page.getByLabel("Harga", { exact: true }).first().fill("2000000");
-  await page.getByLabel("Diskon (%)").fill("15");
-  await page.getByRole("button", { name: "Simpan perubahan" }).click();
-  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+  await page.getByLabel("Price", { exact: true }).first().fill("2000000");
+  await page.getByLabel("Discount (%)").fill("15");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
 
   await page.goto("/kos?q=Senja");
   await waitForReady(page);
   const card = page.locator(".listing-card").first();
-  await expect(card).toContainText("Kos Senja Diperbarui");
+  await expect(card).toContainText("Kos Senja Updated");
   await expect(card).toContainText("-15%");
-  await expect(card).toContainText("Rp 1.700.000");
+  await expect(card).toContainText("IDR 1,700,000");
 
   // The discounted price, not the list price, is what a budget filter matches.
   await page.goto("/kos?max=1800000");
   await waitForReady(page);
-  await expect(page.getByText("Kos Senja Diperbarui")).toBeVisible();
+  await expect(page.getByText("Kos Senja Updated")).toBeVisible();
 
   await page.goto("/admin/audit");
   await waitForReady(page);
@@ -177,12 +177,12 @@ test("resetting an edit restores the seeded listing", async ({ page }) => {
   await page.goto("/pemilik/kos/asri-dago");
   await waitForReady(page);
 
-  await page.getByLabel("Nama kos").fill("Nama Sementara");
-  await page.getByRole("button", { name: "Simpan perubahan" }).click();
-  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+  await page.getByLabel("Kos name").fill("Nama Sementara");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
 
-  await page.getByRole("button", { name: "Kembalikan ke data awal" }).click();
-  await expect(page.getByLabel("Nama kos")).toHaveValue("Kos Asri Dago");
+  await page.getByRole("button", { name: "Restore original data" }).click();
+  await expect(page.getByLabel("Kos name")).toHaveValue("Kos Asri Dago");
 
   await page.goto("/kos?q=Dago");
   await waitForReady(page);
@@ -194,34 +194,34 @@ test("an approved request shows up as owner earnings net of commission", async (
 }) => {
   await page.goto("/pemilik");
   await waitForReady(page);
-  await expect(page.getByText("dari 0 permintaan disetujui")).toBeVisible();
+  await expect(page.getByText("from 0 approved requests")).toBeVisible();
 
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
   await openRequestDialog(page);
-  await page.getByRole("button", { name: "Kirim permintaan" }).click();
-  await page.getByRole("button", { name: "Tutup" }).click();
+  await page.getByRole("button", { name: "Submit request" }).click();
+  await page.getByRole("button", { name: "Close" }).click();
 
   await page.goto("/pemilik/permintaan");
   await waitForReady(page);
-  await page.getByRole("button", { name: "Setujui" }).click();
-  await expect(page.getByText("Sudah diputuskan")).toBeVisible();
+  await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByText("Already decided")).toBeVisible();
 
   await page.goto("/pemilik");
   await waitForReady(page);
-  await expect(page.getByText("dari 1 permintaan disetujui")).toBeVisible();
+  await expect(page.getByText("from 1 approved requests")).toBeVisible();
 
   // Gross, the platform's cut, and what actually reaches the owner are all
   // shown; the commission is what makes the last two differ.
   const earnings = page
     .locator("section")
-    .filter({ hasText: "Pendapatan bulan ini" })
+    .filter({ hasText: "Earnings this month" })
     .first();
-  await expect(earnings.getByText("Pendapatan kotor")).toBeVisible();
-  await expect(earnings.getByText("Komisi Papikos")).toBeVisible();
-  await expect(earnings.getByText("Diterima pemilik")).toBeVisible();
-  await expect(earnings.getByText(/Papikos tidak menerima/)).toBeVisible();
-  await expect(earnings.getByText("Rp 0")).toHaveCount(0);
+  await expect(earnings.getByText("Gross earnings")).toBeVisible();
+  await expect(earnings.getByText("Papikos commission")).toBeVisible();
+  await expect(earnings.getByText("Owner receives")).toBeVisible();
+  await expect(earnings.getByText(/Papikos never receives/)).toBeVisible();
+  await expect(earnings.getByText("IDR 0")).toHaveCount(0);
 });
 
 test("an uploaded photo becomes the kos cover and survives a reload", async ({
@@ -230,8 +230,8 @@ test("an uploaded photo becomes the kos cover and survives a reload", async ({
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
-  await expect(page.getByText("Belum ada foto")).toBeVisible();
-  await page.getByLabel("Tambah foto").setInputFiles({
+  await expect(page.getByText("No photos yet")).toBeVisible();
+  await page.getByLabel("Add photos").setInputFiles({
     name: "kamar.png",
     mimeType: "image/png",
     // A 1x1 PNG: enough for the browser to decode, downscale, and re-encode.
@@ -240,17 +240,17 @@ test("an uploaded photo becomes the kos cover and survives a reload", async ({
       "base64",
     ),
   });
-  await expect(page.getByText("1 dari 20 foto")).toBeVisible();
-  await page.getByRole("button", { name: "Simpan perubahan" }).click();
-  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+  await expect(page.getByText("1 of 20 photos")).toBeVisible();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
 
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
-  await expect(page.getByRole("img", { name: "Foto pemilik 1" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Owner photo 1" })).toBeVisible();
 
   await page.reload();
   await waitForReady(page);
-  await expect(page.getByRole("img", { name: "Foto pemilik 1" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Owner photo 1" })).toBeVisible();
 });
 
 test("a custom house rule reaches renters alongside the standard ones", async ({
@@ -259,20 +259,20 @@ test("a custom house rule reaches renters alongside the standard ones", async ({
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
-  await page.getByLabel("Peraturan tambahan").fill("Jam tamu maksimal 21.00");
-  await page.getByRole("button", { name: "Tambah peraturan" }).click();
-  await page.getByRole("button", { name: "Simpan perubahan" }).click();
-  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+  await page.getByLabel("Additional rules").fill("Jam tamu maksimal 21.00");
+  await page.getByRole("button", { name: "Add rule" }).click();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
 
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
   const rules = page
     .locator("section")
-    .filter({ hasText: "Peraturan kos" })
+    .filter({ hasText: "House rules" })
     .first();
   await expect(rules.getByText("Jam tamu maksimal 21.00")).toBeVisible();
   // The standard set is not replaced by the custom one.
-  await expect(rules.getByText("Tamu wajib melapor")).toBeVisible();
+  await expect(rules.getByText("Guests must be registered")).toBeVisible();
 });
 
 test("a room the owner adds is bookable, and the last one cannot be deleted", async ({
@@ -281,27 +281,27 @@ test("a room the owner adds is bookable, and the last one cannot be deleted", as
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
-  await page.getByRole("button", { name: "Tambah kamar" }).click();
-  await page.getByLabel("Nama kamar").last().fill("Kamar Atas");
-  await page.getByLabel("Harga", { exact: true }).last().fill("3000000");
-  await page.getByLabel("Kamar kosong").last().fill("2");
-  await page.getByRole("button", { name: "Simpan perubahan" }).click();
-  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+  await page.getByRole("button", { name: "Add room" }).click();
+  await page.getByLabel("Room name").last().fill("Upstairs room");
+  await page.getByLabel("Price", { exact: true }).last().fill("3000000");
+  await page.getByLabel("Rooms free").last().fill("2");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
 
   // The renter sees the new room in the comparison and can request it.
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
-  await expect(page.getByText("Kamar Atas").first()).toBeVisible();
+  await expect(page.getByText("Upstairs room").first()).toBeVisible();
 
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
-  for (const name of ["Kamar Atas", "Kamar Plus", "Kamar Standard"]) {
-    await page.getByRole("button", { name: `Hapus kamar: ${name}` }).click();
+  for (const name of ["Upstairs room", "Plus room", "Standard room"]) {
+    await page.getByRole("button", { name: `Remove room: ${name}` }).click();
   }
 
   // A kos with no rooms cannot be priced or rented, so the last one stays.
-  await expect(page.getByText("Kos harus punya minimal satu kamar.")).toBeVisible();
-  await expect(page.getByLabel("Nama kamar")).toHaveCount(1);
+  await expect(page.getByText("A kos needs at least one room.")).toBeVisible();
+  await expect(page.getByLabel("Room name")).toHaveCount(1);
 });
 
 test("a cost the owner adds reaches renters with the reason behind it", async ({
@@ -310,24 +310,24 @@ test("a cost the owner adds reaches renters with the reason behind it", async ({
   await page.goto("/pemilik/kos/senja-setiabudi");
   await waitForReady(page);
 
-  await page.getByLabel("Tambah biaya").fill("Iuran kebersihan");
-  await page.getByRole("button", { name: "Tambah biaya" }).click();
+  await page.getByLabel("Add cost").fill("Iuran kebersihan");
+  await page.getByRole("button", { name: "Add cost" }).click();
   await page
-    .getByLabel("Penjelasan: Iuran kebersihan")
-    .fill("Ditagih tiap awal bulan bersama listrik.");
-  await page.getByLabel("Nominal").last().fill("50000");
-  await page.getByRole("button", { name: "Simpan perubahan" }).click();
-  await expect(page.getByText("Perubahan tersimpan.")).toBeVisible();
+    .getByLabel("Explanation: Iuran kebersihan")
+    .fill("Ditagih tiap awal months bersama listrik.");
+  await page.getByLabel("Amount").last().fill("50000");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
 
   await page.goto("/kos/senja-setiabudi");
   await waitForReady(page);
   await page
-    .getByRole("button", { name: "Iuran kebersihan — Lihat penjelasan biaya" })
+    .getByRole("button", { name: "Iuran kebersihan — See how this charge works" })
     .click();
 
   // Papikos has no seeded copy for a charge it has never heard of, so the
   // owner's own words are the only explanation there is.
-  const dialog = page.getByRole("dialog", { name: "Penjelasan biaya" });
-  await expect(dialog.getByText("Ditagih tiap awal bulan bersama listrik.")).toBeVisible();
-  await expect(dialog.getByText(/tidak memproses pembayaran/)).toBeVisible();
+  const dialog = page.getByRole("dialog", { name: "Cost explanation" });
+  await expect(dialog.getByText("Ditagih tiap awal months bersama listrik.")).toBeVisible();
+  await expect(dialog.getByText(/does not process payments/)).toBeVisible();
 });

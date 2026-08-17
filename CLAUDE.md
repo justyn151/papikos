@@ -7,7 +7,7 @@ This repository is an npm-workspaces monorepo. Only `apps/web/` is scaffolded to
 - `apps/web/` — Next.js (React 19) web application, deployed to Cloudflare Workers via OpenNext/Wrangler. Feature code lives under `apps/web/src/features/` (e.g. `home`, `listings`, `preferences`); routes live under `apps/web/src/app/`.
 - `apps/mobile/`, `apps/desktop/`, `apps/api/`, `packages/` — not yet scaffolded. Per `TODO.md`, these are planned next: a NestJS + Prisma + PostgreSQL API, then Expo (mobile) and Tauri (desktop) clients, then shared `packages/` for domain types and a generated API client.
 
-There is currently no backend. `apps/web` runs entirely as a prototype: mock listing data lives in `apps/web/src/features/listings/`, and locale, favorites, survey preferences, booking requests, questions, and reports are all stored in the browser (localStorage); search filters use URL parameters.
+There is currently no backend. `apps/web` runs entirely as a prototype: mock listing data lives in `apps/web/src/features/listings/`, and favorites, survey preferences, booking requests, questions, and reports are all stored in the browser (localStorage); search filters use URL parameters.
 
 Organize application code by product feature, not technical layer. Keep unit and integration tests beside their features (see `*.test.ts(x)` files inside `apps/web/src/features/`); place cross-application end-to-end tests in `apps/web/tests/` (Playwright). Store platform-specific static files in each application's `public/` or `assets/` directory.
 

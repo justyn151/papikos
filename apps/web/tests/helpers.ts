@@ -19,13 +19,13 @@ export async function openRequestDialog(page: Page) {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   } else {
     await page
-      .getByRole("heading", { name: "Rincian biaya" })
+      .getByRole("heading", { name: "Cost breakdown" })
       .scrollIntoViewIfNeeded();
   }
 
   const cta = page
     .locator("button:visible")
-    .filter({ hasText: "Ajukan sewa" })
+    .filter({ hasText: "Request to rent" })
     .first();
   await expect(cta).toBeInViewport();
   await cta.click();

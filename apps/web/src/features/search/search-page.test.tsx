@@ -26,7 +26,7 @@ describe("Papikos search page", () => {
     render(<SearchPage initialFilters={defaultFilters} />);
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Putri" }),
+      screen.getByRole("button", { name: "Women only" }),
     );
 
     expect(screen.queryByText("Nara House Kemang")).not.toBeInTheDocument();
@@ -40,10 +40,10 @@ describe("Papikos search page", () => {
   it("combines location, type, price range, and amenities filters", async () => {
     render(<SearchPage initialFilters={defaultFilters} />);
 
-    fireEvent.change(screen.getByLabelText("Harga minimum"), {
+    fireEvent.change(screen.getByLabelText("Minimum price"), {
       target: { value: "1500000" },
     });
-    fireEvent.change(screen.getByLabelText("Harga maksimum"), {
+    fireEvent.change(screen.getByLabelText("Maximum price"), {
       target: { value: "2000000" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Laundry" }));
@@ -55,7 +55,7 @@ describe("Papikos search page", () => {
       amenities: ["laundry"],
     });
 
-    expect(screen.getByText(`${expected.length} hasil`)).toBeInTheDocument();
+    expect(screen.getByText(`${expected.length} results`)).toBeInTheDocument();
     for (const listing of expected) {
       expect(screen.getByText(listing.name)).toBeInTheDocument();
     }
@@ -70,7 +70,7 @@ describe("Papikos search page", () => {
     const replaceState = vi.spyOn(window.history, "replaceState");
     render(<SearchPage initialFilters={defaultFilters} />);
 
-    const maxSlider = screen.getByLabelText("Harga maksimum");
+    const maxSlider = screen.getByLabelText("Maximum price");
     // A real drag emits an input event per pixel; writing history on each one
     // trips browser throttling and re-prefetches every result link.
     for (let value = 2950000; value >= 2000000; value -= 50000) {
@@ -89,7 +89,7 @@ describe("Papikos search page", () => {
   it("requires every selected amenity to be present (AND semantics)", () => {
     render(<SearchPage initialFilters={defaultFilters} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Dapur" }));
+    fireEvent.click(screen.getByRole("button", { name: "Kitchen" }));
     fireEvent.click(screen.getByRole("button", { name: "Laundry" }));
 
     const expected = filterListings(listings, {
@@ -97,7 +97,7 @@ describe("Papikos search page", () => {
       amenities: ["kitchen", "laundry"],
     });
 
-    expect(screen.getAllByText(/hasil$/)[0].textContent).toContain(
+    expect(screen.getAllByText(/^\d+ results$/)[0].textContent).toContain(
       String(expected.length),
     );
     expect(expected.length).toBeGreaterThan(0);
@@ -121,7 +121,7 @@ describe("Papikos search page", () => {
     expect(screen.getByDisplayValue("1000000")).toBeInTheDocument();
     expect(screen.getByDisplayValue("3000000")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Campur" }),
+      screen.getByRole("button", { name: "Mixed" }),
     ).toHaveAttribute("aria-pressed", "true");
     expect(
       screen.getByRole("button", { name: "Wi-Fi" }),
@@ -137,7 +137,7 @@ describe("Papikos search page", () => {
     expect(screen.getByText(fullyBooked!.name)).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole("checkbox", { name: "Masih ada kamar kosong" }),
+      screen.getByRole("checkbox", { name: "Has rooms available" }),
     );
 
     expect(screen.queryByText(fullyBooked!.name)).not.toBeInTheDocument();
@@ -154,7 +154,7 @@ describe("Papikos search page", () => {
     expect(screen.getByText(unverified!.name)).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole("checkbox", { name: "Hanya kos terverifikasi" }),
+      screen.getByRole("checkbox", { name: "Verified kos only" }),
     );
 
     expect(screen.queryByText(unverified!.name)).not.toBeInTheDocument();
@@ -201,9 +201,9 @@ describe("Papikos search page", () => {
       />,
     );
 
-    expect(screen.getByText("Belum ada kos yang cocok")).toBeInTheDocument();
+    expect(screen.getByText("No matching kos yet")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Atur ulang pencarian" }));
+    fireEvent.click(screen.getByRole("button", { name: "Reset search" }));
 
     expect(screen.getByText("Papikos Senja Setiabudi")).toBeInTheDocument();
     await waitFor(() => expect(window.location.search).toBe(""));
@@ -212,7 +212,7 @@ describe("Papikos search page", () => {
   it("persists favorites locally", async () => {
     render(<SearchPage initialFilters={defaultFilters} />);
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Simpan ke favorit" })[0]);
+    fireEvent.click(screen.getAllByRole("button", { name: "Save to favorites" })[0]);
 
     await waitFor(() =>
       expect(window.localStorage.getItem("papikos.favorites")).toContain(
@@ -231,10 +231,10 @@ describe("Papikos search page", () => {
 
     render(<SearchPage initialFilters={defaultFilters} />);
 
-    fireEvent.change(screen.getByLabelText("Lokasi"), {
+    fireEvent.change(screen.getByLabelText("Location"), {
       target: { value: "Surabaya" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Cari kos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Find a kos" }));
 
     expect(assign).not.toHaveBeenCalled();
     expect(screen.getByText("Ruang Teduh Keputih")).toBeInTheDocument();

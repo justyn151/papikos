@@ -65,7 +65,7 @@ describe("owner booking inbox", () => {
     seedBooking();
     render(<OwnerRequestsPage />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Setujui" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Approve" }));
 
     await waitFor(() => {
       const stored = JSON.parse(
@@ -92,7 +92,7 @@ describe("owner booking inbox", () => {
     seedBooking();
     render(<OwnerRequestsPage />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Tolak" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Reject" }));
 
     await waitFor(() => {
       const stored = JSON.parse(
@@ -112,9 +112,9 @@ describe("owner booking inbox", () => {
     });
     render(<OwnerRequestsPage />);
 
-    expect(await screen.findByText("Sudah diputuskan")).toBeInTheDocument();
+    expect(await screen.findByText("Already decided")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Setujui" }),
+      screen.queryByRole("button", { name: "Approve" }),
     ).not.toBeInTheDocument();
   });
 });
@@ -125,7 +125,7 @@ describe("owner question inbox", () => {
     render(<OwnerQuestionsPage />);
 
     expect(
-      await screen.findByRole("button", { name: "Kirim jawaban" }),
+      await screen.findByRole("button", { name: "Send answer" }),
     ).toBeDisabled();
   });
 
@@ -133,10 +133,10 @@ describe("owner question inbox", () => {
     seedQuestion();
     render(<OwnerQuestionsPage />);
 
-    fireEvent.change(await screen.findByLabelText("Jawabanmu"), {
-      target: { value: "Listrik dihitung per meter kamar." },
+    fireEvent.change(await screen.findByLabelText("Your answer"), {
+      target: { value: "Electricity dihitung per meter kamar." },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Kirim jawaban" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send answer" }));
 
     await waitFor(() => {
       const stored = JSON.parse(
@@ -144,7 +144,7 @@ describe("owner question inbox", () => {
       );
       expect(stored[0]).toMatchObject({
         status: "answered",
-        answer: "Listrik dihitung per meter kamar.",
+        answer: "Electricity dihitung per meter kamar.",
       });
     });
   });
@@ -155,7 +155,7 @@ describe("owner listings", () => {
     render(<OwnerListingsPage />);
 
     fireEvent.click(
-      (await screen.findAllByRole("button", { name: "Sembunyikan" }))[0],
+      (await screen.findAllByRole("button", { name: "Hide" }))[0],
     );
 
     await waitFor(() => {
@@ -187,9 +187,9 @@ describe("owner listings", () => {
     render(<OwnerListingsPage />);
 
     expect(
-      await screen.findByText("Ditangguhkan admin"),
+      await screen.findByText("Suspended by admin"),
     ).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Tayangkan" })[0]).toBeDisabled();
+    expect(screen.getAllByRole("button", { name: "Publish" })[0]).toBeDisabled();
   });
 });
 
@@ -199,8 +199,8 @@ describe("owner dashboard", () => {
     seedQuestion();
     render(<OwnerDashboardPage />);
 
-    expect(await screen.findByText("Permintaan menunggu")).toBeInTheDocument();
-    expect(screen.getByText("Pertanyaan belum dijawab")).toBeInTheDocument();
+    expect(await screen.findByText("Pending requests")).toBeInTheDocument();
+    expect(screen.getByText("Unanswered questions")).toBeInTheDocument();
     // One pending booking and one unanswered question.
     expect(screen.getAllByText("1").length).toBeGreaterThanOrEqual(2);
   });
@@ -209,7 +209,7 @@ describe("owner dashboard", () => {
     render(<OwnerDashboardPage />);
 
     expect(
-      await screen.findByText("Tidak ada yang perlu ditindak lanjuti."),
+      await screen.findByText("Nothing needs your attention."),
     ).toBeInTheDocument();
   });
 });

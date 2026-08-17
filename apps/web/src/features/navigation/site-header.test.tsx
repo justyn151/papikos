@@ -11,11 +11,11 @@ function renderHeader(overrides: Partial<Parameters<typeof SiteHeader>[0]> = {})
     theme: "light" as const,
     onToggleTheme: vi.fn(),
     loginHref: "/masuk",
-    loginLabel: "Masuk",
-    languageLabel: "Bahasa",
-    searchLabel: "Lokasi",
-    searchPlaceholder: "Kota, area, atau nama kos",
-    searchButtonLabel: "Cari kos",
+    loginLabel: "Sign in",
+    languageLabel: "Language",
+    searchLabel: "Location",
+    searchPlaceholder: "City, area, or property name",
+    searchButtonLabel: "Find a kos",
     searchValue: "",
     onSearchChange: vi.fn(),
     onSearchSubmit: vi.fn(),
@@ -32,7 +32,7 @@ describe("SiteHeader", () => {
     const header = screen.getByRole("banner");
     expect(header).toBeInTheDocument();
     expect(screen.getByLabelText("Papikos")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Masuk" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute(
       "href",
       "/masuk",
     );
@@ -42,7 +42,7 @@ describe("SiteHeader", () => {
   it("fires onSearchChange on every keystroke without submitting", () => {
     const props = renderHeader();
 
-    fireEvent.change(screen.getByLabelText("Lokasi"), {
+    fireEvent.change(screen.getByLabelText("Location"), {
       target: { value: "Band" },
     });
 
@@ -53,7 +53,7 @@ describe("SiteHeader", () => {
   it("submits the trimmed search value once on form submit", () => {
     const props = renderHeader({ searchValue: "  Bandung  " });
 
-    fireEvent.click(screen.getByRole("button", { name: "Cari kos" }));
+    fireEvent.click(screen.getByRole("button", { name: "Find a kos" }));
 
     expect(props.onSearchSubmit).toHaveBeenCalledTimes(1);
     expect(props.onSearchSubmit).toHaveBeenCalledWith("Bandung");
@@ -62,7 +62,7 @@ describe("SiteHeader", () => {
   it("submits on Enter within the search field", () => {
     const props = renderHeader({ searchValue: "Jakarta" });
 
-    fireEvent.submit(screen.getByLabelText("Lokasi").closest("form")!);
+    fireEvent.submit(screen.getByLabelText("Location").closest("form")!);
 
     expect(props.onSearchSubmit).toHaveBeenCalledWith("Jakarta");
   });
