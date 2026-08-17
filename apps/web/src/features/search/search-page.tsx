@@ -177,7 +177,11 @@ export function SearchPage({
             <div>
               {results.length > 0 ? (
                 <Reveal>
-                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                  {/* Two columns, not three: the filter rail takes 280px out
+                      of the same container the homepage gives three cards, so
+                      a third column here squeezes each card to 285px and the
+                      price and its button end up fighting for the same row. */}
+                  <div className="grid gap-6 md:grid-cols-2">
                     {results.map((listing, index) => (
                       <ListingCard
                         animationIndex={index}

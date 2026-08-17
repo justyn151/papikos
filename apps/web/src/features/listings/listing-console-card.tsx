@@ -86,11 +86,6 @@ export function ListingConsoleCard({
       <div className="relative shrink-0">
         <ListingArtwork listing={listing} />
         <div className="absolute right-4 top-4">{status}</div>
-        {discount ? (
-          <span className="absolute bottom-4 left-4 rounded-full bg-rose-600 px-2.5 py-1 text-xs font-black text-white shadow-lg">
-            -{discount}%
-          </span>
-        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col p-5">
@@ -130,8 +125,13 @@ export function ListingConsoleCard({
           <div className="flex items-end justify-between gap-3">
             <div>
               {discount ? (
-                <p className="text-xs font-bold text-slate-400 line-through dark:text-slate-500">
-                  {formatPrice(listing.price, locale)}
+                <p className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-400 line-through dark:text-slate-500">
+                    {formatPrice(listing.price, locale)}
+                  </span>
+                  <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[0.7rem] font-black text-white">
+                    -{discount}%
+                  </span>
                 </p>
               ) : null}
               <p className="text-lg font-black tracking-[-0.03em] text-slate-950 dark:text-slate-50">
