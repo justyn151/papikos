@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   ImagePlus,
+  LocateFixed,
   Plus,
   RotateCcw,
   Save,
@@ -19,6 +20,7 @@ import {
   galleryCategories,
   galleryCategoryLabels,
 } from "@/features/listings/gallery-categories";
+import { currentPosition, describePoint } from "@/features/listings/geocode";
 import { LazyListingMap } from "@/features/listings/listing-map-lazy";
 import {
   MIN_PRIVACY_RADIUS,
@@ -244,6 +246,8 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
   const [newCost, setNewCost] = useState("");
   const [costError, setCostError] = useState("");
   const [roomError, setRoomError] = useState("");
+  const [locating, setLocating] = useState(false);
+  const [locateNote, setLocateNote] = useState("");
 
   const edited = Boolean(override);
 
@@ -400,6 +404,34 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
           setNewRule("");
           setNewCost("");
           announce(t.resetDone);
+        };
+
+        // Fills the point, and the place names it can work out, from the
+        // browser's own location. Everything it writes stays editable: a
+        // geocoder that is confidently wrong about a neighbourhood is worse
+        // than one that says nothing, and only the owner knows which it was.
+        const useMyLocation = async () => {
+          setLocateNote("");
+          setLocating(true);
+
+          const point = await currentPosition();
+          if (!point) {
+            setLocating(false);
+            setLocateNote(t.locateDenied);
+            return;
+          }
+
+          const rounded = approximate(point);
+          const place = await describePoint(rounded);
+          setDraft((d) => ({
+            ...d,
+            ...rounded,
+            ...(place?.district ? { district: place.district } : {}),
+            ...(place?.city ? { city: place.city } : {}),
+            ...(place?.area ? { approximateArea: place.area } : {}),
+          }));
+          setLocating(false);
+          setLocateNote(place ? t.locateFilled : t.locateFilledPointOnly);
         };
 
         const addRoom = () => {
@@ -791,17 +823,29 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                 <p className={hint}>{t.privacyHint}</p>
 
                 <div className="mt-5">
-                  <p className="text-xs font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                    {t.mapLabel}
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs font-black uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                      {t.mapLabel}
+                    </p>
+                    <button
+                      className="btn-secondary gap-2"
+                      disabled={locating}
+                      onClick={useMyLocation}
+                      type="button"
+                    >
+                      <LocateFixed size={16} aria-hidden="true" />
+                      {locating ? t.locating : t.useMyLocation}
+                    </button>
+                  </div>
+
                   <div className="mt-2 h-72 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
                     <LazyListingMap
                       centre={{ lat: draft.lat, lng: draft.lng }}
-                      interactive
                       label={t.mapLabel}
-                      onMove={(next) =>
+                      onPick={(next) =>
                         setDraft((d) => ({ ...d, ...approximate(next) }))
                       }
+                      picking
                       radiusMeters={clampPrivacyRadius(
                         Number(draft.privacyRadiusMeters) || MIN_PRIVACY_RADIUS,
                       )}
@@ -813,6 +857,11 @@ export function OwnerEditPage({ listing: seed }: { listing: ListingDetail }) {
                       .replace("{lat}", draft.lat.toFixed(3))
                       .replace("{lng}", draft.lng.toFixed(3))}
                   </p>
+                  {locateNote ? (
+                    <p className="mt-2 text-xs font-bold text-blue-700 dark:text-blue-300">
+                      {locateNote}
+                    </p>
+                  ) : null}
                 </div>
               </section>
             ) : null}

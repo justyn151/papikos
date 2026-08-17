@@ -24,6 +24,22 @@ Completed owner and administrator capabilities:
 
 ## Completed Milestones
 
+### 17 August 2026 — A Map Owners Can Actually Use
+
+- Swapped OpenStreetMap's default raster for CARTO's Positron basemap: muted
+  greys and thin roads, so the kos circle is the loudest thing on the map. Both
+  credits are shown, as both licences require.
+- Every map pans and zooms now, on both sides. Only the scroll wheel stays off,
+  so scrolling the page past a map does not zoom it by accident.
+- The owner picks a location the way Gojek and Grab do it: a pin fixed at the
+  centre of the frame while the map slides underneath, which beats aiming a
+  fingertip on a phone. "Use my current location" fills the point and, through
+  OpenStreetMap's own geocoder, the district, city, and area name.
+- Everything it fills stays editable, and a failed lookup leaves what the owner
+  typed alone rather than blanking it. The geocoder is asked only when the
+  owner presses the button, never while they drag, and it is asked about the
+  rounded point — the precision stored is the precision disclosed.
+
 ### 17 August 2026 — A Real Map, Kept Approximate
 
 - The kos page draws an actual map (Leaflet with OpenStreetMap tiles) where it

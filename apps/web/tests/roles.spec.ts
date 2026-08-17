@@ -360,7 +360,25 @@ test("an owner moves the kos on the map and a renter sees it move", async ({
 
   const stored = page.getByText(/^Stored point:/);
   const before = await stored.innerText();
-  await page.locator(".leaflet-container").click({ position: { x: 60, y: 60 } });
+
+  // The map slides under a fixed pin, the way Gojek and Grab place a pickup:
+  // the point follows the frame rather than a fingertip.
+  const map = page.locator(".leaflet-container");
+  // It arrives with a dynamic import, so dragging the space where it will be
+  // does nothing at all.
+  await expect(map).toBeVisible();
+  await expect(page.locator(".leaflet-control-attribution")).toBeVisible();
+  // boundingBox is in page coordinates and the mouse works in viewport ones,
+  // so a map below the fold would be dragged from somewhere else entirely.
+  await map.scrollIntoViewIfNeeded();
+  const box = (await map.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 - 90, box.y + box.height / 2 - 60, {
+    steps: 12,
+  });
+  await page.mouse.up();
+
   await expect(stored).not.toHaveText(before);
 
   // Three decimals and no more: the point a renter can read is deliberately
@@ -375,4 +393,44 @@ test("an owner moves the kos on the map and a renter sees it move", async ({
   await waitForReady(page);
   await openEditorSection(page, "Availability");
   await expect(stored).toHaveText(moved);
+});
+
+test("an owner fills the location from the browser, and can still correct it", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["geolocation"]);
+  // Somewhere in Bandung, so the fill is visibly different from the seed.
+  await context.setGeolocation({ latitude: -6.8951, longitude: 107.6132 });
+  await page.route(/nominatim\.openstreetmap\.org/, (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        address: { suburb: "Lebak Siliwangi", city: "Bandung" },
+      }),
+    }),
+  );
+
+  await page.goto("/pemilik/kos/senja-setiabudi");
+  await waitForReady(page);
+  await openEditorSection(page, "Availability");
+
+  await page.getByRole("button", { name: "Use my current location" }).click();
+  await expect(page.getByText(/Map and area filled/)).toBeVisible();
+  await expect(page.getByLabel("Approximate area")).toHaveValue(
+    "Lebak Siliwangi, Bandung",
+  );
+  // Rounded on the way in: the browser's exact fix is never what gets stored.
+  await expect(page.getByText(/^Stored point:/)).toHaveText(
+    "Stored point: -6.895, 107.613",
+  );
+
+  // Everything it filled is still the owner's to correct.
+  await page.getByLabel("Approximate area").fill("Dago Atas, Bandung");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Changes saved.")).toBeVisible();
+
+  await page.goto("/kos/senja-setiabudi");
+  await waitForReady(page);
+  await expect(page.getByText("Approximate location: Dago Atas, Bandung")).toBeVisible();
 });

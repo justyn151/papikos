@@ -10,15 +10,15 @@ const BLANK_TILE = Buffer.from(
 );
 
 /**
- * Map tiles come from OpenStreetMap's servers, which the suite must not depend
- * on: a test should not fail because a third party is slow, and a CI run should
- * not send them traffic their tile policy asks us not to send. Everything the
- * app itself draws — the privacy circle, the attribution, the controls — is
- * still real.
+ * Map tiles come from a third party, which the suite must not depend on: a
+ * test should not fail because someone else is slow, and a CI run should not
+ * send them traffic their policy asks us not to send. Everything the app
+ * itself draws — the privacy circle, the attribution, the pin, the controls —
+ * is still real.
  */
 export const test = base.extend({
   page: async ({ page }, use) => {
-    await page.route(/tile\.openstreetmap\.org/, (route) =>
+    await page.route(/basemaps\.cartocdn\.com|tile\.openstreetmap\.org/, (route) =>
       route.fulfill({ body: BLANK_TILE, contentType: "image/png", status: 200 }),
     );
     await use(page);

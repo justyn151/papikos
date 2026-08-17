@@ -39,9 +39,9 @@ This file tracks unfinished product work. Move completed items to [PROGRESS.md](
 - [ ] Move search onto the map: results as circles, "search this area" from the
       viewport, and a decision on how map bounds combine with the existing
       filters. The detail page and the owner's pin landed on 17 August 2026.
-- [ ] Replace OpenStreetMap's public tiles before this is anything but a
-      prototype — their tile policy rules out app traffic. One URL and one
-      attribution string in `listing-map.tsx`, plus an API key in the
-      environment for a keyed provider.
+- [ ] Move tiles and geocoding onto paid or self-hosted infrastructure before
+      this is anything but a prototype: CARTO's basemaps and Nominatim both
+      publish limits that rule out app traffic. One URL and one attribution
+      string in `listing-map.tsx`, one URL in `geocode.ts`.
 - [ ] Add accessibility audits, performance budgets, error monitoring, and API observability.
 - [ ] Add integration coverage for authorization, validation, and meaningful API failure paths.

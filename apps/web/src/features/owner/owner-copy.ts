@@ -88,8 +88,15 @@ export const ownerCopy = {
       "Lokasi persis tidak ditampilkan sebelum permintaan disetujui. Peta menampilkan lingkaran seluas radius ini.",
     mapLabel: "Titik perkiraan kos",
     mapHint:
-      "Klik peta untuk memindahkan lingkaran. Yang disimpan hanya titik yang sudah dibulatkan, bukan alamat persis.",
+      "Geser peta sampai pin berada di lokasi kosmu. Yang disimpan hanya titik yang sudah dibulatkan, bukan alamat persis.",
     mapPoint: "Titik tersimpan: {lat}, {lng}",
+    useMyLocation: "Pakai lokasi saya",
+    locating: "Mencari lokasi…",
+    locateDenied:
+      "Lokasi tidak bisa diambil. Izinkan akses lokasi di browser, atau geser peta sendiri.",
+    locateFilled: "Peta dan area diisi dari lokasimu. Periksa dan ubah bila perlu.",
+    locateFilledPointOnly:
+      "Peta dipindahkan ke lokasimu. Nama area tidak ditemukan, tulis sendiri di atas.",
     cityHint: "Kota dipakai untuk filter pencarian, tulis persis seperti umumnya.",
 
     roomsSection: "Kamar",
@@ -268,8 +275,15 @@ export const ownerCopy = {
       "The exact address stays hidden until a request is approved. The map shows a circle this wide instead.",
     mapLabel: "Approximate point for this kos",
     mapHint:
-      "Click the map to move the circle. Only the rounded point is stored, never the exact address.",
+      "Drag the map until the pin sits on your kos. Only the rounded point is stored, never the exact address.",
     mapPoint: "Stored point: {lat}, {lng}",
+    useMyLocation: "Use my current location",
+    locating: "Finding you…",
+    locateDenied:
+      "Could not read your location. Allow location access in the browser, or drag the map instead.",
+    locateFilled: "Map and area filled from your location. Check them and edit if needed.",
+    locateFilledPointOnly:
+      "Map moved to your location. No area name was found, so write one above.",
     cityHint: "The city drives search filters, so write it the usual way.",
 
     roomsSection: "Rooms",
